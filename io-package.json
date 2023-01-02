@@ -63,7 +63,7 @@
 		"connectionType": "local",
 		"dataSource": "poll",
 		"adminUI": {
-			"config": "materialize"
+			"config": "json"
 		},
 		"eraseOnUpload": true,
 		"dependencies": [
@@ -73,7 +73,7 @@
 		],
 		"globalDependencies": [
 			{
-				"admin": ">=5.0.0"
+				"admin": ">=5.1.28"
 			}
 		]
 	},
