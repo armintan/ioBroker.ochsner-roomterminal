@@ -13,7 +13,7 @@
 
 ## ochsner-roomterminal adapter for ioBroker
 
-Interface to the Ochsner Roomterminal Webserver (web2comm)
+Integrate with Ochsner Roomterminal Webserver (web2comm)
 
 ## Changelog
 

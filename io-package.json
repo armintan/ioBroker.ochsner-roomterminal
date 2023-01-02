@@ -41,8 +41,14 @@
 			"pl": "Interfejs do serwera sieciowego Ochsner Roomterminal (web2comm)",
 			"zh-cn": "Ochsner Roomterminal Web 服务器 (web2comm) 的接口"
 		},
-		"authors": ["Armin Stegerer <Armin.Stegerer@t-online.de>"],
-		"keywords": ["ochsner", "heatpump", "web2comm"],
+		"authors": [
+			"Armin Stegerer <Armin.Stegerer@t-online.de>"
+		],
+		"keywords": [
+			"ochsner",
+			"heatpump",
+			"web2comm"
+		],
 		"license": "MIT",
 		"platform": "Javascript/Node.js",
 		"main": "build/main.js",
