@@ -17,21 +17,65 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var __accessCheck = (obj, member, msg) => {
+  if (!member.has(obj))
+    throw TypeError("Cannot " + msg);
+};
+var __privateGet = (obj, member, getter) => {
+  __accessCheck(obj, member, "read from private field");
+  return getter ? getter.call(obj) : member.get(obj);
+};
+var __privateAdd = (obj, member, value) => {
+  if (member.has(obj))
+    throw TypeError("Cannot add the same private member more than once");
+  member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
+};
+var __privateSet = (obj, member, value, setter) => {
+  __accessCheck(obj, member, "write to private field");
+  setter ? setter.call(obj, value) : member.set(obj, value);
+  return value;
+};
 var utils = __toESM(require("@iobroker/adapter-core"));
+var import_digest_fetch = __toESM(require("digest-fetch"));
+var _deviceInfoUrl;
 class OchsnerRoomterminal extends utils.Adapter {
   constructor(options = {}) {
     super({
       ...options,
       name: "ochsner-roomterminal"
     });
+    __privateAdd(this, _deviceInfoUrl, "");
     this.on("ready", this.onReady.bind(this));
     this.on("stateChange", this.onStateChange.bind(this));
     this.on("unload", this.onUnload.bind(this));
   }
   async onReady() {
-    this.setState("info.connection", true, true);
-    this.log.info("config option1: " + this.config.option1);
-    this.log.info("config option2: " + this.config.option2);
+    this.main();
+  }
+  onUnload(callback) {
+    try {
+      callback();
+    } catch (e) {
+      callback();
+    }
+  }
+  onStateChange(id, state) {
+    if (state) {
+      this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+    } else {
+      this.log.info(`state ${id} deleted`);
+    }
+  }
+  async main() {
+    this.setState("info.connection", false, true);
+    __privateSet(this, _deviceInfoUrl, `http://${this.config.serverIP}/api/1.0/info/deviceinfo`);
+    this.log.info("config username: " + this.config.username);
+    this.log.info("config password: " + this.config.password);
+    this.log.info("config serverIP: " + this.config.serverIP);
+    this.log.info("config pollInterval: " + this.config.pollInterval);
+    if (await this.checkForConnection()) {
+      this.setState("info.connection", true, true);
+    }
     await this.setObjectNotExistsAsync("testVariable", {
       type: "state",
       common: {
@@ -52,21 +96,30 @@ class OchsnerRoomterminal extends utils.Adapter {
     result = await this.checkGroupAsync("admin", "admin");
     this.log.info("check group user admin group admin: " + result);
   }
-  onUnload(callback) {
+  async checkForConnection() {
+    const client = new import_digest_fetch.default(this.config.username, this.config.password);
+    const options = {
+      method: "get",
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+        "Cache-Control": "no-cache",
+        Connection: "Keep-Alive",
+        Accept: "*.*"
+      }
+    };
+    this.log.info("DeviceInfo URL: " + __privateGet(this, _deviceInfoUrl));
     try {
-      callback();
-    } catch (e) {
-      callback();
+      const response = await client.fetch(__privateGet(this, _deviceInfoUrl), options);
+      const data = await response.json();
+      this.log.info("Device info: " + JSON.stringify(data));
+    } catch (error) {
+      this.log.error("DeviceInfo Error with: " + JSON.stringify(error, null, 2));
+      return false;
     }
-  }
-  onStateChange(id, state) {
-    if (state) {
-      this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-    } else {
-      this.log.info(`state ${id} deleted`);
-    }
+    return true;
   }
 }
+_deviceInfoUrl = new WeakMap();
 if (require.main !== module) {
   module.exports = (options) => new OchsnerRoomterminal(options);
 } else {
