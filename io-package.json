@@ -1,108 +1,113 @@
 {
-	"common": {
-		"name": "ochsner-roomterminal",
-		"version": "0.0.1",
-		"news": {
-			"0.0.1": {
-				"en": "initial release",
-				"de": "Erstveröffentlichung",
-				"ru": "Начальная версия",
-				"pt": "lançamento inicial",
-				"nl": "Eerste uitgave",
-				"fr": "Première version",
-				"it": "Versione iniziale",
-				"es": "Versión inicial",
-				"pl": "Pierwsze wydanie",
-				"zh-cn": "首次出版"
-			}
-		},
-		"title": "Ochsner Roomterminal Webserver (web2comm)",
-		"titleLang": {
-			"en": "Ochsner Roomterminal Webserver (web2comm)",
-			"de": "Ochsner Zimmerterminal Webserver (web2comm)",
-			"ru": "Веб-сервер Ochsner Roomterminal (web2comm)",
-			"pt": "Ochsner Roomterminal Webserver (web2comm)",
-			"nl": "Ochsner Roomterminal-webserver (web2comm)",
-			"fr": "Serveur Web Ochsner Roomterminal (web2comm)",
-			"it": "Ochsner Roomterminal Webserver (web2comm)",
-			"es": "Servidor web Ochsner Roomterminal (web2comm)",
-			"pl": "Serwer sieciowy terminala pokojowego firmy Ochsner (web2comm)",
-			"zh-cn": "Ochsner Roomterminal Web 服务器 (web2comm)"
-		},
-		"desc": {
-			"en": "Interface to the Ochsner Roomterminal Webserver (web2comm)",
-			"de": "Schnittstelle zum Ochsner Roomterminal Webserver (web2comm)",
-			"ru": "Интерфейс к веб-серверу Ochsner Roomterminal (web2comm)",
-			"pt": "Interface para o Webserver Ochsner Roomterminal (web2comm)",
-			"nl": "Interface naar de Ochsner Roomterminal-webserver (web2comm)",
-			"fr": "Interface avec le serveur Web Ochsner Roomterminal (web2comm)",
-			"it": "Interfaccia per il server web Ochsner Roomterminal (web2comm)",
-			"es": "Interfaz para el servidor web Ochsner Roomterminal (web2comm)",
-			"pl": "Interfejs do serwera sieciowego Ochsner Roomterminal (web2comm)",
-			"zh-cn": "Ochsner Roomterminal Web 服务器 (web2comm) 的接口"
-		},
-		"authors": [
-			"Armin Stegerer <Armin.Stegerer@t-online.de>"
-		],
-		"keywords": [
-			"ochsner",
-			"heatpump",
-			"web2comm"
-		],
-		"license": "MIT",
-		"platform": "Javascript/Node.js",
-		"main": "build/main.js",
-		"icon": "ochsner-roomterminal.png",
-		"enabled": true,
-		"extIcon": "https://raw.githubusercontent.com/Armin Stegerer/ioBroker.ochsner-roomterminal/main/admin/ochsner-roomterminal.png",
-		"readme": "https://github.com/Armin Stegerer/ioBroker.ochsner-roomterminal/blob/main/README.md",
-		"loglevel": "info",
-		"mode": "daemon",
-		"type": "climate-control",
-		"compact": true,
-		"connectionType": "local",
-		"dataSource": "poll",
-		"adminUI": {
-			"config": "json"
-		},
-		"eraseOnUpload": true,
-		"dependencies": [
-			{
-				"js-controller": ">=3.3.22"
-			}
-		],
-		"globalDependencies": [
-			{
-				"admin": ">=5.1.28"
-			}
-		]
-	},
-	"native": {
-		"option1": true,
-		"option2": "42"
-	},
-	"objects": [],
-	"instanceObjects": [
-		{
-			"_id": "info",
-			"type": "channel",
-			"common": {
-				"name": "Information"
-			},
-			"native": {}
-		},
-		{
-			"_id": "info.connection",
-			"type": "state",
-			"common": {
-				"role": "indicator.connected",
-				"name": "Device or service connected",
-				"type": "boolean",
-				"read": true,
-				"write": false,
-				"def": false
-			},
-			"native": {}
-		}
-	]
+    "common": {
+        "name": "ochsner-roomterminal",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "zh-cn": "首次出版",
+                "uk": "початковий випуск"
+            }
+        },
+        "title": "Ochsner Roomterminal Webserver (web2comm)",
+        "titleLang": {
+            "en": "Ochsner Roomterminal (web2comm)",
+            "de": "Ochsner Roomterminal (web2comm)",
+            "ru": "Ochsner Roomterminal (web2comm)",
+            "pt": "Ochsner Roomterminal (web2comm)",
+            "nl": "Ochsner Roomterminal (web2comm)",
+            "fr": "Ochsner Roomterminal (web2comm)",
+            "it": "Ochsner Roomterminal (web2comm)",
+            "es": "Ochsner Roomterminal (web2comm)",
+            "pl": "Ochsner Room (ang.)",
+            "uk": "Ochsner Roomterminal (web2comm)",
+            "zh-cn": "常驻代表"
+        },
+        "desc": {
+            "en": "Interface to the Ochsner Roomterminal (web2comm)",
+            "de": "Schnittstelle zum Ochsner Roomterminal (web2comm)",
+            "ru": "Интерфейс к Ochsner Roomterminal (web2comm)",
+            "pt": "Interface para o Ochsner Roomterminal (web2comm)",
+            "nl": "Vertaling:",
+            "fr": "Interface de l'Ochsner Roomterminal (web2comm)",
+            "it": "Interfaccia a Ochsner Roomterminal (web2comm)",
+            "es": "Interfaz al Ochsner Roomterminal (web2comm)",
+            "pl": "Strona internetowa Ochsner Room terminal (web2comm)",
+            "uk": "Інтерфейс в Ochsner Roomterminal (web2comm)",
+            "zh-cn": "临时代办"
+        },
+        "authors": [
+            "Armin Stegerer <Armin.Stegerer@t-online.de>"
+        ],
+        "keywords": [
+            "ochsner",
+            "heatpump",
+            "web2comm"
+        ],
+        "license": "MIT",
+        "platform": "Javascript/Node.js",
+        "main": "build/main.js",
+        "icon": "ochsner-roomterminal.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/Armin Stegerer/ioBroker.ochsner-roomterminal/main/admin/ochsner-roomterminal.png",
+        "readme": "https://github.com/Armin Stegerer/ioBroker.ochsner-roomterminal/blob/main/README.md",
+        "loglevel": "info",
+        "mode": "daemon",
+        "type": "climate-control",
+        "compact": true,
+        "connectionType": "local",
+        "dataSource": "poll",
+        "adminUI": {
+            "config": "json"
+        },
+        "eraseOnUpload": true,
+        "dependencies": [
+            {
+                "js-controller": ">=3.3.22"
+            }
+        ],
+        "globalDependencies": [
+            {
+                "admin": ">=5.1.28"
+            }
+        ]
+    },
+    "native": {
+        "username": "USER",
+        "password": "123",
+        "serverIP": "192.168.0.10",
+        "pollInterval": 5000
+    },
+    "objects": [],
+    "instanceObjects": [
+        {
+            "_id": "info",
+            "type": "channel",
+            "common": {
+                "name": "Information"
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "role": "indicator.connected",
+                "name": "Device or service connected",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        }
+    ]
 }

@@ -1,0 +1,11 @@
+{
+    "Options": "Opções",
+    "Username": "Nome do usuário",
+    "Password": "Senha",
+    "Server": "Servidor",
+    "Interval": "Intervalo",
+    "Your username for the Ochsner Roomterminal": "Seu nome de usuário para o Ochsner Roomterminal",
+    "Your password for the Ochsner Roomterminal": "Sua senha para o Ochsner Roomterminal",
+    "Your IP or hostname of the Ochsner Roomterminal": "Seu IP ou nome de host do Ochsner Roomterminal",
+    "Interval in ms between single OID requests": "Intervalo em ms entre solicitações OID únicas"
+}
