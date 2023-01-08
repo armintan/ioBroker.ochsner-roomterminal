@@ -17,34 +17,15 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
-var __accessCheck = (obj, member, msg) => {
-  if (!member.has(obj))
-    throw TypeError("Cannot " + msg);
-};
-var __privateGet = (obj, member, getter) => {
-  __accessCheck(obj, member, "read from private field");
-  return getter ? getter.call(obj) : member.get(obj);
-};
-var __privateAdd = (obj, member, value) => {
-  if (member.has(obj))
-    throw TypeError("Cannot add the same private member more than once");
-  member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
-};
-var __privateSet = (obj, member, value, setter) => {
-  __accessCheck(obj, member, "write to private field");
-  setter ? setter.call(obj, value) : member.set(obj, value);
-  return value;
-};
 var utils = __toESM(require("@iobroker/adapter-core"));
 var import_digest_fetch = __toESM(require("digest-fetch"));
-var _deviceInfoUrl;
 class OchsnerRoomterminal extends utils.Adapter {
   constructor(options = {}) {
     super({
       ...options,
       name: "ochsner-roomterminal"
     });
-    __privateAdd(this, _deviceInfoUrl, "");
+    this.deviceInfoUrl = "";
     this.on("ready", this.onReady.bind(this));
     this.on("stateChange", this.onStateChange.bind(this));
     this.on("unload", this.onUnload.bind(this));
@@ -68,7 +49,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   }
   async main() {
     this.setState("info.connection", false, true);
-    __privateSet(this, _deviceInfoUrl, `http://${this.config.serverIP}/api/1.0/info/deviceinfo`);
+    this.deviceInfoUrl = `http://${this.config.serverIP}/api/1.0/info/deviceinfo`;
     if (!this.config.serverIP) {
       this.log.error("Server IP address configuration must not be emtpy");
       return;
@@ -123,9 +104,9 @@ class OchsnerRoomterminal extends utils.Adapter {
         Accept: "*.*"
       }
     };
-    this.log.debug("DeviceInfo URL: " + __privateGet(this, _deviceInfoUrl));
+    this.log.debug("DeviceInfo URL: " + this.deviceInfoUrl);
     try {
-      const response = await client.fetch(__privateGet(this, _deviceInfoUrl), options);
+      const response = await client.fetch(this.deviceInfoUrl, options);
       const data = await response.json();
       this.log.info("DeviceInfo: " + JSON.stringify(data));
     } catch (error) {
@@ -135,7 +116,6 @@ class OchsnerRoomterminal extends utils.Adapter {
     return true;
   }
 }
-_deviceInfoUrl = new WeakMap();
 if (require.main !== module) {
   module.exports = (options) => new OchsnerRoomterminal(options);
 } else {

@@ -11,7 +11,7 @@ import DigestFetch from 'digest-fetch';
 // import * as fs from "fs";
 
 class OchsnerRoomterminal extends utils.Adapter {
-	#deviceInfoUrl = '';
+	private deviceInfoUrl = '';
 
 	public constructor(options: Partial<utils.AdapterOptions> = {}) {
 		super({
@@ -109,7 +109,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		this.setState('info.connection', false, true);
 
 		// Initialize private instance variables
-		this.#deviceInfoUrl = `http://${this.config.serverIP}/api/1.0/info/deviceinfo`;
+		this.deviceInfoUrl = `http://${this.config.serverIP}/api/1.0/info/deviceinfo`;
 
 		// The adapters config (in the instance object everything under the attribute "native") is accessible via
 		// this.config:
@@ -215,9 +215,9 @@ class OchsnerRoomterminal extends utils.Adapter {
 				Accept: '*.*',
 			},
 		};
-		this.log.debug('DeviceInfo URL: ' + this.#deviceInfoUrl);
+		this.log.debug('DeviceInfo URL: ' + this.deviceInfoUrl);
 		try {
-			const response = await client.fetch(this.#deviceInfoUrl, options);
+			const response = await client.fetch(this.deviceInfoUrl, options);
 			const data = await response.json();
 			this.log.info('DeviceInfo: ' + JSON.stringify(data));
 		} catch (error) {
