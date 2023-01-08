@@ -108,20 +108,27 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// Reset the connection indicator during startup
 		this.setState('info.connection', false, true);
 
-		// Initialize class variables
+		// Initialize private instance variables
 		this.#deviceInfoUrl = `http://${this.config.serverIP}/api/1.0/info/deviceinfo`;
 
 		// The adapters config (in the instance object everything under the attribute "native") is accessible via
 		// this.config:
+		if (!this.config.serverIP) {
+			this.log.error('Server IP address configuration must not be emtpy');
+			return;
+		}
+
 		this.log.info('config username: ' + this.config.username);
-		this.log.info('config password: ' + this.config.password);
+		// this.log.info('config password: ' + this.config.password);
 		this.log.info('config serverIP: ' + this.config.serverIP);
 		this.log.info('config pollInterval: ' + this.config.pollInterval);
 
 		// check if connection to server is available with given credentials
-		if (await this.checkForConnection()) {
-			this.setState('info.connection', true, true);
+		const connected = await this.checkForConnection();
+		if (!connected) {
+			return;
 		}
+		this.setState('info.connection', true, true);
 
 		/*
 	For every state in the system there has to be also an object of type state
@@ -167,8 +174,29 @@ class OchsnerRoomterminal extends utils.Adapter {
 
 		result = await this.checkGroupAsync('admin', 'admin');
 		this.log.info('check group user admin group admin: ' + result);
+
+		// Start polling the OID's with the given pollingIntervall
+		this.poll();
 	}
 
+	private wait(t: number): Promise<number> {
+		return new Promise((s) => setTimeout(s, t, t));
+	}
+
+	private async poll(): Promise<void> {
+		this.log.info('Polling....');
+
+		try {
+			await this.wait(this.config.pollInterval);
+		} catch (error) {
+			this.log.error(JSON.stringify(error));
+		}
+		this.poll();
+	}
+	/**
+	 * Ochnser API for getting the DeviceInfo
+	 * @returns
+	 */
 	private async checkForConnection(): Promise<boolean> {
 		const client = new DigestFetch(this.config.username, this.config.password);
 
@@ -181,13 +209,13 @@ class OchsnerRoomterminal extends utils.Adapter {
 				Accept: '*.*',
 			},
 		};
-		this.log.info('DeviceInfo URL: ' + this.#deviceInfoUrl);
+		this.log.debug('DeviceInfo URL: ' + this.#deviceInfoUrl);
 		try {
 			const response = await client.fetch(this.#deviceInfoUrl, options);
 			const data = await response.json();
-			this.log.info('Device info: ' + JSON.stringify(data));
+			this.log.info('DeviceInfo: ' + JSON.stringify(data));
 		} catch (error) {
-			this.log.error('DeviceInfo Error with: ' + JSON.stringify(error, null, 2));
+			this.log.error('Invalid username, password of server IP-address');
 			return false;
 		}
 		return true;
