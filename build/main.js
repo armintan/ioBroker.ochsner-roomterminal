@@ -102,17 +102,15 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.log.info("check group user admin group admin: " + result);
     this.poll();
   }
+  async poll() {
+    this.log.debug("Polling....");
+    this.wait(this.config.pollInterval).then(() => this.poll()).catch((error) => {
+      this.log.error(JSON.stringify(error));
+      this.poll();
+    });
+  }
   wait(t) {
     return new Promise((s) => setTimeout(s, t, t));
-  }
-  async poll() {
-    this.log.info("Polling....");
-    try {
-      await this.wait(this.config.pollInterval);
-    } catch (error) {
-      this.log.error(JSON.stringify(error));
-    }
-    this.poll();
   }
   async checkForConnection() {
     const client = new import_digest_fetch.default(this.config.username, this.config.password);

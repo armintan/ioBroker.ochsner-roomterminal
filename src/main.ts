@@ -179,19 +179,25 @@ class OchsnerRoomterminal extends utils.Adapter {
 		this.poll();
 	}
 
-	private wait(t: number): Promise<number> {
-		return new Promise((s) => setTimeout(s, t, t));
+	private async poll(): Promise<void> {
+		this.log.debug('Polling....');
+
+		// wait for the next value to read, log error (just in case)
+		this.wait(this.config.pollInterval)
+			.then(() => this.poll())
+			.catch((error) => {
+				this.log.error(JSON.stringify(error));
+				this.poll();
+			});
 	}
 
-	private async poll(): Promise<void> {
-		this.log.info('Polling....');
-
-		try {
-			await this.wait(this.config.pollInterval);
-		} catch (error) {
-			this.log.error(JSON.stringify(error));
-		}
-		this.poll();
+	/**
+	 * Wait helper function, used in polling routine
+	 * @param t time to wait
+	 * @returns Promise<number>
+	 */
+	private wait(t: number): Promise<number> {
+		return new Promise((s) => setTimeout(s, t, t));
 	}
 	/**
 	 * Ochnser API for getting the DeviceInfo
