@@ -92,7 +92,19 @@
             "_id": "info",
             "type": "channel",
             "common": {
-                "name": "Information"
+                "name": {
+                    "en": "Information",
+                    "de": "Informationen",
+                    "ru": "Информация",
+                    "pt": "Informação",
+                    "nl": "Informatie",
+                    "fr": "Information",
+                    "it": "Informazioni",
+                    "es": "Información",
+                    "pl": "Informacja",
+                    "uk": "Інформація",
+                    "zh-cn": "信息"
+                }
             },
             "native": {}
         },
@@ -100,12 +112,92 @@
             "_id": "info.connection",
             "type": "state",
             "common": {
-                "role": "indicator.connected",
-                "name": "Device or service connected",
+                "name": {
+                    "en": "Device or service connected",
+                    "de": "Geräte- oder Serviceanschluss",
+                    "ru": "Устройство или сервис подключены",
+                    "pt": "Dispositivo ou serviço conectado",
+                    "nl": "Device of dienst verbonden",
+                    "fr": "Appareil ou service connecté",
+                    "it": "Dispositivo o servizio collegato",
+                    "es": "Dispositivo o servicio conectado",
+                    "pl": "Device",
+                    "uk": "Пристрої або послуги підключені",
+                    "zh-cn": "证人或有关服务"
+                },
                 "type": "boolean",
+                "role": "indicator.connected",
                 "read": true,
                 "write": false,
                 "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "deviceInfo",
+            "type": "channel",
+            "common": {
+                "name": {
+                    "en": "Device information",
+                    "de": "Informationen zum Produkt",
+                    "ru": "Информация об устройстве",
+                    "pt": "InformaÃ§Ã£o do dispositivo",
+                    "nl": "Device Informatie",
+                    "fr": "Information sur les dispositifs",
+                    "it": "Informazioni sul dispositivo",
+                    "es": "Información sobre dispositivos",
+                    "pl": "Device Information",
+                    "uk": "Інформація про пристрій",
+                    "zh-cn": "证人信息"
+                }
+            },
+            "native": {}
+        },
+        {
+            "_id": "deviceInfo.name",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Device name",
+                    "de": "Name des Geräts",
+                    "ru": "Наименование устройства",
+                    "pt": "Nome do dispositivo",
+                    "nl": "Vernietig Name",
+                    "fr": "Nom du dispositif",
+                    "it": "Nome del dispositivo",
+                    "es": "Nombre del dispositivo",
+                    "pl": "Nazwisko",
+                    "uk": "Назва пристрою",
+                    "zh-cn": "Device姓名"
+                },
+                "type": "string",
+                "role": "text",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "deviceInfo.version",
+            "type": "state",
+            "common": {
+                "name": {
+                    "en": "Device version",
+                    "de": "Geräteversion",
+                    "ru": "Версия устройства",
+                    "pt": "Versão do dispositivo",
+                    "nl": "Vertaling:",
+                    "fr": "Version du dispositif",
+                    "it": "Versione del dispositivo",
+                    "es": "Versión del dispositivo",
+                    "pl": "Wersja Device",
+                    "uk": "Версія пристрою",
+                    "zh-cn": "目 录"
+                },
+                "type": "string",
+                "role": "text",
+                "read": true,
+                "write": false
             },
             "native": {}
         }

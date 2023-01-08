@@ -74,13 +74,6 @@ class OchsnerRoomterminal extends utils.Adapter {
       native: {}
     });
     this.subscribeStates("testVariable");
-    await this.setStateAsync("testVariable", true);
-    await this.setStateAsync("testVariable", { val: true, ack: true });
-    await this.setStateAsync("testVariable", { val: true, ack: true, expire: 30 });
-    let result = await this.checkPasswordAsync("admin", "iobroker");
-    this.log.info("check user admin pw iobroker: " + result);
-    result = await this.checkGroupAsync("admin", "admin");
-    this.log.info("check group user admin group admin: " + result);
     this.poll();
   }
   async poll() {
@@ -109,8 +102,10 @@ class OchsnerRoomterminal extends utils.Adapter {
       const response = await client.fetch(this.deviceInfoUrl, options);
       const data = await response.json();
       this.log.info("DeviceInfo: " + JSON.stringify(data));
+      await this.setStateAsync("deviceInfo.name", { val: data.device, ack: true });
+      await this.setStateAsync("deviceInfo.version", { val: data.version, ack: true });
     } catch (error) {
-      this.log.error("Invalid username, password of server IP-address");
+      this.log.error("Invalid username, password or server IP-address in adapter configuration");
       return false;
     }
     return true;
