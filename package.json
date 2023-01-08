@@ -22,7 +22,8 @@
   },
   "dependencies": {
     "@iobroker/adapter-core": "^2.6.7",
-    "digest-fetch": "^2.0.1"
+    "digest-fetch": "^2.0.1",
+    "node-fetch": "^3.3.0"
   },
   "devDependencies": {
     "@alcalzone/release-script": "^3.5.9",
