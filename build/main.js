@@ -26,6 +26,7 @@ class OchsnerRoomterminal extends utils.Adapter {
       name: "ochsner-roomterminal"
     });
     this.deviceInfoUrl = "";
+    this.timeoutID = void 0;
     this.on("ready", this.onReady.bind(this));
     this.on("stateChange", this.onStateChange.bind(this));
     this.on("unload", this.onUnload.bind(this));
@@ -35,8 +36,12 @@ class OchsnerRoomterminal extends utils.Adapter {
   }
   onUnload(callback) {
     try {
+      this.log.debug("calling clearInterval ...");
+      clearInterval(this.timeoutID);
+      this.log.debug("clearInterval succeeded");
       callback();
     } catch (e) {
+      this.log.debug(`clearInterval error`);
       callback();
     }
   }
@@ -84,7 +89,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     });
   }
   wait(t) {
-    return new Promise((s) => setTimeout(s, t, t));
+    return new Promise((s) => this.timeoutID = setTimeout(s, t, t));
   }
   async checkForConnection() {
     const client = new import_digest_fetch.default(this.config.username, this.config.password);

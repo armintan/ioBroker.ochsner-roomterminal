@@ -12,6 +12,7 @@ import DigestFetch from 'digest-fetch';
 
 class OchsnerRoomterminal extends utils.Adapter {
 	private deviceInfoUrl = '';
+	private timeoutID: NodeJS.Timeout | string | number | undefined = undefined;
 
 	public constructor(options: Partial<utils.AdapterOptions> = {}) {
 		super({
@@ -38,14 +39,13 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 */
 	private onUnload(callback: () => void): void {
 		try {
-			// Here you must clear all timeouts or intervals that may still be active
-			// clearTimeout(timeout1);
-			// clearTimeout(timeout2);
-			// ...
-			// clearInterval(interval1);
-
+			// Clear timeout still may be active
+			this.log.debug('calling clearInterval ...');
+			clearInterval(this.timeoutID);
+			this.log.debug('clearInterval succeeded');
 			callback();
 		} catch (e) {
+			this.log.debug(`clearInterval error`);
 			callback();
 		}
 	}
@@ -59,7 +59,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	// 	if (obj) {
 	// 		// The object was changed
 	// 		this.log.info(`object ${id} changed: ${JSON.stringify(obj)}`);
-	// 	} else {
+	// 	} else { 17058
 	// 		// The object was deleted
 	// 		this.log.info(`object ${id} deleted`);
 	// 	}
@@ -175,8 +175,8 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 * @param t time to wait
 	 * @returns Promise<number>
 	 */
-	private wait(t: number): Promise<number> {
-		return new Promise((s) => setTimeout(s, t, t));
+	private wait(t: number): Promise<number | void> {
+		return new Promise((s) => (this.timeoutID = setTimeout(s, t, t)));
 	}
 	/**
 	 * Ochnser API for getting the DeviceInfo
