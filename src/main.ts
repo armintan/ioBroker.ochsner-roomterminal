@@ -39,13 +39,12 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 */
 	private onUnload(callback: () => void): void {
 		try {
-			// Clear timeout still may be active
-			this.log.debug('calling clearInterval ...');
-			clearInterval(this.timeoutID);
-			this.log.debug('clearInterval succeeded');
+			// timeout may still may active -> clear to stop polling
+			clearTimeout(this.timeoutID);
+			this.log.debug('clear polling succeeded');
 			callback();
 		} catch (e) {
-			this.log.debug(`clearInterval error`);
+			this.log.debug(`clear timeout error: ${JSON.stringify(e, null, 2)}`);
 			callback();
 		}
 	}
