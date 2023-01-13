@@ -8,7 +8,9 @@ import * as utils from '@iobroker/adapter-core';
 
 // Load your modules here, e.g.:
 import DigestFetch from 'digest-fetch';
+import packageJson from '../package.json';
 // import * as fs from "fs";
+const adapterName = packageJson.name.split('.').pop();
 
 class OchsnerRoomterminal extends utils.Adapter {
 	private deviceInfoUrl = '';
@@ -17,7 +19,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	public constructor(options: Partial<utils.AdapterOptions> = {}) {
 		super({
 			...options,
-			name: 'ochsner-roomterminal',
+			name: adapterName!,
 		});
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
@@ -31,6 +33,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 */
 	private async onReady(): Promise<void> {
 		// Initialize your adapter here
+		this.log.info(`Adapter Name: ${adapterName}`);
 		this.main();
 	}
 
@@ -44,7 +47,8 @@ class OchsnerRoomterminal extends utils.Adapter {
 			this.log.debug('clear polling succeeded');
 			callback();
 		} catch (e) {
-			this.log.debug(`clear timeout error: ${JSON.stringify(e, null, 2)}`);
+			this.log.error(`clear timeout error`);
+			// this.log.debug(`clear timeout error: ${JSON.stringify(e, null, 2)}`);
 			callback();
 		}
 	}
@@ -157,8 +161,17 @@ class OchsnerRoomterminal extends utils.Adapter {
 		this.poll();
 	}
 
+	/**
+	 * Main polling routine - fetching next OID in list
+	 *
+	 * @description Started once during startup, restarts itself when finished
+	 */
 	private async poll(): Promise<void> {
-		this.log.debug('Polling....');
+		const oids = this.config.OIDs;
+		const status = this.config.Status;
+		this.log.debug('\n\nPolling....');
+		this.log.debug(JSON.stringify(oids, null, 2));
+		this.log.debug(JSON.stringify(status, null, 2));
 
 		// wait for the next value to read, log error (just in case)
 		this.wait(this.config.pollInterval)

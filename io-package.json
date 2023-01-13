@@ -83,7 +83,7 @@
     "native": {
         "username": "USER",
         "password": "123",
-        "serverIP": "192.168.0.10",
+        "serverIP": "192.168.1.108",
         "pollInterval": 5000
     },
     "objects": [],

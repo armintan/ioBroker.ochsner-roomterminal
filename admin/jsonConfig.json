@@ -41,6 +41,223 @@
 					"help": "Interval in ms between single OID requests"
 				}
 			}
+		},
+		"OIDs": {
+			"type": "panel",
+			"label": "OIDs",
+			"items": {
+				"OIDs": {
+					"newLine": true,
+					"type": "table",
+					"label": "OIDs",
+					"noDelete": false,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"items": [
+						{
+							"type": "checkbox",
+							"default": true,
+							"width": "5%",
+							"title": "enabled",
+							"attr": "enabled"
+						},
+						{
+							"type": "text",
+							"attr": "oid",
+							"width": "15% ",
+							"title": "OID",
+							"filter": false,
+							"sort": true,
+							"default": ""
+						},
+						{
+							"type": "text",
+							"attr": "name",
+							"width": "30% ",
+							"title": {
+								"en": "Name",
+								"de": "Name",
+								"ru": "Имя",
+								"pt": "Nome",
+								"nl": "Naam",
+								"fr": "Nom",
+								"it": "Nome",
+								"es": "Nombre",
+								"pl": "Nazwa",
+								"uk": "Ім'я",
+								"zh-cn": "姓名"
+							},
+							"filter": false,
+							"sort": false,
+							"default": ""
+						},
+						{
+							"type": "checkbox",
+							"title": {
+								"en": "is writeable",
+								"de": "ist schreibbar",
+								"ru": "пишем",
+								"pt": "é escrito",
+								"nl": "is schrijfbaar",
+								"fr": "est écritureable",
+								"it": "è scrivibile",
+								"es": "escribible",
+								"pl": "pisemny",
+								"uk": "написати",
+								"zh-cn": "写 人"
+							},
+							"attr": "isWriteable",
+							"width": "8%",
+							"default": false
+						},
+						{
+							"type": "checkbox",
+							"title": {
+								"en": "is Status",
+								"de": "ist Status",
+								"ru": "статус",
+								"pt": "é Estado",
+								"nl": "status",
+								"fr": "a) Statut",
+								"it": "è stato",
+								"es": "estado",
+								"pl": "status",
+								"uk": "статус на сервери",
+								"zh-cn": "现状"
+							},
+							"attr": "isStatus",
+							"width": "8%",
+							"default": false
+						},
+						{
+							"type": "text",
+							"attr": "statusID",
+							"width": "20% ",
+							"title": {
+								"en": "Status ID",
+								"de": "Status-ID",
+								"ru": "Статус ID",
+								"pt": "ID de status",
+								"nl": "Status ID",
+								"fr": "Statut ID",
+								"it": "ID di stato",
+								"es": "ID de estado",
+								"pl": "Status ID",
+								"uk": "Статус на сервери",
+								"zh-cn": "现状"
+							},
+							"filter": false,
+							"sort": false,
+							"default": ""
+						}
+					]
+				}
+			}
+		},
+		"OIDStatus": {
+			"type": "panel",
+			"label": {
+				"en": "Status",
+				"de": "Status",
+				"ru": "Статус",
+				"pt": "Estado",
+				"nl": "Status",
+				"fr": "État",
+				"it": "Stato",
+				"es": "Situación",
+				"pl": "Status",
+				"uk": "Статус на сервери",
+				"zh-cn": "现状"
+			},
+			"items": {
+				"Status": {
+					"newLine": true,
+					"type": "table",
+					"label": {
+						"en": "Status",
+						"de": "Status",
+						"ru": "Статус",
+						"pt": "Estado",
+						"nl": "Status",
+						"fr": "État",
+						"it": "Stato",
+						"es": "Situación",
+						"pl": "Status",
+						"uk": "Статус на сервери",
+						"zh-cn": "现状"
+					},
+					"noDelete": false,
+					"sm": 12,
+					"md": 12,
+					"lg": 12,
+					"items": [
+						{
+							"type": "text",
+							"attr": "statusID",
+							"width": "30% ",
+							"title": {
+								"en": "Status ID",
+								"de": "Status-ID",
+								"ru": "Статус ID",
+								"pt": "ID de status",
+								"nl": "Status ID",
+								"fr": "Statut ID",
+								"it": "ID di stato",
+								"es": "ID de estado",
+								"pl": "Status ID",
+								"uk": "Статус на сервери",
+								"zh-cn": "现状"
+							},
+							"filter": false,
+							"sort": true,
+							"default": ""
+						},
+						{
+							"type": "number",
+							"attr": "statusValue",
+							"width": "10% ",
+							"title": {
+								"en": "Status value",
+								"de": "Statuswert",
+								"ru": "Значение состояния",
+								"pt": "Valor de status",
+								"nl": "Status waarde",
+								"fr": "Valeur du statut",
+								"it": "Valore di stato",
+								"es": "Valor de la situación",
+								"pl": "Wartość statystyczna",
+								"uk": "Статус на сервери",
+								"zh-cn": "现状"
+							},
+							"filter": false,
+							"sort": false,
+							"default": ""
+						},
+						{
+							"type": "text",
+							"attr": "statusText",
+							"width": "100% ",
+							"title": {
+								"en": "Status text",
+								"de": "Statustext",
+								"ru": "Статус текст",
+								"pt": "Texto de status",
+								"nl": "Status sms",
+								"fr": "Texte de situation",
+								"it": "Testo di stato",
+								"es": "Texto del Estatuto",
+								"pl": "Tekst Status",
+								"uk": "Статус на сервери",
+								"zh-cn": "现状案文"
+							},
+							"filter": false,
+							"sort": false,
+							"default": ""
+						}
+					]
+				}
+			}
 		}
 	}
 }

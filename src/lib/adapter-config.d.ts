@@ -8,6 +8,17 @@ declare global {
 			password: string;
 			serverIP: string;
 			pollInterval: number;
+			OIDs: [
+				{
+					enabled: boolean;
+					oid: string;
+					name: string;
+					isWriteable: boolean;
+					isStatus: boolean;
+					statusID: string;
+				},
+			];
+			Status: [{ statusID: string; statusValue: number; statusText; string }];
 		}
 	}
 }

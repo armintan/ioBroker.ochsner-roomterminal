@@ -19,11 +19,13 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var utils = __toESM(require("@iobroker/adapter-core"));
 var import_digest_fetch = __toESM(require("digest-fetch"));
+var import_package = __toESM(require("../package.json"));
+const adapterName = import_package.default.name.split(".").pop();
 class OchsnerRoomterminal extends utils.Adapter {
   constructor(options = {}) {
     super({
       ...options,
-      name: "ochsner-roomterminal"
+      name: adapterName
     });
     this.deviceInfoUrl = "";
     this.timeoutID = void 0;
@@ -32,16 +34,16 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.on("unload", this.onUnload.bind(this));
   }
   async onReady() {
+    this.log.info(`Adapter Name: ${adapterName}`);
     this.main();
   }
   onUnload(callback) {
     try {
-      this.log.debug("calling clearInterval ...");
-      clearInterval(this.timeoutID);
-      this.log.debug("clearInterval succeeded");
+      clearTimeout(this.timeoutID);
+      this.log.debug("clear polling succeeded");
       callback();
     } catch (e) {
-      this.log.debug(`clearInterval error`);
+      this.log.error(`clear timeout error`);
       callback();
     }
   }
@@ -82,7 +84,11 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.poll();
   }
   async poll() {
-    this.log.debug("Polling....");
+    const oids = this.config.OIDs;
+    const status = this.config.Status;
+    this.log.debug("\n\nPolling....");
+    this.log.debug(JSON.stringify(oids, null, 2));
+    this.log.debug(JSON.stringify(status, null, 2));
     this.wait(this.config.pollInterval).then(() => this.poll()).catch((error) => {
       this.log.error(JSON.stringify(error));
       this.poll();
