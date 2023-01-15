@@ -8,12 +8,15 @@ import * as utils from '@iobroker/adapter-core';
 
 // Load your modules here, e.g.:
 import DigestFetch from 'digest-fetch';
+import { parseStringPromise } from 'xml2js';
 import packageJson from '../package.json';
 // import * as fs from "fs";
 const adapterName = packageJson.name.split('.').pop();
 
 class OchsnerRoomterminal extends utils.Adapter {
 	private deviceInfoUrl = '';
+	private getUrl = '';
+	private client: any | undefined = undefined;
 	private timeoutID: NodeJS.Timeout | string | number | undefined = undefined;
 
 	public constructor(options: Partial<utils.AdapterOptions> = {}) {
@@ -113,6 +116,8 @@ class OchsnerRoomterminal extends utils.Adapter {
 
 		// Initialize private instance variables
 		this.deviceInfoUrl = `http://${this.config.serverIP}/api/1.0/info/deviceinfo`;
+		this.getUrl = `http://${this.config.serverIP}/ws`;
+		this.client = new DigestFetch(this.config.username, this.config.password);
 
 		// The adapters config (in the instance object everything under the attribute "native") is accessible via
 		// this.config:
@@ -158,7 +163,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// this.subscribeStates('*');
 
 		// Start polling the OID's with the given pollingIntervall
-		this.poll();
+		if (this.config.OIDs.length > 0) this.poll();
 	}
 
 	/**
@@ -166,18 +171,16 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 *
 	 * @description Started once during startup, restarts itself when finished
 	 */
-	private async poll(): Promise<void> {
-		const oids = this.config.OIDs;
-		const status = this.config.Status;
-		this.log.debug('\n\nPolling....');
-		this.log.debug(JSON.stringify(oids, null, 2));
-		this.log.debug(JSON.stringify(status, null, 2));
+	private async poll(index = 0): Promise<void> {
+		this.log.debug(`poll with index: ${index}`);
+		// read the next OID from rommterminal
+		await this.readOID(index);
 
-		// wait for the next value to read, log error (just in case)
+		// wait before reading the next OID, log error (just in case)
 		this.wait(this.config.pollInterval)
-			.then(() => this.poll())
+			.then(() => this.poll(index == this.config.OIDs.length - 1 ? 0 : index + 1))
 			.catch((error) => {
-				this.log.error(JSON.stringify(error));
+				this.log.error(`Error: ${JSON.stringify(error)}`);
 				this.poll();
 			});
 	}
@@ -195,8 +198,6 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 * @returns
 	 */
 	private async checkForConnection(): Promise<boolean> {
-		const client = new DigestFetch(this.config.username, this.config.password);
-
 		const options = {
 			method: 'get',
 			headers: {
@@ -208,7 +209,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		};
 		this.log.debug('DeviceInfo URL: ' + this.deviceInfoUrl);
 		try {
-			const response = await client.fetch(this.deviceInfoUrl, options);
+			const response = await this.client.fetch(this.deviceInfoUrl, options);
 			const data = await response.json();
 			this.log.info('DeviceInfo: ' + JSON.stringify(data));
 			await this.setStateAsync('deviceInfo.name', { val: data.device, ack: true });
@@ -219,7 +220,86 @@ class OchsnerRoomterminal extends utils.Adapter {
 		}
 		return true;
 	}
+
+	/**
+	 * Read OID from roomterminal, given by index
+	 *
+	 * @param index index of the OID etnry to tread in this.config.OiDs
+	 */
+	private async readOID(index: number): Promise<void> {
+		// this.log.debug(JSON.stringify(oids, null, 2));
+		// this.log.debug(JSON.stringify(status, null, 2));
+		const oid = this.config.OIDs[index].oid;
+		this.log.info(`Polling OID: ${oid}`);
+
+		// TODO: wrong UID error handling
+
+		const body = `<?xml version="1.0" encoding="UTF-8"?>
+		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+		xmlns:ns="http://ws01.lom.ch/soap/">
+		 <SOAP-ENV:Body>
+		   <ns:getDpRequest>
+			<ref>
+			 <oid>${oid}</oid>
+			 <prop/>
+			</ref>
+			<startIndex>0</startIndex>
+			<count>-1</count>
+		   </ns:getDpRequest>
+		 </SOAP-ENV:Body>
+		</SOAP-ENV:Envelope>`;
+
+		const options = {
+			method: 'post',
+			body: body,
+			headers: {
+				Connection: 'Keep-Alive',
+				Accept: 'text/xml',
+				Pragma: 'no-cache',
+				SOAPAction: 'http://ws01.lom.ch/soap/listDP',
+				'Cache-Control': 'no-cache',
+				'Content-Type': 'text/xml; charset=utf-8',
+				'Content-length': body.length,
+			},
+		};
+		try {
+			const response = await this.client.fetch(this.getUrl, options);
+			const data = await response.text();
+			const jsonResult = await parseStringPromise(data);
+			const value = Number(
+				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].value[0],
+			);
+			const unit = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].unit[0];
+			// this.log.info(`data: ${JSON.stringify(result, null, 2)}`);
+			if (value) {
+				this.log.debug('Got a valid result: ' + value + unit);
+				this.setObjectNotExists('OID.' + oid, {
+					type: 'state',
+					common: {
+						name: this.config.OIDs[index].name,
+						type: 'number',
+						role: 'value',
+						read: true,
+						write: this.config.OIDs[index].isWriteable,
+						unit: unit,
+					},
+					native: {},
+				});
+
+				this.setState('OID.' + oid, { val: value, ack: true });
+			} else {
+				this.log.error(`result for ${oid} not valid`);
+				this.setState('info.connection', false, true);
+			}
+		} catch (error) {
+			this.log.error(`OID read error: ${oid}`);
+		}
+	}
 }
+
 if (require.main !== module) {
 	// Export the constructor in compact mode
 	module.exports = (options: Partial<utils.AdapterOptions> | undefined) => new OchsnerRoomterminal(options);
