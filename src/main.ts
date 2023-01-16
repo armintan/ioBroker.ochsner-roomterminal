@@ -269,27 +269,35 @@ class OchsnerRoomterminal extends utils.Adapter {
 			const response = await this.client.fetch(this.getUrl, options);
 			const data = await response.text();
 			const jsonResult = await parseStringPromise(data);
-			const value = Number(
-				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].value[0],
-			);
+			const value = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].value[0];
 			const unit = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].unit[0];
+			const step = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].step[0];
+			const min = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].minValue[0];
+			const max = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].maxValue[0];
+			let common: ioBroker.StateCommon = {
+				name: this.config.OIDs[index].name,
+				type: 'number',
+				role: 'value',
+				read: true,
+				write: this.config.OIDs[index].isWriteable,
+			};
+			common['unit'] = unit.length === 0 ? undefined : unit;
+			common.min ??= min.length === 0 ? undefined : Number(min);
+			common.max ??= max.length === 0 ? undefined : Number(max);
+			common.step ??= max.length === 0 ? undefined : Number(step);
+			this.log.debug(`${JSON.stringify(common, null, 2)}`);
 			// this.log.info(`data: ${JSON.stringify(result, null, 2)}`);
-			if (value) {
+			if (value.length > 0) {
 				this.log.debug('Got a valid result: ' + value + unit);
+
+				//TODO: add read / write based on XML
 				this.setObjectNotExists('OID.' + oid, {
 					type: 'state',
-					common: {
-						name: this.config.OIDs[index].name,
-						type: 'number',
-						role: 'value',
-						read: true,
-						write: this.config.OIDs[index].isWriteable,
-						unit: unit,
-					},
+					common,
 					native: {},
 				});
 
-				this.setState('OID.' + oid, { val: value, ack: true });
+				this.setState('OID.' + oid, { val: Number(value), ack: true });
 			} else {
 				this.log.error(`result for ${oid} not valid`);
 				this.setState('info.connection', false, true);

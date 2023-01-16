@@ -124,6 +124,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     return true;
   }
   async readOID(index) {
+    var _a, _b, _c;
     const oid = this.config.OIDs[index].oid;
     this.log.info(`Polling OID: ${oid}`);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
@@ -160,25 +161,31 @@ class OchsnerRoomterminal extends utils.Adapter {
       const response = await this.client.fetch(this.getUrl, options);
       const data = await response.text();
       const jsonResult = await (0, import_xml2js.parseStringPromise)(data);
-      const value = Number(
-        jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].value[0]
-      );
+      const value = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].value[0];
       const unit = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].unit[0];
-      if (value) {
+      const step = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].step[0];
+      const min = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].minValue[0];
+      const max = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].maxValue[0];
+      let common = {
+        name: this.config.OIDs[index].name,
+        type: "number",
+        role: "value",
+        read: true,
+        write: this.config.OIDs[index].isWriteable
+      };
+      common["unit"] = unit.length === 0 ? void 0 : unit;
+      (_a = common.min) != null ? _a : common.min = min.length === 0 ? void 0 : Number(min);
+      (_b = common.max) != null ? _b : common.max = max.length === 0 ? void 0 : Number(max);
+      (_c = common.step) != null ? _c : common.step = max.length === 0 ? void 0 : Number(step);
+      this.log.debug(`${JSON.stringify(common, null, 2)}`);
+      if (value.length > 0) {
         this.log.debug("Got a valid result: " + value + unit);
         this.setObjectNotExists("OID." + oid, {
           type: "state",
-          common: {
-            name: this.config.OIDs[index].name,
-            type: "number",
-            role: "value",
-            read: true,
-            write: this.config.OIDs[index].isWriteable,
-            unit
-          },
+          common,
           native: {}
         });
-        this.setState("OID." + oid, { val: value, ack: true });
+        this.setState("OID." + oid, { val: Number(value), ack: true });
       } else {
         this.log.error(`result for ${oid} not valid`);
         this.setState("info.connection", false, true);
