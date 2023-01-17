@@ -12,18 +12,30 @@ import { parseStringPromise } from 'xml2js';
 import packageJson from '../package.json';
 // import * as fs from "fs";
 const adapterName = packageJson.name.split('.').pop();
+const getOptions = {
+	method: 'get',
+	headers: {
+		Connection: 'Keep-Alive',
+		Accept: 'text/xml',
+		Pragma: 'no-cache',
+		'Cache-Control': 'no-cache',
+		'Content-Type': 'text/xml; charset=utf-8',
+	},
+};
 
 class OchsnerRoomterminal extends utils.Adapter {
 	private deviceInfoUrl = '';
 	private getUrl = '';
 	private client: any | undefined = undefined;
 	private timeoutID: NodeJS.Timeout | string | number | undefined = undefined;
+	private oidNamesDict: { [id: string]: string } | undefined = undefined;
 
 	public constructor(options: Partial<utils.AdapterOptions> = {}) {
 		super({
 			...options,
 			name: adapterName!,
 		});
+		console.log('Adapter Name:', this.name);
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		// this.on('objectChange', this.onObjectChange.bind(this));
@@ -36,7 +48,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 */
 	private async onReady(): Promise<void> {
 		// Initialize your adapter here
-		this.log.info(`Adapter Name: ${adapterName}`);
+		this.log.info(`Adapter Name: ${this.name} is ready !!!!!!`);
 		this.main();
 	}
 
@@ -46,12 +58,13 @@ class OchsnerRoomterminal extends utils.Adapter {
 	private onUnload(callback: () => void): void {
 		try {
 			// timeout may still may active -> clear to stop polling
-			clearTimeout(this.timeoutID);
+			// clearTimeout(this.timeoutID);
 			this.log.debug('clear polling succeeded');
-			callback();
 		} catch (e) {
 			this.log.error(`clear timeout error`);
 			// this.log.debug(`clear timeout error: ${JSON.stringify(e, null, 2)}`);
+		} finally {
+			this.log.info('Unloading ....');
 			callback();
 		}
 	}
@@ -163,6 +176,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// this.subscribeStates('*');
 
 		// Start polling the OID's with the given pollingIntervall
+		this.oidNamesDict = await this.oidGetNames();
 		if (this.config.OIDs.length > 0) this.poll();
 	}
 
@@ -174,15 +188,23 @@ class OchsnerRoomterminal extends utils.Adapter {
 	private async poll(index = 0): Promise<void> {
 		this.log.debug(`poll with index: ${index}`);
 		// read the next OID from rommterminal
-		await this.readOID(index);
+		await this.oidRead(index);
 
 		// wait before reading the next OID, log error (just in case)
-		this.wait(this.config.pollInterval)
-			.then(() => this.poll(index == this.config.OIDs.length - 1 ? 0 : index + 1))
-			.catch((error) => {
-				this.log.error(`Error: ${JSON.stringify(error)}`);
-				this.poll();
-			});
+		// try {
+		// 	await this.wait(this.config.pollInterval);
+		// 	this.poll(index == this.config.OIDs.length - 1 ? 0 : index + 1);
+		// } catch (error) {
+		// 	this.log.error(`Error: ${JSON.stringify(error)}`);
+		// 	this.poll();
+		// }
+		try {
+			await this.delay(this.config.pollInterval);
+			this.poll(index == this.config.OIDs.length - 1 ? 0 : index + 1);
+		} catch (error) {
+			this.log.error(`Error: ${JSON.stringify(error)}`);
+			this.poll();
+		}
 	}
 
 	/**
@@ -194,26 +216,65 @@ class OchsnerRoomterminal extends utils.Adapter {
 		return new Promise((s) => (this.timeoutID = setTimeout(s, t, t)));
 	}
 	/**
+	 * Ochnser API for getting the oidNames Dictionary,
+	 * 		either from file
+	 * 		or
+	 * 		from device (then stored to file)
+	 *
+	 * @returns oiNameDictionary
+	 */
+	private async oidGetNames(): Promise<{ [id: string]: string }> {
+		let oidNamesDict: { [id: string]: string } = {};
+		const namespace = this.name + '.admin';
+		// const namespace = this.namespace;
+		const fileName = 'oidNames.json';
+		this.log.debug(`Namespace: ${namespace}`);
+		try {
+			const oidNamesExists = await this.fileExistsAsync(namespace, fileName);
+			if (oidNamesExists) {
+				this.log.debug('File exists');
+				const res = await this.readFileAsync(namespace, fileName);
+				// @ts-expect-error Type of res in invalid.
+				oidNamesDict = JSON.parse(res.file);
+				// this.log.info(`res: ${JSON.stringify(res.file)}`);
+			} else {
+				const response = await this.client.fetch(
+					'http://192.168.1.108/res/xml/VarIdentTexte_de.xml',
+					getOptions,
+				);
+				const data = await response.text();
+				const result = await parseStringPromise(data);
+
+				for (const gnIndex in result['VarIdentTexte']['gn']) {
+					for (const mnIndex in result['VarIdentTexte']['gn'][gnIndex]['mn']) {
+						let gn = result['VarIdentTexte']['gn'][gnIndex]['$']['id'];
+						let mn = result['VarIdentTexte']['gn'][gnIndex]['mn'][mnIndex]['$']['id'];
+						if (gn.length == 1) gn = '0' + gn;
+						if (mn.length == 1) mn = '0' + mn;
+						const key = `${gn}:${mn}`;
+						oidNamesDict[key] = result['VarIdentTexte']['gn'][gnIndex]['mn'][mnIndex]['_'];
+					}
+				}
+				await this.writeFileAsync(namespace, fileName, JSON.stringify(oidNamesDict));
+				return oidNamesDict;
+			}
+		} catch (error) {
+			this.log.error(`oidGetNames error: ${JSON.stringify(error)}`);
+		}
+		return oidNamesDict;
+	}
+	/**
 	 * Ochnser API for getting the DeviceInfo
 	 * @returns
 	 */
 	private async checkForConnection(): Promise<boolean> {
-		const options = {
-			method: 'get',
-			headers: {
-				'Content-Type': 'application/json; charset=UTF-8',
-				'Cache-Control': 'no-cache',
-				Connection: 'Keep-Alive',
-				Accept: '*.*',
-			},
-		};
-		this.log.debug('DeviceInfo URL: ' + this.deviceInfoUrl);
+		// this.log.debug('DeviceInfo URL: ' + this.deviceInfoUrl);
 		try {
-			const response = await this.client.fetch(this.deviceInfoUrl, options);
+			const response = await this.client.fetch(this.deviceInfoUrl, getOptions);
 			const data = await response.json();
 			this.log.info('DeviceInfo: ' + JSON.stringify(data));
-			await this.setStateAsync('deviceInfo.name', { val: data.device, ack: true });
-			await this.setStateAsync('deviceInfo.version', { val: data.version, ack: true });
+			this.setStateAsync('deviceInfo.name', { val: data.device, ack: true });
+			this.setStateAsync('deviceInfo.version', { val: data.version, ack: true });
 		} catch (error) {
 			this.log.error('Invalid username, password or server IP-address in adapter configuration');
 			return false;
@@ -226,7 +287,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 *
 	 * @param index index of the OID etnry to tread in this.config.OiDs
 	 */
-	private async readOID(index: number): Promise<void> {
+	private async oidRead(index: number): Promise<void> {
 		// this.log.debug(JSON.stringify(oids, null, 2));
 		// this.log.debug(JSON.stringify(status, null, 2));
 		const oid = this.config.OIDs[index].oid;
@@ -269,29 +330,42 @@ class OchsnerRoomterminal extends utils.Adapter {
 			const response = await this.client.fetch(this.getUrl, options);
 			const data = await response.text();
 			const jsonResult = await parseStringPromise(data);
-			const value = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].value[0];
-			const unit = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].unit[0];
-			const step = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].step[0];
-			const min = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].minValue[0];
-			const max = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].maxValue[0];
-			let common: ioBroker.StateCommon = {
-				name: this.config.OIDs[index].name,
+			const name: string =
+				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].name[0];
+			const value: string =
+				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].value[0];
+			const unit: string =
+				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].unit[0];
+			const step: string =
+				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].step[0];
+			const min: string =
+				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].minValue[0];
+			const max: string =
+				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].maxValue[0];
+			const prop: string =
+				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].prop[0];
+			// this.log.debug(`${JSON.stringify(common, null, 2)}`);
+
+			const common: ioBroker.StateCommon = {
+				name: this.oidNamesDict![name].length ? this.oidNamesDict![name] : this.config.OIDs[index].name,
 				type: 'number',
 				role: 'value',
-				read: true,
-				write: this.config.OIDs[index].isWriteable,
+				read: prop[1] === 'r' ? true : false,
+				write: prop[2] === 'w' ? true : false,
+				unit: unit.length === 0 ? undefined : unit,
+				min: min.length === 0 ? undefined : Number(min),
+				max: max.length === 0 ? undefined : Number(max),
+				step: step.length === 0 ? undefined : Number(step),
+				// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
 			};
-			common['unit'] = unit.length === 0 ? undefined : unit;
-			common.min ??= min.length === 0 ? undefined : Number(min);
-			common.max ??= max.length === 0 ? undefined : Number(max);
-			common.step ??= max.length === 0 ? undefined : Number(step);
+
 			this.log.debug(`${JSON.stringify(common, null, 2)}`);
 			// this.log.info(`data: ${JSON.stringify(result, null, 2)}`);
 			if (value.length > 0) {
 				this.log.debug('Got a valid result: ' + value + unit);
 
 				//TODO: add read / write based on XML
-				this.setObjectNotExists('OID.' + oid, {
+				await this.setObjectNotExistsAsync('OID.' + oid, {
 					type: 'state',
 					common,
 					native: {},
