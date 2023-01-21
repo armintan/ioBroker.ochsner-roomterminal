@@ -74,6 +74,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.deviceInfoUrl = `http://${this.config.serverIP}/api/1.0/info/deviceinfo`;
     this.getUrl = `http://${this.config.serverIP}/ws`;
     this.client = new import_digest_fetch.default(this.config.username, this.config.password);
+    this.log.info(`Config: ${JSON.stringify(this.config, null, 2)}`);
     if (!this.config.serverIP) {
       this.log.error("Server IP address configuration must not be emtpy");
       return;
@@ -211,9 +212,6 @@ class OchsnerRoomterminal extends utils.Adapter {
       const min = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].minValue[0];
       const max = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].maxValue[0];
       const prop = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].prop[0];
-      this.log.debug(`name ${name}`);
-      this.log.debug(`value ${this.oidNamesDict[name]}`);
-      this.log.debug(`value ${this.config.OIDs[index].name}`);
       const common = {
         name: this.oidNamesDict[name].length ? this.oidNamesDict[name] : this.config.OIDs[index].name,
         type: "number",

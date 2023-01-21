@@ -132,6 +132,8 @@ class OchsnerRoomterminal extends utils.Adapter {
 		this.getUrl = `http://${this.config.serverIP}/ws`;
 		this.client = new DigestFetch(this.config.username, this.config.password);
 
+		this.log.info(`Config: ${JSON.stringify(this.config, null, 2)}`);
+
 		// The adapters config (in the instance object everything under the attribute "native") is accessible via
 		// this.config:
 		if (!this.config.serverIP) {
