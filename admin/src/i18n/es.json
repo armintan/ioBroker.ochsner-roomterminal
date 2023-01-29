@@ -1,5 +1,11 @@
 {
-    "ochsner-roomterminal adapter settings": "Ajustes del adaptador para ochsner-roomterminal",
-    "option1": "Opción 1",
-    "option2": "opcion 2"
+    "ochsner-roomterminal adapter settings": "Configuración del adaptador para ochsner-roomterminal",
+    "Username": "Nombre de usuario",
+    "Password": "Contraseña",
+    "Server": "Servidor",
+    "Interval": "Intervalo",
+    "Your username for the Ochsner Roomterminal": "Su nombre de usuario para Ochsner Roomterminal",
+    "Your password for the Ochsner Roomterminal": "Su contraseña para el Roomterminal de Ochsner",
+    "Your IP or hostname of the Ochsner Roomterminal": "Su IP o nombre de host del Ochsner Roomterminal",
+    "Interval in ms between single OID requests": "Intervalo en ms entre solicitudes de OID individuales"
 }

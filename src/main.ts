@@ -10,6 +10,7 @@ import * as utils from '@iobroker/adapter-core';
 import DigestFetch from 'digest-fetch';
 import { parseStringPromise } from 'xml2js';
 import packageJson from '../package.json';
+
 // import * as fs from "fs";
 const adapterName = packageJson.name.split('.').pop();
 const getOptions = {

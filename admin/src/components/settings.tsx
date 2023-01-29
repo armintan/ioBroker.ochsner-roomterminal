@@ -3,11 +3,8 @@ import { withStyles } from '@mui/styles';
 import { CreateCSSProperties } from '@mui/styles/withStyles';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
-// import FormHelperText from '@mui/material/FormHelperText';
-import FormControl from '@mui/material/FormControl';
 // import Select from '@mui/material/Select';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
+import Paper from '@mui/material/Paper';
 // import MenuItem from '@mui/material/MenuItem';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
@@ -31,10 +28,13 @@ const styles = (): Record<string, CreateCSSProperties> => ({
 	// button: {
 	// 	marginRight: 20,
 	// },
+	Paper: {
+		// background: red[200],
+	},
 });
 
 interface SettingsProps {
-	classes: Record<string, string>;
+	// classes: Record<string, string>;
 	native: Record<string, any>;
 
 	onChange: (attr: string, value: any) => void;
@@ -53,10 +53,8 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 
 	renderInput(title: AdminWord, attr: string, type: string) {
 		return (
-			<FormControl sx={{ width: '100%' }}>
-				<Card raised>
-					<CardContent>
-						{/* <TextField
+			<Paper className="Paper" sx={{ width: 0.99, m: 1 }}>
+				{/* <TextField
 					id="standard-basic"
 					label={I18n.t(title)}
 					className={`${this.props.classes.input} ${this.props.classes.controlElement}`}
@@ -65,62 +63,60 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 					onChange={(e) => this.props.onChange(attr, e.target.value)}
 					margin="normal"
 				/> */}
-						<Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around' }}>
-							<Box>
-								<TextField
-									sx={{ minWidth: 250, px: 10 }}
-									id="standard-basic"
-									label="Username"
-									className={`${this.props.classes.input} ${this.props.classes.input}`}
-									value={this.props.native['username']}
-									type={type || 'text'}
-									onChange={(e) => this.props.onChange('username', e.target.value)}
-									size="small"
-									margin="normal"
-									variant="standard"
-								/>
-								<TextField
-									sx={{ minWidth: 250, px: 10 }}
-									id="standard-basic"
-									label="Password"
-									className={`${this.props.classes.input} ${this.props.classes.controlElement}`}
-									value={this.props.native['password']}
-									type={type || 'text'}
-									onChange={(e) => this.props.onChange('password', e.target.value)}
-									size="small"
-									margin="normal"
-									variant="standard"
-								/>
-							</Box>
-							<Box>
-								<TextField
-									sx={{ minWidth: 250, px: 10 }}
-									id="standard-basic"
-									label="Server"
-									className={`${this.props.classes.input} ${this.props.classes.controlElement}`}
-									value={this.props.native['serverIP']}
-									type={type || 'text'}
-									onChange={(e) => this.props.onChange('serverIP', e.target.value)}
-									size="small"
-									margin="normal"
-									variant="standard"
-								/>
-								<TextField
-									sx={{ minWidth: 250, px: 10 }}
-									id="standard-basic"
-									label="Interval"
-									className={`${this.props.classes.input} ${this.props.classes.controlElement}`}
-									value={this.props.native['pollInterval']}
-									type={type || 'text'}
-									onChange={(e) => this.props.onChange('pollInterval', e.target.value)}
-									margin="normal"
-									variant="standard"
-								/>
-							</Box>
-						</Box>
-					</CardContent>
-				</Card>
-			</FormControl>
+				<Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around' }}>
+					<Box>
+						<TextField
+							sx={{ minWidth: 250, px: 1 }}
+							id="standard-basic"
+							label={I18n.t('Username')}
+							// className={`${this.props.classes.input} ${this.props.classes.input}`}
+							value={this.props.native['username']}
+							type="text"
+							onChange={(e) => this.props.onChange('username', e.target.value)}
+							size="small"
+							margin="normal"
+							variant="standard"
+						/>
+						<TextField
+							sx={{ minWidth: 250, px: 1 }}
+							id="standard-basic"
+							label={I18n.t('Password')}
+							// className={`${this.props.classes.input} ${this.props.classes.controlElement}`}
+							value={this.props.native['password']}
+							type="text"
+							onChange={(e) => this.props.onChange('password', e.target.value)}
+							size="small"
+							margin="normal"
+							variant="standard"
+						/>
+					</Box>
+					<Box>
+						<TextField
+							sx={{ minWidth: 250, px: 1 }}
+							id="standard-basic"
+							label={I18n.t('Server')}
+							// className={`${this.props.classes.input} ${this.props.classes.controlElement}`}
+							value={this.props.native['serverIP']}
+							type="text"
+							onChange={(e) => this.props.onChange('serverIP', e.target.value)}
+							size="small"
+							margin="normal"
+							variant="standard"
+						/>
+						<TextField
+							sx={{ minWidth: 250, px: 1 }}
+							id="standard-basic"
+							label={I18n.t(title)}
+							// className={`${this.props.classes.input} ${this.props.classes.controlElement}`}
+							value={this.props.native[attr]}
+							type={type || 'text'}
+							onChange={(e) => this.props.onChange(attr, e.target.value)}
+							margin="normal"
+							variant="standard"
+						/>
+					</Box>
+				</Box>
+			</Paper>
 		);
 	}
 
@@ -162,7 +158,7 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 					paddingTop: 5,
 					...style,
 				}}
-				className={this.props.classes.controlElement}
+				// className={this.props.classes.controlElement}
 				control={
 					<Checkbox
 						checked={this.props.native[attr]}
@@ -177,10 +173,11 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 
 	render() {
 		return (
-			<form className={this.props.classes.tab}>
-				{this.renderInput('option2', 'option2', 'text')}
+			<form>
+				{/* TODO:  parameters only used for last input field */}
+				{this.renderInput('Interval', 'pollInterval', 'number')}
 				<br />
-				{this.renderCheckbox('option1', 'option1')}
+				{/* {this.renderCheckbox('option1', 'option1')} */}
 			</form>
 		);
 	}

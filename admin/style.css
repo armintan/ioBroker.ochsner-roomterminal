@@ -12,11 +12,11 @@
 	height: 100%;
 	position: relative;
 }
-.m.adapter-container > div.App {
+/* .m.adapter-container > div.App {
 	background: white;
 	color: rgba(0, 0, 0, 0.87);
 	width: calc(100% - 5px);
-}
+} */
 
 .m .select-wrapper + label {
 	/* The positioning for dropdown labels is messed up */
