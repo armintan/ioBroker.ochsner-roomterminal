@@ -7,5 +7,8 @@
     "Your username for the Ochsner Roomterminal": "Ваше имя пользователя для Ochsner Roomterminal",
     "Your password for the Ochsner Roomterminal": "Ваш пароль для Ochsner Roomterminal",
     "Your IP or hostname of the Ochsner Roomterminal": "Ваш IP или имя хоста Ochsner Roomterminal",
-    "Interval in ms between single OID requests": "Интервал в мс между одиночными запросами OID"
+    "Interval in ms between single OID requests": "Интервал в мс между одиночными запросами OID",
+    "enabled": "включено",
+    "Name": "Имя",
+    "is writeable": "доступен для записи"
 }

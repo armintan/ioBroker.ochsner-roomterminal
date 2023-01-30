@@ -6,12 +6,12 @@ import { Delete } from '@mui/icons-material';
 
 interface IProps {
 	params: GridRenderCellParams<any, any, any>;
-	rowId: GridRowId;
-	setRowId: React.Dispatch<React.SetStateAction<GridRowId>>;
+	rowId: GridRowId | null;
+	// setRowId: React.Dispatch<React.SetStateAction<GridRowId>>;
 	handleDelete: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-const TableActions: React.FC<IProps> = ({ params, rowId, setRowId, handleDelete }) => {
+const TableActions: React.FC<IProps> = ({ params, rowId, handleDelete }) => {
 	// const handleSave = () => {};
 
 	return (

@@ -7,5 +7,8 @@
     "Your username for the Ochsner Roomterminal": "Twoja nazwa użytkownika w terminalu pokojowym firmy Ochsner",
     "Your password for the Ochsner Roomterminal": "Twoje hasło do terminala pokojowego firmy Ochsner",
     "Your IP or hostname of the Ochsner Roomterminal": "Twój adres IP lub nazwa hosta terminala pokojowego firmy Ochsner",
-    "Interval in ms between single OID requests": "Interwał w ms między pojedynczymi żądaniami OID"
+    "Interval in ms between single OID requests": "Interwał w ms między pojedynczymi żądaniami OID",
+    "enabled": "włączony",
+    "Name": "Imię",
+    "is writeable": "jest zapisywalny"
 }

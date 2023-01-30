@@ -6,14 +6,13 @@ import { GenericAppProps, GenericAppSettings } from '@iobroker/adapter-react-v5/
 import { StyleRules } from '@mui/styles';
 import { withStyles } from '@mui/styles';
 
-import { addKeyIdToArray } from './lib/utils';
+// import { addKeyIdToArray } from './lib/utils';
 import Table from './components/Table';
-import { GridOIDs } from './lib/typings';
+import { addKeyIdToArray } from './lib/utils';
 
 const styles = (_theme): StyleRules => ({});
 
 class App extends GenericApp {
-	gridOIDs: GridOIDs[] | undefined;
 	constructor(props: GenericAppProps) {
 		const extendedProps: GenericAppSettings = {
 			...props,
@@ -36,8 +35,7 @@ class App extends GenericApp {
 
 	onConnectionReady(): void {
 		// executed when web-socket connection is ready
-		this.gridOIDs = addKeyIdToArray(this.state.native['OIDs']) as GridOIDs[];
-		this.forceUpdate();
+		this.updateNativeValue('OIDs', addKeyIdToArray(this.state.native['OIDs']));
 	}
 
 	onPrepareSave(settings: Record<string, any>): boolean {
@@ -53,7 +51,10 @@ class App extends GenericApp {
 		return (
 			<div className="App">
 				<Settings native={this.state.native} onChange={(attr, value) => this.updateNativeValue(attr, value)} />
-				<Table oids={this.gridOIDs} />
+				<Table
+					native={this.state.native}
+					onChange={(attr, value) => this.updateNativeValue(attr, value, () => console.log('OIDs updated'))}
+				/>
 				{this.renderError()}
 				{this.renderToast()}
 				{this.renderSaveCloseButtons()}

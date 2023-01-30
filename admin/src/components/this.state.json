@@ -8,28 +8,31 @@
 		"pollInterval": "10000",
 		"OIDs": [
 			{
+				"id": 1,
+				"enabled": true,
+				"oid": "/1/2/1/97/0",
+				"name": "WP-Betriebswahl",
+				"isWriteable": true,
+				"isState": false,
+				"stateID": ""
+			},
+			{
+				"id": 2,
+				"enabled": true,
+				"oid": "/1/2/1/125/0",
+				"name": "WP-Status",
+				"isWriteable": false,
+				"isState": true,
+				"stateID": "WP-Status"
+			},
+			{
+				"id": 3,
 				"enabled": true,
 				"oid": "/1/2/1/125/1",
-				"name": "WP-TPV",
-				"isWriteable": false,
-				"isStatus": false,
-				"statusID": ""
-			},
-			{
-				"enabled": true,
-				"oid": "/1/2/5/119/1",
-				"name": "Aussentemperatur",
-				"isWriteable": false,
-				"isStatus": false,
-				"statusID": ""
-			},
-			{
-				"enabled": true,
-				"oid": "/1/2/1/125/2",
-				"name": "AP-Anderswoh",
-				"isWriteable": false,
-				"isStatus": false,
-				"statusID": ""
+				"name": "WP-TWV",
+				"isWriteable": true,
+				"isState": false,
+				"stateID": ""
 			}
 		],
 		"option1": true,

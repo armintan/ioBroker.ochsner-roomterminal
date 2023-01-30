@@ -1,133 +1,170 @@
 import React from 'react';
-// import { GridColDef, gridClasses, GridRowId } from '@mui/x-data-grid';
-import { GridColDef, DataGrid, gridClasses, GridRowId } from '@mui/x-data-grid';
+import TreeTable from '@iobroker/adapter-react-v5/Components/TreeTable';
+import { withStyles } from '@mui/styles';
 import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import grey from '@mui/material/colors/grey';
-import { GridOIDs } from '../lib/typings';
-import TableActions from './TableActions';
+import I18n from '@iobroker/adapter-react-v5/i18n';
+
+// STYLES
+const styles = (_theme) => ({
+	// tableDiv: {
+	// 	width: '100%',
+	// 	overflow: 'hidden',
+	// 	height: 'calc(100% - 48px)',
+	// },
+});
 
 interface IProps {
-	// classes: Record<string, string>;
-	oids: GridOIDs[] | undefined;
+	classes: Record<string, string>;
+	native: Record<string, any>;
 
-	// onChange: (attr: string, value: any) => void;
+	onChange: (attr: string, value: any) => void;
 }
 
-const Table: React.FC<IProps> = (props: IProps) => {
-	const [pageSize, setPageSize] = React.useState(10);
-	const [rowId, setRowId] = React.useState<GridRowId>('');
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface IState {
+	// columns: any;
+	// pageSize: number;
+	// rowId: GridRowId | null;
+}
 
-	const handleDelete: React.MouseEventHandler<HTMLButtonElement> = (event) => {
-		console.log(event.target);
-	};
-	const handleAddRow: React.MouseEventHandler<HTMLButtonElement> = (event) => {
-		console.log(event.target);
-	};
+class Table extends React.Component<IProps, IState> {
+	columns: any;
+	constructor(props) {
+		super(props);
 
-	const columns = React.useMemo<GridColDef[]>(
-		() => [
+		this.columns = [
 			{
-				field: 'enabled',
-				headerName: 'Enabled',
+				title: 'ID', // required, else it will be "field"
+				field: 'id', // required
+				editable: 'false', // or true [default - true]
+				type: 'string', // oid=ObjectID,icon=base64-icon
+				// hidden: true,
+				cellStyle: {
+					// 	CSS style - // optional
+					display: 'none',
+					opacitiy: 0.2,
+				},
+			},
+			{
+				title: 'OID', // required, else it will be "field"
+				field: 'oid', // required
+				editable: true, // or true [default - true]
+				type: 'string', // oid=ObjectID,icon=base64-icon
+				cellStyle: {
+					// 	CSS style - // optional
+					minWidth: 100,
+				},
+				// editComponent: (props) => (
+				// 	<div>
+				// 		Prefix&#123; <br />
+				// 		<textarea
+				// 			rows={4}
+				// 			style={{ width: '100%', resize: 'vertical' }}
+				// 			value={props.value}
+				// 			onChange={(e) => props.onChange(e.target.value)}
+				// 		/>
+				// 		Suffix
+				// 	</div>
+				// ),
+			},
+			{
+				title: I18n.t('Name'), // required, else it will be "field"
+				field: 'name', // required
+				editable: true, // or true [default - true]
+				type: 'string', // oid=ObjectID,icon=base64-icon
+				cellStyle: {
+					// 	CSS style - // optional
+					minWidth: 100,
+				},
+				// editComponent: (props) => (
+				// 	<div>
+				// 		Prefix&#123; <br />
+				// 		<textarea
+				// 			rows={4}
+				// 			style={{ width: '100%', resize: 'vertical' }}
+				// 			value={props.value}
+				// 			onChange={(e) => props.onChange(e.target.value)}
+				// 		/>
+				// 		Suffix
+				// 	</div>
+				// ),
+			},
+			{
+				title: I18n.t('Enabled'), // required, else it will be "field"
+				field: 'enabled', // required
+				editable: true, // or true [default - true]
 				type: 'boolean',
-				width: 100,
-				editable: true,
-				sortable: false,
 			},
 			{
-				field: 'oid',
-				headerName: 'OID',
-				type: 'string',
-				width: 250,
-				editable: true,
+				title: I18n.t('is writeable'), // required, else it will be "field"
+				field: 'isWriteable', // required
+				editable: true, // or true [default - true]
+				type: 'boolean', // oid=ObjectID,icon=base64-icon
 			},
-			{
-				field: 'name',
-				headerName: 'Name',
-				type: 'string',
-				width: 300,
-				editable: true,
-			},
-			{
-				field: 'isWriteable',
-				headerName: 'is writable',
-				description: 'This column has a value getter and is not sortable.',
-				type: 'boolean',
-				editable: true,
-				sortable: false,
-				width: 100,
-				// valueGetter: (params: GridValueGetterParams) =>
-				//   `${params.row.firstName || ''} ${params.row.lastName || ''}`,
-			},
-			{
-				field: 'isState',
-				headerName: 'is State',
-				description: 'If checked, this OID is writeable.',
-				type: 'boolean',
-				editable: true,
-				sortable: false,
-				width: 100,
-			},
-			{
-				field: 'stateID',
-				headerName: 'State ID',
-				type: 'string',
-				description: 'This is the stateID of the OID.',
-				editable: true,
-				sortable: false,
-				width: 150,
-				// valueGetter: (params: GridValueGetterParams) =>
-				//   `${params.row.firstName || ''} ${params.row.lastName || ''}`,
-			},
-			{
-				field: 'action',
-				headerName: 'Actions',
-				type: 'actions',
-				description: 'These are the actions',
-				renderCell: (params) => <TableActions {...{ params, rowId, setRowId, handleDelete }} />,
-				width: 150,
-				// valueGetter: (params: GridValueGetterParams) =>
-				//   `${params.row.firstName || ''} ${params.row.lastName || ''}`,
-			},
-		],
-		[rowId],
-	);
+		];
+	}
+	// renderTable
+	render() {
+		return (
+			<Paper className="Paper" sx={{ width: 0.99, m: 1 }}>
+				<TreeTable
+					columns={this.columns}
+					data={this.props.native['OIDs']}
+					onUpdate={(newData: any, oldData: any) => {
+						const pos = this.props.native['OIDs'].indexOf(oldData);
+						if (pos !== -1) {
+							const data = [...this.props.native['OIDs']];
+							data[pos] = newData;
+							this.props.onChange('OIDs', data);
+						}
+						// const data = JSON.parse(JSON.stringify(this.state.data));
 
-	if (props.oids == undefined) return <div></div>;
-	return (
-		<Paper sx={{ width: '100%' }}>
-			<Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-				<Button size="small" onClick={handleAddRow}>
-					Add a row
-				</Button>
-			</Stack>
-			<DataGrid
-				sx={{
-					[`& .${gridClasses.row}`]: {
-						bgcolor: (theme) => (theme.palette.mode === 'light' ? grey[200] : grey[800]),
-					},
-				}}
-				rows={props.oids}
-				columns={columns}
-				autoHeight
-				pageSize={pageSize}
-				rowsPerPageOptions={[5, 10, 20]}
-				onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-				getRowSpacing={(params) => ({
-					top: params.isFirstVisible ? 0 : 5,
-					bottom: params.isLastVisible ? 0 : 5,
-				})}
-				disableSelectionOnClick
-				experimentalFeatures={{ newEditingApi: true }}
-				processRowUpdate={(newRow) => {
-					console.log({ newRow });
-					return newRow;
-				}}
-			/>
-		</Paper>
-	);
-};
+						// // Added new line
+						// if (newData === true) {
+						// 	// find unique ID
+						// 	let i = 1;
+						// 	let id = 'line_' + i;
 
-export default Table;
+						// 	// eslint-disable-next-line
+						// 	while (this.state.data.find((item) => item.id === id)) {
+						// 		i++;
+						// 		id = 'line_' + i;
+						// 	}
+
+						// 	data.push({
+						// 		id,
+						// 		name: I18n.t('New resource') + '_' + i,
+						// 		color: '',
+						// 		icon: '',
+						// 		unit: '',
+						// 		price: 0,
+						// 	});
+						// } else {
+						// 	// existing line was modifed
+						// 	const pos = this.state.data.indexOf(oldData);
+						// 	if (pos !== -1) {
+						// 		Object.keys(newData).forEach((attr) => (data[pos][attr] = newData[attr]));
+						// 	}
+						// }
+
+						// this.setState({ data });
+					}}
+					onDelete={(oldData) => {
+						console.log('Delete: ' + JSON.stringify(oldData));
+						// const pos = this.state.data.indexOf(oldData);
+						const data = [...this.props.native['OIDs']];
+						// if (pos !== -1) {
+						// const data = JSON.parse(JSON.stringify(this.state.data));
+						this.props.onChange(
+							'OIDs',
+							data.filter((item) => item.id != oldData.id),
+						);
+
+						// }
+					}}
+				/>
+			</Paper>
+		);
+	}
+}
+export default withStyles(styles)(Table);
