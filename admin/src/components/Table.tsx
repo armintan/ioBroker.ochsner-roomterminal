@@ -3,6 +3,7 @@ import TreeTable from '@iobroker/adapter-react-v5/Components/TreeTable';
 import { withStyles } from '@mui/styles';
 import Paper from '@mui/material/Paper';
 import I18n from '@iobroker/adapter-react-v5/i18n';
+import { GridOID } from '../lib/typings';
 
 // STYLES
 const styles = (_theme) => ({
@@ -110,46 +111,41 @@ class Table extends React.Component<IProps, IState> {
 				<TreeTable
 					columns={this.columns}
 					data={this.props.native['OIDs']}
-					onUpdate={(newData: any, oldData: any) => {
-						const pos = this.props.native['OIDs'].indexOf(oldData);
-						if (pos !== -1) {
-							const data = [...this.props.native['OIDs']];
-							data[pos] = newData;
-							this.props.onChange('OIDs', data);
-						}
+					onUpdate={(newData: GridOID | boolean, oldData: GridOID) => {
 						// const data = JSON.parse(JSON.stringify(this.state.data));
+						const data: GridOID[] = [...this.props.native['OIDs']];
 
-						// // Added new line
-						// if (newData === true) {
-						// 	// find unique ID
-						// 	let i = 1;
-						// 	let id = 'line_' + i;
+						if (newData === true) {
+							// new line was added
+							console.log({ oldData });
 
-						// 	// eslint-disable-next-line
-						// 	while (this.state.data.find((item) => item.id === id)) {
-						// 		i++;
-						// 		id = 'line_' + i;
-						// 	}
-
-						// 	data.push({
-						// 		id,
-						// 		name: I18n.t('New resource') + '_' + i,
-						// 		color: '',
-						// 		icon: '',
-						// 		unit: '',
-						// 		price: 0,
-						// 	});
-						// } else {
-						// 	// existing line was modifed
-						// 	const pos = this.state.data.indexOf(oldData);
-						// 	if (pos !== -1) {
-						// 		Object.keys(newData).forEach((attr) => (data[pos][attr] = newData[attr]));
-						// 	}
-						// }
-
-						// this.setState({ data });
+							// find unique ID
+							let id = 0;
+							while (data.find((item) => item.id === id)) {
+								id++;
+								// id = 'line_' + i;
+							}
+							// add new line
+							data.push({
+								id,
+								oid: 'e.g. /1/2/1/97/0',
+								name: '',
+								isWriteable: false,
+								enabled: false,
+								isStatus: false,
+								statusID: '',
+							});
+						} else {
+							// existing line was modifed
+							if (newData == false) return; // should never happen, but makes lint happy :-)
+							const pos = this.props.native['OIDs'].indexOf(oldData);
+							if (pos !== -1) {
+								data[pos] = newData;
+							}
+						}
+						this.props.onChange('OIDs', data);
 					}}
-					onDelete={(oldData) => {
+					onDelete={(oldData: GridOID) => {
 						console.log('Delete: ' + JSON.stringify(oldData));
 						// const pos = this.state.data.indexOf(oldData);
 						const data = [...this.props.native['OIDs']];
@@ -159,8 +155,6 @@ class Table extends React.Component<IProps, IState> {
 							'OIDs',
 							data.filter((item) => item.id != oldData.id),
 						);
-
-						// }
 					}}
 				/>
 			</Paper>

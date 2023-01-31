@@ -1,3 +1,3 @@
-export interface GridOID extends ioBroker.AdapterConfig {
+export interface GridOID extends ioBroker.OID {
 	id: number;
 }
