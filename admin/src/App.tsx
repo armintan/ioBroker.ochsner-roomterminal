@@ -3,16 +3,16 @@ import React from 'react';
 import GenericApp from '@iobroker/adapter-react-v5/GenericApp';
 import Settings from './components/settings';
 import { GenericAppProps, GenericAppSettings } from '@iobroker/adapter-react-v5/types';
-import { StyleRules } from '@mui/styles';
-import { withStyles } from '@mui/styles';
+import { withStyles, StyleRules } from '@mui/styles';
 
 // import { addKeyIdToArray } from './lib/utils';
 import Table from './components/Table';
-import { addKeyIdToArray } from './lib/utils';
+import oidNames from './lib/oidNames';
 
 const styles = (_theme): StyleRules => ({});
 
 class App extends GenericApp {
+	oidNames: any = {};
 	constructor(props: GenericAppProps) {
 		const extendedProps: GenericAppSettings = {
 			...props,
@@ -33,9 +33,11 @@ class App extends GenericApp {
 		super(props, extendedProps);
 	}
 
-	onConnectionReady(): void {
+	async onConnectionReady(): Promise<void> {
 		// executed when web-socket connection is ready
-		this.updateNativeValue('OIDs', addKeyIdToArray(this.state.native['OIDs']));
+		// this.updateNativeValue('OIDs', addKeyIdToArray(this.state.native['OIDs']));
+		this.oidNames = oidNames;
+		console.log(this.oidNames);
 	}
 
 	onPrepareSave(settings: Record<string, any>): boolean {

@@ -66,7 +66,7 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 				<Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around' }}>
 					<Box>
 						<TextField
-							sx={{ minWidth: 250, px: 1 }}
+							sx={{ minWidth: 250, mx: 1 }}
 							id="standard-basic"
 							label={I18n.t('Username')}
 							// className={`${this.props.classes.input} ${this.props.classes.input}`}
@@ -78,7 +78,7 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 							variant="standard"
 						/>
 						<TextField
-							sx={{ minWidth: 250, px: 1 }}
+							sx={{ minWidth: 250, mx: 1 }}
 							id="standard-basic"
 							label={I18n.t('Password')}
 							// className={`${this.props.classes.input} ${this.props.classes.controlElement}`}
@@ -92,7 +92,7 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 					</Box>
 					<Box>
 						<TextField
-							sx={{ minWidth: 250, px: 1 }}
+							sx={{ minWidth: 250, mx: 1 }}
 							id="standard-basic"
 							label={I18n.t('Server')}
 							// className={`${this.props.classes.input} ${this.props.classes.controlElement}`}
@@ -104,7 +104,7 @@ class Settings extends React.Component<SettingsProps, SettingsState> {
 							variant="standard"
 						/>
 						<TextField
-							sx={{ minWidth: 250, px: 1 }}
+							sx={{ minWidth: 250, mx: 1 }}
 							id="standard-basic"
 							label={I18n.t(title)}
 							// className={`${this.props.classes.input} ${this.props.classes.controlElement}`}

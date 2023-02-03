@@ -1,17 +1,26 @@
 import React from 'react';
-import TreeTable from '@iobroker/adapter-react-v5/Components/TreeTable';
-import { withStyles } from '@mui/styles';
 import Paper from '@mui/material/Paper';
+import Box from '@mui/material/Box';
+import TreeTable from '@iobroker/adapter-react-v5/Components/TreeTable';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import AddIcon from '@mui/icons-material/Add';
 import I18n from '@iobroker/adapter-react-v5/i18n';
+import { withStyles } from '@mui/styles';
 import { GridOID } from '../lib/typings';
 
 // STYLES
 const styles = (_theme) => ({
-	// tableDiv: {
-	// 	width: '100%',
-	// 	overflow: 'hidden',
-	// 	height: 'calc(100% - 48px)',
-	// },
+	MuiButton: {
+		borderRadius: '50% !important',
+		width: 64,
+		height: 64,
+	},
+	tableDiv: {
+		width: '100%',
+		overflow: 'hidden',
+		height: 'calc(100% - 48px)',
+	},
 });
 
 interface IProps {
@@ -30,8 +39,10 @@ interface IState {
 
 class Table extends React.Component<IProps, IState> {
 	columns: any;
+	oid = '';
 	constructor(props) {
 		super(props);
+		this.handleAddButton = this.handleAddButton.bind(this);
 
 		this.columns = [
 			{
@@ -104,10 +115,35 @@ class Table extends React.Component<IProps, IState> {
 			},
 		];
 	}
+
+	handleAddButton(event) {
+		console.log({ event });
+	}
 	// renderTable
 	render() {
 		return (
 			<Paper className="Paper" sx={{ width: 0.99, m: 1 }}>
+				<Box sx={{ width: 0.99, m: 1, display: 'flex', alignItems: 'flex-end' }}>
+					<TextField
+						sx={{ minWidth: 250, mx: 1 }}
+						id="standard-basic"
+						label="OID"
+						// className={`${this.props.classes.input} ${this.props.classes.input}`}
+						value={this.oid}
+						type="text"
+						onChange={(e) => (this.oid = e.target.value)}
+						size="small"
+						margin="normal"
+						variant="standard"
+					/>
+					<Button
+						sx={{ mx: 1, width: 32, height: 32, borderRadius: '50% !important' }}
+						variant="contained"
+						onClick={this.handleAddButton}
+					>
+						<AddIcon aria-label="add" />
+					</Button>
+				</Box>
 				<TreeTable
 					columns={this.columns}
 					data={this.props.native['OIDs']}

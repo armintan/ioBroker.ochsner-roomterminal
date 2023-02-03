@@ -125,7 +125,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     try {
       const oidNamesExists = await this.fileExistsAsync(namespace, fileName);
       if (oidNamesExists) {
-        this.log.debug("File exists");
+        this.log.debug("oidNames exists");
         const res = await this.readFileAsync(namespace, fileName);
         oidNamesDict = JSON.parse(res.file);
       } else {
@@ -148,6 +148,7 @@ class OchsnerRoomterminal extends utils.Adapter {
           }
         }
         await this.writeFileAsync(namespace, fileName, JSON.stringify(oidNamesDict));
+        this.log.debug("oidNames wirtten to files");
         return oidNamesDict;
       }
     } catch (error) {
