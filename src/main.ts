@@ -176,18 +176,11 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 * 				(only called when there is at least one oid)
 	 */
 	private async poll(index = 0): Promise<void> {
-		this.log.debug(`poll with index: ${index}`);
+		// this.log.debug(`poll with index: ${index}`);
+
 		// read the next OID from rommterminal
 		await this.oidRead(index);
 
-		// wait before reading the next OID, log error (just in case)
-		// try {
-		// 	await this.wait(this.config.pollInterval);
-		// 	this.poll(index == this.config.OIDs.length - 1 ? 0 : index + 1);
-		// } catch (error) {
-		// 	this.log.error(`Error: ${JSON.stringify(error)}`);
-		// 	this.poll();
-		// }
 		try {
 			await this.delay(this.config.pollInterval);
 			if (index == this.config.OIDs.length - 1) {
@@ -210,10 +203,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		try {
 			const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
 			if (instanceObj) {
-				// const native: ioBroker.AdapterConfig = [...instanceObj.native];
-				// const oids: ioBroker.OID[] = [...instanceObj?.native.OIDs];
-
-				this.log.debug(`Old native objects: ${JSON.stringify(instanceObj.native, null, 2)}`);
+				// this.log.debug(`Old native objects: ${JSON.stringify(instanceObj.native, null, 2)}`);
 				keys.forEach((key) => {
 					const index = instanceObj.native.OIDs.findIndex((oid: ioBroker.OID) => key === oid.oid);
 					if (index !== -1) instanceObj.native.OIDs[index].name = this.oidUpdate[key] ?? key;
@@ -313,7 +303,6 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// this.log.debug(JSON.stringify(oids, null, 2));
 		// this.log.debug(JSON.stringify(status, null, 2));
 		const oid = this.config.OIDs[index].oid;
-		this.log.info(`Reading OID: ${oid}`);
 
 		// TODO: wrong UID error handling
 
@@ -378,6 +367,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 				min: min.length === 0 ? undefined : Number(min),
 				max: max.length === 0 ? undefined : Number(max),
 				step: step.length === 0 ? undefined : Number(step),
+				//TODO: add states based on XML
 				// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
 			};
 
@@ -386,9 +376,8 @@ class OchsnerRoomterminal extends utils.Adapter {
 
 			// this.log.info(`data: ${JSON.stringify(result, null, 2)}`);
 			if (value.length > 0) {
-				this.log.debug('Got a valid result: ' + value + unit);
+				this.log.debug(`result for [${oid}]: ${value} ${unit}`);
 
-				//TODO: add read / write based on XML
 				await this.setObjectNotExistsAsync('OID.' + oid, {
 					type: 'state',
 					common,

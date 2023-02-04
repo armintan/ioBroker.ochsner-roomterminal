@@ -92,7 +92,6 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.poll();
   }
   async poll(index = 0) {
-    this.log.debug(`poll with index: ${index}`);
     await this.oidRead(index);
     try {
       await this.delay(this.config.pollInterval);
@@ -112,7 +111,6 @@ class OchsnerRoomterminal extends utils.Adapter {
     try {
       const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
       if (instanceObj) {
-        this.log.debug(`Old native objects: ${JSON.stringify(instanceObj.native, null, 2)}`);
         keys.forEach((key) => {
           var _a;
           const index = instanceObj.native.OIDs.findIndex((oid) => key === oid.oid);
@@ -184,7 +182,6 @@ class OchsnerRoomterminal extends utils.Adapter {
   async oidRead(index) {
     var _a;
     const oid = this.config.OIDs[index].oid;
-    this.log.info(`Reading OID: ${oid}`);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -238,9 +235,9 @@ class OchsnerRoomterminal extends utils.Adapter {
         step: step.length === 0 ? void 0 : Number(step)
       };
       if (this.config.OIDs[index].name.length === 0)
-        this.oidUpdate[this.config.OIDs[index].oid] = (_a = this.oidNamesDict["xx:yy"]) != null ? _a : name;
+        this.oidUpdate[this.config.OIDs[index].oid] = (_a = this.oidNamesDict[name]) != null ? _a : name;
       if (value.length > 0) {
-        this.log.debug("Got a valid result: " + value + unit);
+        this.log.debug(`result for ${oid}: ${value} ${unit}`);
         await this.setObjectNotExistsAsync("OID." + oid, {
           type: "state",
           common,
