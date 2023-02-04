@@ -7,7 +7,6 @@ import { withStyles, StyleRules } from '@mui/styles';
 
 // import { addKeyIdToArray } from './lib/utils';
 import Table from './components/Table';
-import oidNames from './lib/oidNames';
 
 const styles = (_theme): StyleRules => ({});
 
@@ -34,9 +33,6 @@ class App extends GenericApp {
 	}
 
 	async onConnectionReady(): Promise<void> {
-		// executed when web-socket connection is ready
-		// this.updateNativeValue('OIDs', addKeyIdToArray(this.state.native['OIDs']));
-		this.oidNames = oidNames;
 		console.log(this.oidNames);
 	}
 
