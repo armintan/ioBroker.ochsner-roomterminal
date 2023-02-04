@@ -1,0 +1,14 @@
+{
+    "ochsner-roomterminal adapter settings": "ochsner-zimmerterminal adapter einstellungen",
+    "Username": "Nutzername",
+    "Password": "Passwort",
+    "Server": "Server",
+    "Interval": "Intervall",
+    "Your username for the Ochsner Roomterminal": "Ihr Benutzername für das Ochsner Roomterminal",
+    "Your password for the Ochsner Roomterminal": "Ihr Passwort für das Ochsner Roomterminal",
+    "Your IP or hostname of the Ochsner Roomterminal": "Ihre IP oder Hostname des Ochsner Roomterminals",
+    "Interval in ms between single OID requests": "Intervall in ms zwischen einzelnen OID-Anfragen",
+    "enabled": "ermöglicht",
+    "Name": "Name",
+    "is writeable": "ist beschreibbar"
+}

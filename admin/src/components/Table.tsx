@@ -114,10 +114,10 @@ class Table extends React.Component<IProps, IState> {
 								id,
 								oid: 'e.g. /1/2/1/97/0',
 								name: '',
-								isWriteable: false,
+								// isWriteable: false,
 								enabled: false,
-								isStatus: false,
-								statusID: '',
+								// isStatus: false,
+								// statusID: '',
 							});
 						} else {
 							// existing line was modifed

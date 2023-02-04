@@ -43,7 +43,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.client = void 0;
     this.timeoutID = void 0;
     this.oidNamesDict = void 0;
-    console.log("Adapter Name:", this.name);
+    this.oidUpdate = {};
     this.on("ready", this.onReady.bind(this));
     this.on("stateChange", this.onStateChange.bind(this));
     this.on("unload", this.onUnload.bind(this));
@@ -87,18 +87,6 @@ class OchsnerRoomterminal extends utils.Adapter {
       return;
     }
     this.setState("info.connection", true, true);
-    await this.setObjectNotExistsAsync("testVariable", {
-      type: "state",
-      common: {
-        name: "testVariable",
-        type: "boolean",
-        role: "indicator",
-        read: true,
-        write: true
-      },
-      native: {}
-    });
-    this.subscribeStates("testVariable");
     this.oidNamesDict = await this.oidGetNames();
     if (this.config.OIDs.length > 0)
       this.poll();
@@ -108,10 +96,34 @@ class OchsnerRoomterminal extends utils.Adapter {
     await this.oidRead(index);
     try {
       await this.delay(this.config.pollInterval);
-      this.poll(index == this.config.OIDs.length - 1 ? 0 : index + 1);
+      if (index == this.config.OIDs.length - 1) {
+        await this.updateNativeOIDs(Object.keys(this.oidUpdate));
+        this.poll();
+      } else
+        this.poll(++index);
     } catch (error) {
       this.log.error(`Error: ${JSON.stringify(error)}`);
       this.poll();
+    }
+  }
+  async updateNativeOIDs(keys) {
+    if (!keys.length)
+      return;
+    try {
+      const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
+      if (instanceObj) {
+        this.log.debug(`Old native objects: ${JSON.stringify(instanceObj.native, null, 2)}`);
+        keys.forEach((key) => {
+          var _a;
+          const index = instanceObj.native.OIDs.findIndex((oid) => key === oid.oid);
+          if (index !== -1)
+            instanceObj.native.OIDs[index].name = (_a = this.oidUpdate[key]) != null ? _a : key;
+        });
+        await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, instanceObj);
+        this.oidUpdate = {};
+      }
+    } catch (error) {
+      this.log.debug(`getObject error: ${JSON.stringify(error, null, 2)}`);
     }
   }
   wait(t) {
@@ -119,7 +131,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   }
   async oidGetNames() {
     let oidNamesDict = {};
-    const namespace = this.name + ".admin";
+    const namespace = this.namespace;
     const fileName = "oidNames.json";
     this.log.debug(`Namespace: ${namespace}`);
     try {
@@ -170,8 +182,9 @@ class OchsnerRoomterminal extends utils.Adapter {
     return true;
   }
   async oidRead(index) {
+    var _a;
     const oid = this.config.OIDs[index].oid;
-    this.log.info(`Polling OID: ${oid}`);
+    this.log.info(`Reading OID: ${oid}`);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -196,7 +209,7 @@ class OchsnerRoomterminal extends utils.Adapter {
         Connection: "Keep-Alive",
         Accept: "text/xml",
         Pragma: "no-cache",
-        SOAPAction: "http://ws01.lom.ch/soap/listDP",
+        SOAPAction: "http://ws01.lom.ch/soap/getDP",
         "Cache-Control": "no-cache",
         "Content-Type": "text/xml; charset=utf-8",
         "Content-length": body.length
@@ -214,7 +227,7 @@ class OchsnerRoomterminal extends utils.Adapter {
       const max = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].maxValue[0];
       const prop = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].prop[0];
       const common = {
-        name: this.oidNamesDict[name].length ? this.oidNamesDict[name] : this.config.OIDs[index].name,
+        name: this.config.OIDs[index].name.length ? this.config.OIDs[index].name : this.oidNamesDict[name],
         type: "number",
         role: "value",
         read: prop[1] === "r" ? true : false,
@@ -224,7 +237,8 @@ class OchsnerRoomterminal extends utils.Adapter {
         max: max.length === 0 ? void 0 : Number(max),
         step: step.length === 0 ? void 0 : Number(step)
       };
-      this.log.debug(`${JSON.stringify(common, null, 2)}`);
+      if (this.config.OIDs[index].name.length === 0)
+        this.oidUpdate[this.config.OIDs[index].oid] = (_a = this.oidNamesDict["xx:yy"]) != null ? _a : name;
       if (value.length > 0) {
         this.log.debug("Got a valid result: " + value + unit);
         await this.setObjectNotExistsAsync("OID." + oid, {

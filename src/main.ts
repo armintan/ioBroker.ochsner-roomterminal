@@ -30,13 +30,15 @@ class OchsnerRoomterminal extends utils.Adapter {
 	private client: any | undefined = undefined;
 	private timeoutID: NodeJS.Timeout | string | number | undefined = undefined;
 	private oidNamesDict: { [id: string]: string } | undefined = undefined;
+	private oidUpdate: { [id: string]: string } = {};
 
 	public constructor(options: Partial<utils.AdapterOptions> = {}) {
 		super({
 			...options,
 			name: adapterName!,
 		});
-		console.log('Adapter Name:', this.name);
+		// this.log.info(`Adapter Name: ${this.name}`);
+		// this.log.info(`Adapter Instance: ${this.instance}`);
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
 		// this.on('objectChange', this.onObjectChange.bind(this));
@@ -154,32 +156,16 @@ class OchsnerRoomterminal extends utils.Adapter {
 		}
 		this.setState('info.connection', true, true);
 
-		/*
-	For every state in the system there has to be also an object of type state
-	Here a simple template for a boolean variable named "testVariable"
-	Because every adapter instance uses its own unique namespace variable names can't collide with other adapters variables
-	*/
-		await this.setObjectNotExistsAsync('testVariable', {
-			type: 'state',
-			common: {
-				name: 'testVariable',
-				type: 'boolean',
-				role: 'indicator',
-				read: true,
-				write: true,
-			},
-			native: {},
-		});
-
 		// In order to get state updates, you need to subscribe to them. The following line adds a subscription for our variable we have created above.
-		this.subscribeStates('testVariable');
 		// You can also add a subscription for multiple states. The following line watches all states starting with "lights."
 		// this.subscribeStates('lights.*');
 		// Or, if you really must, you can also watch all states. Don't do this if you don't need to. Otherwise this will cause a lot of unnecessary load on the system:
 		// this.subscribeStates('*');
 
-		// Start polling the OID's with the given pollingIntervall
+		// load the oidNames dictionary
 		this.oidNamesDict = await this.oidGetNames();
+
+		// Start polling the OID's with the given pollingIntervall
 		if (this.config.OIDs.length > 0) this.poll();
 	}
 
@@ -187,6 +173,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 * Main polling routine - fetching next OID in list
 	 *
 	 * @description Started once during startup, restarts itself when finished
+	 * 				(only called when there is at least one oid)
 	 */
 	private async poll(index = 0): Promise<void> {
 		this.log.debug(`poll with index: ${index}`);
@@ -203,10 +190,41 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// }
 		try {
 			await this.delay(this.config.pollInterval);
-			this.poll(index == this.config.OIDs.length - 1 ? 0 : index + 1);
+			if (index == this.config.OIDs.length - 1) {
+				await this.updateNativeOIDs(Object.keys(this.oidUpdate));
+				this.poll();
+			} else this.poll(++index);
 		} catch (error) {
 			this.log.error(`Error: ${JSON.stringify(error)}`);
 			this.poll();
+		}
+	}
+
+	/**
+	 * update OIDs in instance object native
+	 * @param key key to update
+	 */
+	private async updateNativeOIDs(keys: string[]): Promise<void> {
+		// Check for empty names in config and add default names
+		if (!keys.length) return;
+		try {
+			const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
+			if (instanceObj) {
+				// const native: ioBroker.AdapterConfig = [...instanceObj.native];
+				// const oids: ioBroker.OID[] = [...instanceObj?.native.OIDs];
+
+				this.log.debug(`Old native objects: ${JSON.stringify(instanceObj.native, null, 2)}`);
+				keys.forEach((key) => {
+					const index = instanceObj.native.OIDs.findIndex((oid: ioBroker.OID) => key === oid.oid);
+					if (index !== -1) instanceObj.native.OIDs[index].name = this.oidUpdate[key] ?? key;
+				});
+				// this.log.debug(`New native objects: ${JSON.stringify(instanceObj.native, null, 2)}`);
+				await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, instanceObj);
+				this.oidUpdate = {};
+				// this.log.debug(`Instance object id: ${JSON.stringify(res, null, 2)}`);
+			}
+		} catch (error) {
+			this.log.debug(`getObject error: ${JSON.stringify(error, null, 2)}`);
 		}
 	}
 
@@ -228,8 +246,8 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 */
 	private async oidGetNames(): Promise<{ [id: string]: string }> {
 		let oidNamesDict: { [id: string]: string } = {};
-		const namespace = this.name + '.admin';
-		// const namespace = this.namespace;
+		// const namespace = this.name + '.admin';
+		const namespace = this.namespace;
 		const fileName = 'oidNames.json';
 		this.log.debug(`Namespace: ${namespace}`);
 		try {
@@ -295,7 +313,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// this.log.debug(JSON.stringify(oids, null, 2));
 		// this.log.debug(JSON.stringify(status, null, 2));
 		const oid = this.config.OIDs[index].oid;
-		this.log.info(`Polling OID: ${oid}`);
+		this.log.info(`Reading OID: ${oid}`);
 
 		// TODO: wrong UID error handling
 
@@ -324,7 +342,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 				Connection: 'Keep-Alive',
 				Accept: 'text/xml',
 				Pragma: 'no-cache',
-				SOAPAction: 'http://ws01.lom.ch/soap/listDP',
+				SOAPAction: 'http://ws01.lom.ch/soap/getDP',
 				'Cache-Control': 'no-cache',
 				'Content-Type': 'text/xml; charset=utf-8',
 				'Content-length': body.length,
@@ -351,7 +369,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 			// this.log.debug(`${JSON.stringify(common, null, 2)}`);
 
 			const common: ioBroker.StateCommon = {
-				name: this.oidNamesDict![name].length ? this.oidNamesDict![name] : this.config.OIDs[index].name,
+				name: this.config.OIDs[index].name.length ? this.config.OIDs[index].name : this.oidNamesDict![name],
 				type: 'number',
 				role: 'value',
 				read: prop[1] === 'r' ? true : false,
@@ -363,7 +381,9 @@ class OchsnerRoomterminal extends utils.Adapter {
 				// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
 			};
 
-			this.log.debug(`${JSON.stringify(common, null, 2)}`);
+			if (this.config.OIDs[index].name.length === 0)
+				this.oidUpdate[this.config.OIDs[index].oid] = this.oidNamesDict![name] ?? name;
+
 			// this.log.info(`data: ${JSON.stringify(result, null, 2)}`);
 			if (value.length > 0) {
 				this.log.debug('Got a valid result: ' + value + unit);
