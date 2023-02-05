@@ -21,6 +21,7 @@ var utils = __toESM(require("@iobroker/adapter-core"));
 var import_digest_fetch = __toESM(require("digest-fetch"));
 var import_xml2js = require("xml2js");
 var import_package = __toESM(require("../package.json"));
+var import_util = require("./lib/util");
 const adapterName = import_package.default.name.split(".").pop();
 const getOptions = {
   method: "get",
@@ -41,8 +42,8 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.deviceInfoUrl = "";
     this.getUrl = "";
     this.client = void 0;
-    this.timeoutID = void 0;
     this.oidNamesDict = void 0;
+    this.oidEnumsDict = void 0;
     this.oidUpdate = {};
     this.on("ready", this.onReady.bind(this));
     this.on("stateChange", this.onStateChange.bind(this));
@@ -53,14 +54,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.main();
   }
   onUnload(callback) {
-    try {
-      this.log.debug("clear polling succeeded");
-    } catch (e) {
-      this.log.error(`clear timeout error`);
-    } finally {
-      this.log.info("Unloading ....");
-      callback();
-    }
+    callback();
   }
   onStateChange(id, state) {
     if (state) {
@@ -88,6 +82,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     }
     this.setState("info.connection", true, true);
     this.oidNamesDict = await this.oidGetNames();
+    this.oidEnumsDict = await this.oidGetEnums();
     if (this.config.OIDs.length > 0)
       this.poll();
   }
@@ -124,19 +119,14 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.log.debug(`getObject error: ${JSON.stringify(error, null, 2)}`);
     }
   }
-  wait(t) {
-    return new Promise((s) => this.timeoutID = setTimeout(s, t, t));
-  }
   async oidGetNames() {
     let oidNamesDict = {};
-    const namespace = this.namespace;
     const fileName = "oidNames.json";
-    this.log.debug(`Namespace: ${namespace}`);
     try {
-      const oidNamesExists = await this.fileExistsAsync(namespace, fileName);
+      const oidNamesExists = await this.fileExistsAsync(this.namespace, fileName);
       if (oidNamesExists) {
         this.log.debug("oidNames exists");
-        const res = await this.readFileAsync(namespace, fileName);
+        const res = await this.readFileAsync(this.namespace, fileName);
         oidNamesDict = JSON.parse(res.file);
       } else {
         const response = await this.client.fetch(
@@ -157,14 +147,54 @@ class OchsnerRoomterminal extends utils.Adapter {
             oidNamesDict[key] = result["VarIdentTexte"]["gn"][gnIndex]["mn"][mnIndex]["_"];
           }
         }
-        await this.writeFileAsync(namespace, fileName, JSON.stringify(oidNamesDict));
-        this.log.debug("oidNames wirtten to files");
-        return oidNamesDict;
+        await this.writeFileAsync(this.namespace, fileName, JSON.stringify(oidNamesDict));
+        this.log.debug(`${fileName} wirtten to files`);
       }
     } catch (error) {
       this.log.error(`oidGetNames error: ${JSON.stringify(error)}`);
     }
     return oidNamesDict;
+  }
+  async oidGetEnums() {
+    let oidEnumsDict = {};
+    const fileName = "oidEnums.json";
+    try {
+      const oidEnumsExists = await this.fileExistsAsync(this.namespace, fileName);
+      if (oidEnumsExists) {
+        this.log.debug("oidEnums exists");
+        const res = await this.readFileAsync(this.namespace, fileName);
+        oidEnumsDict = JSON.parse(res.file);
+      } else {
+        const response = await this.client.fetch(
+          "http://192.168.1.108/res/xml/AufzaehlTexte_de.xml",
+          getOptions
+        );
+        const data = await response.text();
+        const result = await (0, import_xml2js.parseStringPromise)(data);
+        for (const gnIndex in result["AufzaehlTexte"]["gn"]) {
+          for (const mnIndex in result["AufzaehlTexte"]["gn"][gnIndex]["mn"]) {
+            let gn = result["AufzaehlTexte"]["gn"][gnIndex]["$"]["id"];
+            let mn = result["AufzaehlTexte"]["gn"][gnIndex]["mn"][mnIndex]["$"]["id"];
+            gn = gn.length == 1 ? "0" + gn : gn;
+            mn = mn.length == 1 ? "0" + mn : mn;
+            const key = `${gn}:${mn}`;
+            const enumArray = [];
+            for (const enumIndex in result["AufzaehlTexte"]["gn"][gnIndex]["mn"][mnIndex]["enum"]) {
+              const index = parseInt(
+                result["AufzaehlTexte"]["gn"][gnIndex]["mn"][mnIndex]["enum"][enumIndex]["$"]["id"]
+              );
+              enumArray[index] = result["AufzaehlTexte"]["gn"][gnIndex]["mn"][mnIndex]["enum"][enumIndex]["_"];
+            }
+            oidEnumsDict[key] = enumArray;
+          }
+        }
+        await this.writeFileAsync(this.namespace, fileName, JSON.stringify(oidEnumsDict));
+        this.log.debug(`${fileName} wirtten to files`);
+      }
+    } catch (error) {
+      console.log("error:", { error });
+    }
+    return oidEnumsDict;
   }
   async checkForConnection() {
     try {
@@ -182,6 +212,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   async oidRead(index) {
     var _a;
     const oid = this.config.OIDs[index].oid;
+    let states = {};
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -217,12 +248,24 @@ class OchsnerRoomterminal extends utils.Adapter {
       const data = await response.text();
       const jsonResult = await (0, import_xml2js.parseStringPromise)(data);
       const name = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].name[0];
+      const prop = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].prop[0];
+      const desc = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].desc[0];
       const value = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].value[0];
       const unit = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].unit[0];
       const step = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].step[0];
       const min = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].minValue[0];
       const max = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].maxValue[0];
-      const prop = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg[0].prop[0];
+      if (desc === "Enum Var") {
+        const enums = (0, import_util.getEnumKeys)(prop);
+        if (enums) {
+          this.log.debug(`enums: ${enums}`);
+          enums.forEach((e) => {
+            var _a2;
+            return states[e] = (_a2 = this.oidEnumsDict[name][Number(e)]) != null ? _a2 : "undefined";
+          });
+          this.log.debug(`${JSON.stringify(states)}`);
+        }
+      }
       const common = {
         name: this.config.OIDs[index].name.length ? this.config.OIDs[index].name : this.oidNamesDict[name],
         type: "number",
@@ -232,12 +275,13 @@ class OchsnerRoomterminal extends utils.Adapter {
         unit: unit.length === 0 ? void 0 : unit,
         min: min.length === 0 ? void 0 : Number(min),
         max: max.length === 0 ? void 0 : Number(max),
-        step: step.length === 0 ? void 0 : Number(step)
+        step: step.length === 0 ? void 0 : Number(step),
+        states: Object.keys(states).length == 0 ? void 0 : states
       };
       if (this.config.OIDs[index].name.length === 0)
         this.oidUpdate[this.config.OIDs[index].oid] = (_a = this.oidNamesDict[name]) != null ? _a : name;
       if (value.length > 0) {
-        this.log.debug(`result for ${oid}: ${value} ${unit}`);
+        this.log.debug(`result for [${oid}]: ${value} ${unit}`);
         await this.setObjectNotExistsAsync("OID." + oid, {
           type: "state",
           common,
