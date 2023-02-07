@@ -74,6 +74,7 @@
 						{
 							"type": "text",
 							"attr": "name",
+							"default": "",
 							"width": "30% ",
 							"title": {
 								"en": "Name",
@@ -89,8 +90,28 @@
 								"zh-cn": "姓名"
 							},
 							"filter": false,
-							"sort": false,
-							"default": ""
+							"sort": false
+						},
+						{
+							"type": "checkbox",
+							"attr": "isStatus",
+							"default": false,
+							"width": "5%",
+							"title": {
+								"en": "is Status",
+								"de": "ist Status",
+								"ru": "статус",
+								"pt": "é o Estado",
+								"nl": "status",
+								"fr": "a) Statut",
+								"it": "è stato",
+								"es": "estado",
+								"pl": "status",
+								"uk": "статус на сервери",
+								"zh-cn": "现状"
+							},
+							"filter": false,
+							"sort": false
 						}
 					]
 				}

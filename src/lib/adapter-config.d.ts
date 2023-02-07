@@ -7,8 +7,8 @@ declare global {
 			enabled: boolean;
 			oid: string;
 			name: string;
+			isStatus: boolean;
 			// isWriteable: boolean;
-			// isStatus: boolean;
 			// statusID: string;
 		}
 

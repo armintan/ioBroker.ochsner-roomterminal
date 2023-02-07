@@ -396,60 +396,83 @@ class OchsnerRoomterminal extends utils.Adapter {
 		try {
 			this.log.debug(`Read [ ${oid} ]`);
 			const response = await this.client.fetch(this.getUrl, options);
-			const data = await response.text();
-			const jsonResult = await parseStringPromise(data);
-			const name: string =
-				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].name[0];
-			const prop: string =
-				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].prop[0];
-			const desc: string =
-				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].desc[0];
-			const value: string =
-				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].value[0];
-			const unit: string =
-				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].unit[0];
-			const step: string =
-				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].step[0];
-			const min: string =
-				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].minValue[0];
-			const max: string =
-				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].maxValue[0];
-			// this.log.debug(`${JSON.stringify(common, null, 2)}`);
-			if (desc === 'Enum Var') {
-				const enums = getEnumKeys(prop);
-				if (enums) {
-					enums.forEach((e) => (states[e] = this.oidEnumsDict![name][Number(e)] ?? 'undefined'));
-					// this.log.debug(`${JSON.stringify(states)}`);
+			if (response.ok == true) {
+				// Write was succcesfull
+				const data = await response.text();
+				this.log.debug(`OID Raw Data: ${data}`);
+				const jsonResult = await parseStringPromise(data);
+				const name: string =
+					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].name[0];
+				const prop: string =
+					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].prop[0];
+				const desc: string =
+					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].desc[0];
+				const value: string =
+					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].value[0];
+				const unit: string =
+					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].unit[0];
+				const step: string =
+					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].step[0];
+				const min: string =
+					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].minValue[0];
+				const max: string =
+					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].maxValue[0];
+				// this.log.debug(`${JSON.stringify(common, null, 2)}`);
+				if (desc === 'Enum Var') {
+					const enums = getEnumKeys(prop);
+					if (enums) {
+						enums.forEach((e) => (states[e] = this.oidEnumsDict![name][Number(e)] ?? 'undefined'));
+						// this.log.debug(`${JSON.stringify(states)}`);
+					}
 				}
-			}
+				// this.log.debug(`OID name: ${name}`);
+				const common: ioBroker.StateCommon = {
+					name: this.config.OIDs[index].name.length ? this.config.OIDs[index].name : this.oidNamesDict![name],
+					type: 'number',
+					role: 'value',
+					read: prop[1] === 'r' ? true : false,
+					write: prop[2] === 'w' ? true : false,
+					unit: unit.length === 0 ? undefined : unit,
+					min: min.length === 0 ? undefined : Number(min),
+					max: max.length === 0 ? undefined : Number(max),
+					step: step.length === 0 ? undefined : Number(step),
+					//TODO: add states based on XML
+					states: Object.keys(states).length == 0 ? undefined : states,
+					// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
+				};
 
-			const common: ioBroker.StateCommon = {
-				name: this.config.OIDs[index].name.length ? this.config.OIDs[index].name : this.oidNamesDict![name],
-				type: 'number',
-				role: 'value',
-				read: prop[1] === 'r' ? true : false,
-				write: prop[2] === 'w' ? true : false,
-				unit: unit.length === 0 ? undefined : unit,
-				min: min.length === 0 ? undefined : Number(min),
-				max: max.length === 0 ? undefined : Number(max),
-				step: step.length === 0 ? undefined : Number(step),
-				//TODO: add states based on XML
-				states: Object.keys(states).length == 0 ? undefined : states,
-				// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
-			};
+				if (this.config.OIDs[index].name.length === 0)
+					this.oidUpdate[this.config.OIDs[index].oid] = this.oidNamesDict![name] ?? name;
 
-			if (this.config.OIDs[index].name.length === 0)
-				this.oidUpdate[this.config.OIDs[index].oid] = this.oidNamesDict![name] ?? name;
+				// this.log.info(`data: ${JSON.stringify(result, null, 2)}`);
+				if (value.length > 0) {
+					await this.setObjectNotExistsAsync('OID.' + oid, {
+						type: 'state',
+						common,
+						native: {},
+					});
 
-			// this.log.info(`data: ${JSON.stringify(result, null, 2)}`);
-			if (value.length > 0) {
-				await this.setObjectNotExistsAsync('OID.' + oid, {
-					type: 'state',
-					common,
-					native: {},
-				});
+					this.setState('OID.' + oid, { val: Number(value), ack: true });
 
-				this.setState('OID.' + oid, { val: Number(value), ack: true });
+					if (this.config.OIDs[index].isStatus) {
+						const status = this.oidEnumsDict![name][Number(value)];
+						if (status) {
+							await this.setObjectNotExistsAsync('Status.' + oid, {
+								type: 'state',
+								common: {
+									name: 'Status.' + this.config.OIDs[index].name,
+									type: 'string',
+									role: 'value',
+									read: true,
+									write: false,
+								},
+								native: {},
+							});
+							this.setState('Status.' + oid, { val: status, ack: true });
+							this.log.debug(`Status object updated for ${oid}`);
+						}
+					}
+				} else this.log.debug(`reading ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
 			} else {
 				this.log.error(`result for ${oid} not valid`);
 				this.setState('info.connection', false, true);
@@ -511,12 +534,8 @@ class OchsnerRoomterminal extends utils.Adapter {
 		try {
 			this.log.debug(`Write [ ${oid} ] with value: ${value}`);
 			const response = await this.client.fetch(this.getUrl, options);
-			this.log.debug(`response status for ${oid} : ${JSON.stringify(response.status)}`);
-			this.log.debug(`response status message for ${oid} : ${JSON.stringify(response.statusText)}`);
-
-			const data = await response.text();
-			this.log.debug(`data for ${oid} : ${JSON.stringify(data)}`);
-			this.setState('info.connection', false, true);
+			if (response.ok != true)
+				this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
 		} catch (error) {
 			this.log.error(`OID (${oid})read error: ${JSON.stringify(error)}`);
 		}

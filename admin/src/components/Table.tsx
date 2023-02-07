@@ -116,7 +116,7 @@ class Table extends React.Component<IProps, IState> {
 								name: '',
 								// isWriteable: false,
 								enabled: false,
-								// isStatus: false,
+								isStatus: false,
 								// statusID: '',
 							});
 						} else {
