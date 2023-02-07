@@ -60,17 +60,18 @@ class OchsnerRoomterminal extends utils.Adapter {
   async onStateChange(id, state) {
     const oids = this.config.OIDs;
     if (state) {
-      this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-      const index = oids.findIndex((elem) => id.endsWith(elem.oid));
-      if (index == -1) {
-        this.log.error(`state ${id} not found in OID list`);
-        return;
-      }
-      this.log.debug(`From: system.adapter.${this.name}`);
-      if (!state.from.startsWith(`system.adapter.${this.name}`)) {
-        this.log.debug(`Writing OID ${JSON.stringify(oids[index].oid)}`);
-        await this.oidWrite(index, state.val);
-        await this.oidRead(index);
+      if (!state.ack) {
+        this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+        const index = oids.findIndex((elem) => id.endsWith(elem.oid));
+        if (index == -1) {
+          this.log.error(`state ${id} not found in OID list`);
+          return;
+        }
+        this.log.debug(`From: system.adapter.${this.name}`);
+        if (!state.from.startsWith(`system.adapter.${this.name}`)) {
+          await this.oidWrite(index, state.val);
+          await this.oidRead(index);
+        }
       }
     } else {
       this.log.info(`state ${id} deleted`);
@@ -100,9 +101,10 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.poll();
   }
   async poll(index = 0) {
-    await this.oidRead(index);
     try {
       await this.delay(this.config.pollInterval);
+      if (this.config.OIDs[index].enabled)
+        await this.oidRead(index);
       if (index == this.config.OIDs.length - 1) {
         await this.updateNativeOIDs(Object.keys(this.oidUpdate));
         this.poll();
@@ -257,6 +259,7 @@ class OchsnerRoomterminal extends utils.Adapter {
       }
     };
     try {
+      this.log.debug(`Read [ ${oid} ]`);
       const response = await this.client.fetch(this.getUrl, options);
       const data = await response.text();
       const jsonResult = await (0, import_xml2js.parseStringPromise)(data);
@@ -271,7 +274,6 @@ class OchsnerRoomterminal extends utils.Adapter {
       if (desc === "Enum Var") {
         const enums = (0, import_util.getEnumKeys)(prop);
         if (enums) {
-          this.log.debug(`enums: ${enums}`);
           enums.forEach((e) => {
             var _a2;
             return states[e] = (_a2 = this.oidEnumsDict[name][Number(e)]) != null ? _a2 : "undefined";
@@ -294,7 +296,6 @@ class OchsnerRoomterminal extends utils.Adapter {
       if (this.config.OIDs[index].name.length === 0)
         this.oidUpdate[this.config.OIDs[index].oid] = (_a = this.oidNamesDict[name]) != null ? _a : name;
       if (value.length > 0) {
-        this.log.debug(`result for [${oid}]: ${value} ${unit}`);
         await this.setObjectNotExistsAsync("OID." + oid, {
           type: "state",
           common,
@@ -311,7 +312,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   }
   async oidWrite(index, value) {
     const oid = this.config.OIDs[index].oid;
-    const body = `		<?xml version="1.0" encoding="UTF-8"?>
+    const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -335,6 +336,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		  </ns:writeDpRequest>   
 		</SOAP-ENV:Body>
 	   </SOAP-ENV:Envelope>`;
+    this.log.debug(`write body ${oid}: ${body}`);
     const options = {
       method: "post",
       body,
@@ -349,9 +351,12 @@ class OchsnerRoomterminal extends utils.Adapter {
       }
     };
     try {
-      this.log.debug(`Writing OID ${oid} with value: ${value}}`);
+      this.log.debug(`Write [ ${oid} ] with value: ${value}`);
       const response = await this.client.fetch(this.getUrl, options);
-      this.log.debug(`response for ${oid} : ${JSON.stringify(response)}`);
+      this.log.debug(`response status for ${oid} : ${JSON.stringify(response.status)}`);
+      this.log.debug(`response status message for ${oid} : ${JSON.stringify(response.statusText)}`);
+      const data = await response.text();
+      this.log.debug(`data for ${oid} : ${JSON.stringify(data)}`);
       this.setState("info.connection", false, true);
     } catch (error) {
       this.log.error(`OID (${oid})read error: ${JSON.stringify(error)}`);
