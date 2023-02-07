@@ -24,7 +24,7 @@ const getOptions = {
 		'Content-Type': 'text/xml; charset=utf-8',
 	},
 };
-
+// /home/parallels/ioBroker.ochsner-roomterminal/node_modules/@types/iobroker/index.d.ts
 class OchsnerRoomterminal extends utils.Adapter {
 	private deviceInfoUrl = '';
 	private getUrl = '';
@@ -83,10 +83,24 @@ class OchsnerRoomterminal extends utils.Adapter {
 	/**
 	 * Is called if a subscribed state changes
 	 */
-	private onStateChange(id: string, state: ioBroker.State | null | undefined): void {
+	private async onStateChange(id: string, state: ioBroker.State | null | undefined): Promise<void> {
+		const oids = this.config.OIDs;
 		if (state) {
-			// The state was changed
 			this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+			const index = oids.findIndex((elem) => id.endsWith(elem.oid));
+			if (index == -1) {
+				this.log.error(`state ${id} not found in OID list`);
+				return;
+			}
+			// this.log.debug(`adapter name: ${this.name}, namespace: ${this.namespace}`);
+			this.log.debug(`From: system.adapter.${this.name}`);
+			// we are only interested in state changes, which are not from reading our OIDs
+			if (!state.from.startsWith(`system.adapter.${this.name}`)) {
+				this.log.debug(`Writing OID ${JSON.stringify(oids[index].oid)}`);
+				await this.oidWrite(index, state.val);
+				await this.oidRead(index);
+			}
+			// The state was changed
 		} else {
 			// The state was deleted
 			this.log.info(`state ${id} deleted`);
@@ -341,7 +355,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// this.log.debug(JSON.stringify(oids, null, 2));
 		// this.log.debug(JSON.stringify(status, null, 2));
 		const oid = this.config.OIDs[index].oid;
-		let states: { [key: string]: string } = {};
+		const states: { [key: string]: string } = {};
 
 		// TODO: wrong UID error handling
 
@@ -498,6 +512,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 			},
 		};
 		try {
+			this.log.debug(`Writing OID ${oid} with value: ${value}}`);
 			const response = await this.client.fetch(this.getUrl, options);
 			this.log.debug(`response for ${oid} : ${JSON.stringify(response)}`);
 			this.setState('info.connection', false, true);

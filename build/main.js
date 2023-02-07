@@ -50,15 +50,28 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.on("unload", this.onUnload.bind(this));
   }
   async onReady() {
+    this.subscribeStates("OID.*");
     this.log.info(`Adapter Name: ${this.name} is ready !!!!!!`);
     this.main();
   }
   onUnload(callback) {
     callback();
   }
-  onStateChange(id, state) {
+  async onStateChange(id, state) {
+    const oids = this.config.OIDs;
     if (state) {
       this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+      const index = oids.findIndex((elem) => id.endsWith(elem.oid));
+      if (index == -1) {
+        this.log.error(`state ${id} not found in OID list`);
+        return;
+      }
+      this.log.debug(`From: system.adapter.${this.name}`);
+      if (!state.from.startsWith(`system.adapter.${this.name}`)) {
+        this.log.debug(`Writing OID ${JSON.stringify(oids[index].oid)}`);
+        await this.oidWrite(index, state.val);
+        await this.oidRead(index);
+      }
     } else {
       this.log.info(`state ${id} deleted`);
     }
@@ -212,7 +225,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   async oidRead(index) {
     var _a;
     const oid = this.config.OIDs[index].oid;
-    let states = {};
+    const states = {};
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -294,6 +307,54 @@ class OchsnerRoomterminal extends utils.Adapter {
       }
     } catch (error) {
       this.log.error(`OID read error: ${oid}`);
+    }
+  }
+  async oidWrite(index, value) {
+    const oid = this.config.OIDs[index].oid;
+    const body = `		<?xml version="1.0" encoding="UTF-8"?>
+		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+		xmlns:ns="http://ws01.lom.ch/soap/">
+		<SOAP-ENV:Body>
+		  <ns:writeDpRequest>
+		   <ref>
+			<oid>${oid}</oid>
+			<prop/>
+		   </ref>
+		   <dp>
+			<index>0</index>
+			<name/>
+			<prop/>
+			<desc/>
+			<value>${value}</value>
+			<unit/>
+			<timestamp>0</timestamp>
+		   </dp>
+		  </ns:writeDpRequest>   
+		</SOAP-ENV:Body>
+	   </SOAP-ENV:Envelope>`;
+    const options = {
+      method: "post",
+      body,
+      headers: {
+        Connection: "Keep-Alive",
+        Accept: "*/*",
+        Pragma: "no-cache",
+        SOAPAction: "http://ws01.lom.ch/soap/writeDP",
+        "Cache-Control": "no-cache",
+        "Content-Type": "text/xml; charset=utf-8",
+        "Content-length": body.length
+      }
+    };
+    try {
+      this.log.debug(`Writing OID ${oid} with value: ${value}}`);
+      const response = await this.client.fetch(this.getUrl, options);
+      this.log.debug(`response for ${oid} : ${JSON.stringify(response)}`);
+      this.setState("info.connection", false, true);
+    } catch (error) {
+      this.log.error(`OID (${oid})read error: ${JSON.stringify(error)}`);
     }
   }
 }
