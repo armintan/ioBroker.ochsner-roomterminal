@@ -86,21 +86,23 @@ class OchsnerRoomterminal extends utils.Adapter {
 	private async onStateChange(id: string, state: ioBroker.State | null | undefined): Promise<void> {
 		const oids = this.config.OIDs;
 		if (state) {
-			this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-			const index = oids.findIndex((elem) => id.endsWith(elem.oid));
-			if (index == -1) {
-				this.log.error(`state ${id} not found in OID list`);
-				return;
-			}
-			// this.log.debug(`adapter name: ${this.name}, namespace: ${this.namespace}`);
-			this.log.debug(`From: system.adapter.${this.name}`);
-			// we are only interested in state changes, which are not from reading our OIDs
-			if (!state.from.startsWith(`system.adapter.${this.name}`)) {
-				this.log.debug(`Writing OID ${JSON.stringify(oids[index].oid)}`);
-				await this.oidWrite(index, state.val);
-				await this.oidRead(index);
-			}
 			// The state was changed
+			if (!state.ack) {
+				// only write to device value of state is not acknowledges
+				this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+				const index = oids.findIndex((elem) => id.endsWith(elem.oid));
+				if (index == -1) {
+					this.log.error(`state ${id} not found in OID list`);
+					return;
+				}
+				// this.log.debug(`adapter name: ${this.name}, namespace: ${this.namespace}`);
+				this.log.debug(`From: system.adapter.${this.name}`);
+				// we are only interested in state changes, which are not from reading our OIDs
+				if (!state.from.startsWith(`system.adapter.${this.name}`)) {
+					await this.oidWrite(index, state.val);
+					await this.oidRead(index);
+				}
+			}
 		} else {
 			// The state was deleted
 			this.log.info(`state ${id} deleted`);
@@ -170,6 +172,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// this.subscribeStates('*');
 
 		// load the oidNames and oiEnums dictionary
+
 		// TODO: read both dictionary also, when device version changed
 		this.oidNamesDict = await this.oidGetNames();
 		this.oidEnumsDict = await this.oidGetEnums();
@@ -187,11 +190,11 @@ class OchsnerRoomterminal extends utils.Adapter {
 	private async poll(index = 0): Promise<void> {
 		// this.log.debug(`poll with index: ${index}`);
 
-		// read the next OID from rommterminal
-		await this.oidRead(index);
-
+		// TODO: avoid delay when OID is disabled
 		try {
 			await this.delay(this.config.pollInterval);
+			// read the next OID from rommterminal
+			if (this.config.OIDs[index].enabled) await this.oidRead(index);
 			if (index == this.config.OIDs.length - 1) {
 				await this.updateNativeOIDs(Object.keys(this.oidUpdate));
 				this.poll();
@@ -265,7 +268,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 					}
 				}
 				await this.writeFileAsync(this.namespace, fileName, JSON.stringify(oidNamesDict));
-				this.log.debug(`${fileName} wirtten to files`);
+				this.log.debug(`${fileName} written to files`);
 				// return oidNamesDict;
 			}
 		} catch (error) {
@@ -319,7 +322,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 					}
 				}
 				await this.writeFileAsync(this.namespace, fileName, JSON.stringify(oidEnumsDict));
-				this.log.debug(`${fileName} wirtten to files`);
+				this.log.debug(`${fileName} written to files`);
 				// return oidEnumsDict;
 			}
 		} catch (error) {
@@ -391,6 +394,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 			},
 		};
 		try {
+			this.log.debug(`Read [ ${oid} ]`);
 			const response = await this.client.fetch(this.getUrl, options);
 			const data = await response.text();
 			const jsonResult = await parseStringPromise(data);
@@ -412,16 +416,10 @@ class OchsnerRoomterminal extends utils.Adapter {
 				jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].maxValue[0];
 			// this.log.debug(`${JSON.stringify(common, null, 2)}`);
 			if (desc === 'Enum Var') {
-				// this.log.debug(`desc: ${desc}`);
-				// this.log.debug(`prop: ${prop}`);
-				// this.log.debug(`name: ${name}`);
 				const enums = getEnumKeys(prop);
 				if (enums) {
-					this.log.debug(`enums: ${enums}`);
-					// this.log.debug(`${JSON.stringify(this.oidEnumsDict![name])}`);
-
 					enums.forEach((e) => (states[e] = this.oidEnumsDict![name][Number(e)] ?? 'undefined'));
-					this.log.debug(`${JSON.stringify(states)}`);
+					// this.log.debug(`${JSON.stringify(states)}`);
 				}
 			}
 
@@ -445,8 +443,6 @@ class OchsnerRoomterminal extends utils.Adapter {
 
 			// this.log.info(`data: ${JSON.stringify(result, null, 2)}`);
 			if (value.length > 0) {
-				this.log.debug(`result for [${oid}]: ${value} ${unit}`);
-
 				await this.setObjectNotExistsAsync('OID.' + oid, {
 					type: 'state',
 					common,
@@ -473,7 +469,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// this.log.debug(JSON.stringify(status, null, 2));
 		const oid = this.config.OIDs[index].oid;
 		// TODO: wrong UID error handling
-		const body = `		<?xml version="1.0" encoding="UTF-8"?>
+		const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -497,6 +493,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		  </ns:writeDpRequest>   
 		</SOAP-ENV:Body>
 	   </SOAP-ENV:Envelope>`;
+		this.log.debug(`write body ${oid}: ${body}`);
 
 		const options = {
 			method: 'post',
@@ -512,9 +509,13 @@ class OchsnerRoomterminal extends utils.Adapter {
 			},
 		};
 		try {
-			this.log.debug(`Writing OID ${oid} with value: ${value}}`);
+			this.log.debug(`Write [ ${oid} ] with value: ${value}`);
 			const response = await this.client.fetch(this.getUrl, options);
-			this.log.debug(`response for ${oid} : ${JSON.stringify(response)}`);
+			this.log.debug(`response status for ${oid} : ${JSON.stringify(response.status)}`);
+			this.log.debug(`response status message for ${oid} : ${JSON.stringify(response.statusText)}`);
+
+			const data = await response.text();
+			this.log.debug(`data for ${oid} : ${JSON.stringify(data)}`);
 			this.setState('info.connection', false, true);
 		} catch (error) {
 			this.log.error(`OID (${oid})read error: ${JSON.stringify(error)}`);
