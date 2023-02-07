@@ -53,6 +53,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 */
 	private async onReady(): Promise<void> {
 		// Initialize your adapter here
+		this.subscribeStates('OID.*');
 		this.log.info(`Adapter Name: ${this.name} is ready !!!!!!`);
 		this.main();
 	}
@@ -445,6 +446,63 @@ class OchsnerRoomterminal extends utils.Adapter {
 			}
 		} catch (error) {
 			this.log.error(`OID read error: ${oid}`);
+		}
+	}
+
+	/**
+	 * Write OID to roomterminal, given by index
+	 *
+	 * @param index index of the OID etnry to tread in this.config.OiDs
+	 */
+	private async oidWrite(index: number, value: any): Promise<void> {
+		// this.log.debug(JSON.stringify(oids, null, 2));
+		// this.log.debug(JSON.stringify(status, null, 2));
+		const oid = this.config.OIDs[index].oid;
+		// TODO: wrong UID error handling
+		const body = `		<?xml version="1.0" encoding="UTF-8"?>
+		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+		xmlns:ns="http://ws01.lom.ch/soap/">
+		<SOAP-ENV:Body>
+		  <ns:writeDpRequest>
+		   <ref>
+			<oid>${oid}</oid>
+			<prop/>
+		   </ref>
+		   <dp>
+			<index>0</index>
+			<name/>
+			<prop/>
+			<desc/>
+			<value>${value}</value>
+			<unit/>
+			<timestamp>0</timestamp>
+		   </dp>
+		  </ns:writeDpRequest>   
+		</SOAP-ENV:Body>
+	   </SOAP-ENV:Envelope>`;
+
+		const options = {
+			method: 'post',
+			body: body,
+			headers: {
+				Connection: 'Keep-Alive',
+				Accept: '*/*',
+				Pragma: 'no-cache',
+				SOAPAction: 'http://ws01.lom.ch/soap/writeDP',
+				'Cache-Control': 'no-cache',
+				'Content-Type': 'text/xml; charset=utf-8',
+				'Content-length': body.length,
+			},
+		};
+		try {
+			const response = await this.client.fetch(this.getUrl, options);
+			this.log.debug(`response for ${oid} : ${JSON.stringify(response)}`);
+			this.setState('info.connection', false, true);
+		} catch (error) {
+			this.log.error(`OID (${oid})read error: ${JSON.stringify(error)}`);
 		}
 	}
 }
