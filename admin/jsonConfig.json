@@ -15,12 +15,13 @@
 					"help": "Your username for the Ochsner Roomterminal"
 				},
 				"password": {
-					"type": "text",
+					"type": "password",
 					"sm": 6,
 					"md": 3,
 					"lg": 3,
 					"label": "Password",
-					"help": "Your password for the Ochsner Roomterminal"
+					"help": "Your password for the Ochsner Roomterminal",
+					"visible": true
 				},
 				"serverIP": {
 					"type": "text",
