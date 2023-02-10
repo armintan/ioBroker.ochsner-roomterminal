@@ -32,6 +32,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	private oidNamesDict: { [id: string]: string } | undefined = undefined;
 	private oidEnumsDict: { [id: string]: string[] } | undefined = undefined;
 	private oidUpdate: { [id: string]: string } = {};
+	private groups: Record<string, number[]> = {};
 
 	public constructor(options: Partial<utils.AdapterOptions> = {}) {
 		super({
@@ -144,7 +145,8 @@ class OchsnerRoomterminal extends utils.Adapter {
 		this.getUrl = `http://${this.config.serverIP}/ws`;
 		this.client = new DigestFetch(this.config.username, this.config.password);
 
-		this.log.info(`Config: ${JSON.stringify(this.config, null, 2)}`);
+		// Attention !!!
+		// this.log.info(`Config: ${JSON.stringify(this.config, null, 2)}`);
 
 		// The adapters config (in the instance object everything under the attribute "native") is accessible via
 		// this.config:
@@ -157,6 +159,18 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// this.log.info('config password: ' + this.config.password);
 		this.log.info('config serverIP: ' + this.config.serverIP);
 		this.log.info('config pollInterval: ' + this.config.pollInterval);
+
+		/**
+		 * Prepare Group Handling
+		 * this.groups = {"group#": [OIDsIndex#, OIDsIndex#, ....],"group#": [OIDsIndex#, OIDsIndex#, ....], .... }
+		 */
+		this.config.OIDs.forEach((value, key) => {
+			const group = this.config.OIDs[key].group;
+			// this.log.debug(`Key: ${key} Object: ${JSON.stringify(this.config.OIDs[key])}`);
+			if (this.groups[group] == undefined) this.groups[group] = [key];
+			else this.groups[group].push(key);
+		});
+		this.log.debug(`${JSON.stringify(this.groups)}`);
 
 		// check if connection to server is available with given credentials
 		const connected = await this.checkForConnection();
@@ -178,17 +192,17 @@ class OchsnerRoomterminal extends utils.Adapter {
 		this.oidEnumsDict = await this.oidGetEnums();
 
 		// Start polling the OID's with the given pollingIntervall
-		if (this.config.OIDs.length > 0) this.poll();
+		// if (this.config.groups.length > 0) this.poll();
 	}
 
 	/**
-	 * Main polling routine - fetching next OID in list
+	 * Main polling routine - fetching next Group in list
 	 *
 	 * @description Started once during startup, restarts itself when finished
 	 * 				(only called when there is at least one oid)
 	 */
-	private async poll(index = 0): Promise<void> {
-		// this.log.debug(`poll with index: ${index}`);
+	private async poll(groupIndex = 0): Promise<void> {
+		// this.log.debug(`poll with groupIndex: ${index}`);
 
 		// TODO: avoid delay when OID is disabled
 		try {
