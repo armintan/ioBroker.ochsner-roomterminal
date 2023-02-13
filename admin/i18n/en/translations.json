@@ -7,5 +7,5 @@
 	"Your username for the Ochsner Roomterminal": "Your username for the Ochsner Roomterminal",
 	"Your password for the Ochsner Roomterminal": "Your password for the Ochsner Roomterminal",
 	"Your IP or hostname of the Ochsner Roomterminal": "Your IP or hostname of the Ochsner Roomterminal",
-	"Interval in ms between single OID requests": "Interval in ms between single OID requests"
+	"Interval in sec between single OID requests": "Interval in sec between single OID requests"
 }

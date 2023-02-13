@@ -33,13 +33,13 @@
 				},
 				"pollInterval": {
 					"type": "number",
-					"min": 1000,
+					"min": 1,
 					"max": 65535,
 					"sm": 3,
 					"md": 2,
 					"lg": 2,
 					"label": "Interval",
-					"help": "Interval in ms between single OID requests"
+					"help": "Interval in sec between single OID requests"
 				}
 			}
 		},

@@ -102,7 +102,8 @@ class OchsnerRoomterminal extends utils.Adapter {
           this.groups[group].push(key);
         if (this.groupOidString[group] == void 0)
           this.groupOidString[group] = oid;
-        this.groupOidString[group] = this.groupOidString[group] + ";" + oid;
+        else
+          this.groupOidString[group] = this.groupOidString[group] + ";" + oid;
       }
     });
     this.log.debug(`Groups: ${JSON.stringify(this.groups)}`);
@@ -114,19 +115,18 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.setState("info.connection", true, true);
     this.oidNamesDict = await this.oidGetNames();
     this.oidEnumsDict = await this.oidGetEnums();
-    if (this.config.OIDs.length > 0)
-      this.poll();
+    if (Object.keys(this.groups).length > 0)
+      this.poll(2);
   }
-  async poll(index = 0) {
+  async poll(groupIndex = 0) {
     try {
-      await this.delay(this.config.pollInterval);
-      if (this.config.OIDs[index].enabled)
-        await this.oidRead(index);
-      if (index == this.config.OIDs.length - 1) {
+      await this.delay(this.config.pollInterval * 1e3);
+      await this.oidRead(groupIndex);
+      if (groupIndex == Object.keys(this.groups).length - 1) {
         await this.updateNativeOIDs(Object.keys(this.oidUpdate));
         this.poll();
       } else
-        this.poll(++index);
+        this.poll(++groupIndex);
     } catch (error) {
       this.log.error(`Error: ${JSON.stringify(error)}`);
       this.poll();
@@ -151,10 +151,12 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.log.debug(`getObject error: ${JSON.stringify(error, null, 2)}`);
     }
   }
-  async oidRead(index) {
-    var _a;
-    const oid = this.config.OIDs[index].oid;
-    const states = {};
+  async oidRead(groupIndex) {
+    this.log.debug(`Read GroupIndex: ${groupIndex}`);
+    const oids = this.groupOidString[groupIndex];
+    const group = this.groups[groupIndex];
+    this.log.debug(`Read [ ${oids} ]`);
+    this.log.debug(`Group [ ${JSON.stringify(group)} ]`);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -164,7 +166,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		 <SOAP-ENV:Body>
 		   <ns:getDpRequest>
 			<ref>
-			 <oid>${oid}</oid>
+			 <oid>${oids}</oid>
 			 <prop/>
 			</ref>
 			<startIndex>0</startIndex>
@@ -186,57 +188,58 @@ class OchsnerRoomterminal extends utils.Adapter {
       }
     };
     try {
-      this.log.debug(`Read [ ${oid} ]`);
-      try {
-        const response = await this.client.fetch(this.getUrl, options);
-        if (response.ok == true) {
-          const data = await response.text();
-          this.log.debug(`OID Raw Data: ${data}`);
-          const jsonResult = await (0, import_xml2js.parseStringPromise)(data);
-          const dpCfg = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg;
-          this.log.debug(`OID Raw Data: ${JSON.stringify(dpCfg)}`);
-          for (const dp in dpCfg) {
-            const name = dpCfg[dp].name[0];
-            const prop = dpCfg[dp].prop[0];
-            const desc = dpCfg[dp].desc[0];
-            const value = dpCfg[dp].value[0];
-            const unit = dpCfg[dp].unit[0];
-            const step = dpCfg[dp].step[0];
-            const min = dpCfg[dp].minValue[0];
-            const max = dpCfg[dp].maxValue[0];
-            this.log.debug(`desc: ${desc}`);
-            if (this.oidEnumsDict[name]) {
-              this.log.debug(`Enums ${JSON.stringify(this.oidEnumsDict[name])}`);
-              if (desc === "Enum Var") {
-                const enums = (0, import_util.getEnumKeys)(prop);
-                if (enums) {
-                  enums.forEach(
-                    (val) => {
-                      var _a2;
-                      return states[val] = (_a2 = this.oidEnumsDict[name][Number(val)]) != null ? _a2 : "undefined";
-                    }
-                  );
-                }
-              } else {
-                this.oidEnumsDict[name].forEach((val, key) => states[key] = val != null ? val : "undefined");
+      const response = await this.client.fetch(this.getUrl, options);
+      if (response.ok == true) {
+        const data = await response.text();
+        this.log.debug(`OID Raw Data: ${data}`);
+        const jsonResult = await (0, import_xml2js.parseStringPromise)(data);
+        const dpCfg = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg;
+        dpCfg.forEach(async (dp, key) => {
+          var _a;
+          const configOidIndex = group[key];
+          const oid = this.config.OIDs[configOidIndex].oid;
+          const states = {};
+          const name = dp.name[0];
+          const prop = dp.prop[0];
+          const desc = dp.desc[0];
+          const value = dp.value[0];
+          const unit = dp.unit[0];
+          const step = dp.step[0];
+          const min = dp.minValue[0];
+          const max = dp.maxValue[0];
+          if (this.oidEnumsDict[name]) {
+            if (desc === "Enum Var") {
+              const enums = (0, import_util.getEnumKeys)(prop);
+              if (enums) {
+                enums.forEach(
+                  (val) => {
+                    var _a2;
+                    return states[val] = (_a2 = this.oidEnumsDict[name][Number(val)]) != null ? _a2 : "undefined";
+                  }
+                );
               }
-            } else
-              this.log.debug("No enums for " + name);
-            this.log.debug(`OID states: ${JSON.stringify(states)}`);
-            const common = {
-              name: this.config.OIDs[index].name.length ? this.config.OIDs[index].name : this.oidNamesDict[name],
-              type: "number",
-              role: "value",
-              read: prop[1] === "r" ? true : false,
-              write: prop[2] === "w" ? true : false,
-              unit: unit.length === 0 ? void 0 : unit,
-              min: prop[2] === "w" ? min.length === 0 ? void 0 : Number(min) : void 0,
-              max: prop[2] === "w" ? max.length === 0 ? void 0 : Number(max) : void 0,
-              step: prop[2] === "w" ? step.length === 0 ? void 0 : Number(step) : void 0,
-              states: Object.keys(states).length == 0 ? void 0 : states
-            };
-            if (this.config.OIDs[index].name.length === 0)
-              this.oidUpdate[this.config.OIDs[index].oid] = (_a = this.oidNamesDict[name]) != null ? _a : name;
+            } else {
+              this.oidEnumsDict[name].forEach((val, key2) => states[key2] = val != null ? val : "undefined");
+            }
+          }
+          this.log.debug(`OID states: ${JSON.stringify(states)}`);
+          this.log.debug(`oid: ${oid} - "${name}"`);
+          const common = {
+            name: this.config.OIDs[configOidIndex].name.length ? this.config.OIDs[configOidIndex].name : this.oidNamesDict[name],
+            type: "number",
+            role: "value",
+            read: prop[1] === "r" ? true : false,
+            write: prop[2] === "w" ? true : false,
+            unit: unit.length === 0 ? void 0 : unit,
+            min: prop[2] === "w" ? min.length === 0 ? void 0 : Number(min) : void 0,
+            max: prop[2] === "w" ? max.length === 0 ? void 0 : Number(max) : void 0,
+            step: prop[2] === "w" ? step.length === 0 ? void 0 : Number(step) : void 0,
+            states: Object.keys(states).length == 0 ? void 0 : states
+          };
+          this.log.debug(`common: ${JSON.stringify(common)}`);
+          if (this.config.OIDs[configOidIndex].name.length === 0)
+            this.oidUpdate[oid] = (_a = this.oidNamesDict[name]) != null ? _a : name;
+          try {
             if (value.length > 0) {
               await this.setObjectNotExistsAsync("OID." + oid, {
                 type: "state",
@@ -244,36 +247,36 @@ class OchsnerRoomterminal extends utils.Adapter {
                 native: {}
               });
               this.setState("OID." + oid, { val: Number(value), ack: true });
-              if (this.config.OIDs[index].isStatus) {
-                const status = this.oidEnumsDict[name][Number(value)];
-                if (status) {
-                  await this.setObjectNotExistsAsync("Status." + oid, {
-                    type: "state",
-                    common: {
-                      name: "Status." + this.config.OIDs[index].name,
-                      type: "string",
-                      role: "value",
-                      read: true,
-                      write: false
-                    },
-                    native: {}
-                  });
-                  this.setState("Status." + oid, { val: status, ack: true });
-                  this.log.debug(`Status object updated for ${oid}`);
-                }
+            }
+            if (this.config.OIDs[configOidIndex].isStatus) {
+              const status = this.oidEnumsDict[name][Number(value)];
+              if (status) {
+                await this.setObjectNotExistsAsync("Status." + oid, {
+                  type: "state",
+                  common: {
+                    name: "Status." + this.config.OIDs[configOidIndex].name,
+                    type: "string",
+                    role: "value",
+                    read: true,
+                    write: false
+                  },
+                  native: {}
+                });
+                this.setState("Status." + oid, { val: status, ack: true });
+                this.log.debug(`Status object updated for ${oid}`);
               }
-            } else
-              this.log.debug(`reading ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
+            }
+          } catch (error) {
+            this.log.error("Error message: " + (error == null ? void 0 : error.message));
+            this.log.error(`State update for ${oids} failes`);
           }
-        } else {
-          this.log.error(`result for ${oid} not valid`);
-          this.setState("info.connection", false, true);
-        }
-      } catch (error) {
-        throw new Error("OID read or parse error: " + oid);
+        });
+      } else {
+        this.log.debug(`reading ${oids} failed" Message: ${JSON.stringify(response.statusText)}`);
+        this.setState("info.connection", false, true);
       }
-    } catch (error) {
-      this.log.error(error.message);
+    } catch (_error) {
+      this.log.error("OID read or parse error: " + oids);
     }
   }
   async oidWrite(index, value) {
