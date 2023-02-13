@@ -110,15 +110,15 @@ class Table extends React.Component<IProps, IState> {
 								// id = 'line_' + i;
 							}
 							// add new line
-							data.push({
-								id,
-								oid: 'e.g. /1/2/1/97/0',
-								name: '',
-								// isWriteable: false,
-								enabled: false,
-								isStatus: false,
-								// statusID: '',
-							});
+							// data.push({
+							// 	id,
+							// 	oid: 'e.g. /1/2/1/97/0',
+							// 	name: '',
+							// 	// isWriteable: false,
+							// 	enabled: false,
+							// 	isStatus: false,
+							// 	// statusID: '',
+							// });
 						} else {
 							// existing line was modifed
 							if (newData == false) return; // should never happen, but makes lint happy :-)

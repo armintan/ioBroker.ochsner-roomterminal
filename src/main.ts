@@ -33,6 +33,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	private oidEnumsDict: { [id: string]: string[] } | undefined = undefined;
 	private oidUpdate: { [id: string]: string } = {};
 	private groups: Record<string, number[]> = {};
+	private groupOidString: Record<string, string> = {};
 
 	public constructor(options: Partial<utils.AdapterOptions> = {}) {
 		super({
@@ -162,15 +163,22 @@ class OchsnerRoomterminal extends utils.Adapter {
 
 		/**
 		 * Prepare Group Handling
-		 * this.groups = {"group#": [OIDsIndex#, OIDsIndex#, ....],"group#": [OIDsIndex#, OIDsIndex#, ....], .... }
+		 * this.groups = {"group01": [OIDsIndex01, OIDsIndex02, ....],"group02": [OIDsIndex01, OIDsIndex02, ....], .... }
 		 */
 		this.config.OIDs.forEach((value, key) => {
 			const group = this.config.OIDs[key].group;
+			const enabled = this.config.OIDs[key].enabled;
+			const oid = this.config.OIDs[key].oid;
 			// this.log.debug(`Key: ${key} Object: ${JSON.stringify(this.config.OIDs[key])}`);
-			if (this.groups[group] == undefined) this.groups[group] = [key];
-			else this.groups[group].push(key);
+			if (enabled) {
+				if (this.groups[group] == undefined) this.groups[group] = [key];
+				else this.groups[group].push(key);
+				if (this.groupOidString[group] == undefined) this.groupOidString[group] = oid;
+				this.groupOidString[group] = this.groupOidString[group] + ';' + oid;
+			}
 		});
-		this.log.debug(`${JSON.stringify(this.groups)}`);
+		this.log.debug(`Groups: ${JSON.stringify(this.groups)}`);
+		this.log.debug(`Group OIDs: ${JSON.stringify(this.groupOidString)}`);
 
 		// check if connection to server is available with given credentials
 		const connected = await this.checkForConnection();
@@ -193,6 +201,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 
 		// Start polling the OID's with the given pollingIntervall
 		// if (this.config.groups.length > 0) this.poll();
+		if (this.config.OIDs.length > 0) this.poll();
 	}
 
 	/**
@@ -201,7 +210,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 * @description Started once during startup, restarts itself when finished
 	 * 				(only called when there is at least one oid)
 	 */
-	private async poll(groupIndex = 0): Promise<void> {
+	private async poll(index = 0): Promise<void> {
 		// this.log.debug(`poll with groupIndex: ${index}`);
 
 		// TODO: avoid delay when OID is disabled
@@ -220,12 +229,12 @@ class OchsnerRoomterminal extends utils.Adapter {
 	}
 
 	/**
-	 * update OIDs in instance object native
-	 * @param key key to update
+	 * Check for empty OID names in config and add default names
+	 * and update common.native.OIDs in instance object (which restarts the adapter)
+	 * @param keys to update
 	 */
 	private async updateNativeOIDs(keys: string[]): Promise<void> {
-		// Check for empty names in config and add default names
-		if (!keys.length) return;
+		if (!keys.length) return; // there is nothing to update
 		try {
 			const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
 			if (instanceObj) {
@@ -241,6 +250,213 @@ class OchsnerRoomterminal extends utils.Adapter {
 			}
 		} catch (error) {
 			this.log.debug(`getObject error: ${JSON.stringify(error, null, 2)}`);
+		}
+	}
+
+	/**
+	 * Read OID from roomterminal, given by index
+	 *
+	 * @param index index of the OID etnry to tread in this.config.OiDs
+	 */
+	private async oidRead(index: number): Promise<void> {
+		// this.log.debug(JSON.stringify(oids, null, 2));
+		// this.log.debug(JSON.stringify(status, null, 2));
+		const oid = this.config.OIDs[index].oid;
+		const states: { [key: string]: string } = {};
+
+		// TODO: wrong UID error handling
+
+		const body = `<?xml version="1.0" encoding="UTF-8"?>
+		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+		xmlns:ns="http://ws01.lom.ch/soap/">
+		 <SOAP-ENV:Body>
+		   <ns:getDpRequest>
+			<ref>
+			 <oid>${oid}</oid>
+			 <prop/>
+			</ref>
+			<startIndex>0</startIndex>
+			<count>-1</count>
+		   </ns:getDpRequest>
+		 </SOAP-ENV:Body>
+		</SOAP-ENV:Envelope>`;
+
+		const options = {
+			method: 'post',
+			body: body,
+			headers: {
+				Connection: 'Keep-Alive',
+				Accept: 'text/xml',
+				Pragma: 'no-cache',
+				SOAPAction: 'http://ws01.lom.ch/soap/getDP',
+				'Cache-Control': 'no-cache',
+				'Content-Type': 'text/xml; charset=utf-8',
+				'Content-length': body.length,
+			},
+		};
+		try {
+			this.log.debug(`Read [ ${oid} ]`);
+
+			try {
+				const response = await this.client.fetch(this.getUrl, options);
+				if (response.ok == true) {
+					// Write was succcesfull
+					const data = await response.text();
+					this.log.debug(`OID Raw Data: ${data}`);
+					const jsonResult = await parseStringPromise(data);
+					const dpCfg = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg;
+					this.log.debug(`DP JSON Data: ${JSON.stringify(dpCfg)}`);
+
+					// loop through dpCfg[]
+					for (const dp in dpCfg) {
+						const name: string = dpCfg[dp].name[0];
+						const prop: string = dpCfg[dp].prop[0];
+						const desc: string = dpCfg[dp].desc[0];
+						const value: string = dpCfg[dp].value[0];
+						const unit: string = dpCfg[dp].unit[0];
+						const step: string = dpCfg[dp].step[0];
+						const min: string = dpCfg[dp].minValue[0];
+						const max: string = dpCfg[dp].maxValue[0];
+
+						// this.log.debug(`desc: ${desc}, prop: ${prop}`);
+
+						if (this.oidEnumsDict![name]) {
+							// this.log.debug(`Enums ${JSON.stringify(this.oidEnumsDict![name])}`);
+							if (desc === 'Enum Var') {
+								const enums = getEnumKeys(prop);
+								if (enums) {
+									enums.forEach(
+										(val) => (states[val] = this.oidEnumsDict![name][Number(val)] ?? 'undefined'),
+									);
+								}
+							} else {
+								this.oidEnumsDict![name].forEach((val, key) => (states[key] = val ?? 'undefined'));
+							}
+						}
+						// else this.log.debug('No enums for ' + name);
+
+						this.log.debug(`OID states: ${JSON.stringify(states)}`);
+						const common: ioBroker.StateCommon = {
+							name: this.config.OIDs[index].name.length
+								? this.config.OIDs[index].name
+								: this.oidNamesDict![name],
+							type: 'number',
+							role: 'value',
+							read: prop[1] === 'r' ? true : false,
+							write: prop[2] === 'w' ? true : false,
+							unit: unit.length === 0 ? undefined : unit,
+							min: prop[2] === 'w' ? (min.length === 0 ? undefined : Number(min)) : undefined,
+							max: prop[2] === 'w' ? (max.length === 0 ? undefined : Number(max)) : undefined,
+							step: prop[2] === 'w' ? (step.length === 0 ? undefined : Number(step)) : undefined,
+							//TODO: add states based on XML
+							states: Object.keys(states).length == 0 ? undefined : states,
+							// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
+						};
+
+						if (this.config.OIDs[index].name.length === 0)
+							this.oidUpdate[this.config.OIDs[index].oid] = this.oidNamesDict![name] ?? name;
+
+						// this.log.info(`data: ${JSON.stringify(result, null, 2)}`);
+						if (value.length > 0) {
+							await this.setObjectNotExistsAsync('OID.' + oid, {
+								type: 'state',
+								common,
+								native: {},
+							});
+
+							this.setState('OID.' + oid, { val: Number(value), ack: true });
+
+							if (this.config.OIDs[index].isStatus) {
+								const status = this.oidEnumsDict![name][Number(value)];
+								if (status) {
+									await this.setObjectNotExistsAsync('Status.' + oid, {
+										type: 'state',
+										common: {
+											name: 'Status.' + this.config.OIDs[index].name,
+											type: 'string',
+											role: 'value',
+											read: true,
+											write: false,
+										},
+										native: {},
+									});
+									this.setState('Status.' + oid, { val: status, ack: true });
+									this.log.debug(`Status object updated for ${oid}`);
+								}
+							}
+						} else this.log.debug(`reading ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
+					}
+				} else {
+					this.log.error(`result for ${oid} not valid`);
+					this.setState('info.connection', false, true);
+				}
+			} catch (error) {
+				throw new Error('OID read or parse error: ' + oid);
+			}
+		} catch (error: any) {
+			this.log.error(error.message);
+		}
+	}
+
+	/**
+	 * Write OID to roomterminal, given by index
+	 *
+	 * @param index index of the OID etnry to tread in this.config.OiDs
+	 */
+	private async oidWrite(index: number, value: any): Promise<void> {
+		// this.log.debug(JSON.stringify(oids, null, 2));
+		// this.log.debug(JSON.stringify(status, null, 2));
+		const oid = this.config.OIDs[index].oid;
+		// TODO: wrong UID error handling
+		const body = `<?xml version="1.0" encoding="UTF-8"?>
+		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+		xmlns:ns="http://ws01.lom.ch/soap/">
+		<SOAP-ENV:Body>
+		  <ns:writeDpRequest>
+		   <ref>
+			<oid>${oid}</oid>
+			<prop/>
+		   </ref>
+		   <dp>
+			<index>0</index>
+			<name/>
+			<prop/>
+			<desc/>
+			<value>${value}</value>
+			<unit/>
+			<timestamp>0</timestamp>
+		   </dp>
+		  </ns:writeDpRequest>   
+		</SOAP-ENV:Body>
+	   </SOAP-ENV:Envelope>`;
+		this.log.debug(`write body ${oid}: ${body}`);
+
+		const options = {
+			method: 'post',
+			body: body,
+			headers: {
+				Connection: 'Keep-Alive',
+				Accept: '*/*',
+				Pragma: 'no-cache',
+				SOAPAction: 'http://ws01.lom.ch/soap/writeDP',
+				'Cache-Control': 'no-cache',
+				'Content-Type': 'text/xml; charset=utf-8',
+				'Content-length': body.length,
+			},
+		};
+		try {
+			this.log.debug(`Write [ ${oid} ] with value: ${value}`);
+			const response = await this.client.fetch(this.getUrl, options);
+			if (response.ok != true)
+				this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
+		} catch (error) {
+			this.log.error(`OID (${oid})read error: ${JSON.stringify(error)}`);
 		}
 	}
 
@@ -290,6 +506,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		}
 		return oidNamesDict;
 	}
+
 	/**
 	 * Ochnser API for getting the oidEnum Dictionary,
 	 * 		either from file
@@ -361,198 +578,6 @@ class OchsnerRoomterminal extends utils.Adapter {
 			return false;
 		}
 		return true;
-	}
-
-	/**
-	 * Read OID from roomterminal, given by index
-	 *
-	 * @param index index of the OID etnry to tread in this.config.OiDs
-	 */
-	private async oidRead(index: number): Promise<void> {
-		// this.log.debug(JSON.stringify(oids, null, 2));
-		// this.log.debug(JSON.stringify(status, null, 2));
-		const oid = this.config.OIDs[index].oid;
-		const states: { [key: string]: string } = {};
-
-		// TODO: wrong UID error handling
-
-		const body = `<?xml version="1.0" encoding="UTF-8"?>
-		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
-		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-		xmlns:ns="http://ws01.lom.ch/soap/">
-		 <SOAP-ENV:Body>
-		   <ns:getDpRequest>
-			<ref>
-			 <oid>${oid}</oid>
-			 <prop/>
-			</ref>
-			<startIndex>0</startIndex>
-			<count>-1</count>
-		   </ns:getDpRequest>
-		 </SOAP-ENV:Body>
-		</SOAP-ENV:Envelope>`;
-
-		const options = {
-			method: 'post',
-			body: body,
-			headers: {
-				Connection: 'Keep-Alive',
-				Accept: 'text/xml',
-				Pragma: 'no-cache',
-				SOAPAction: 'http://ws01.lom.ch/soap/getDP',
-				'Cache-Control': 'no-cache',
-				'Content-Type': 'text/xml; charset=utf-8',
-				'Content-length': body.length,
-			},
-		};
-		try {
-			this.log.debug(`Read [ ${oid} ]`);
-			const response = await this.client.fetch(this.getUrl, options);
-			if (response.ok == true) {
-				// Write was succcesfull
-				const data = await response.text();
-				this.log.debug(`OID Raw Data: ${data}`);
-				const jsonResult = await parseStringPromise(data);
-				const name: string =
-					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].name[0];
-				const prop: string =
-					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].prop[0];
-				const desc: string =
-					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].desc[0];
-				const value: string =
-					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].value[0];
-				const unit: string =
-					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].unit[0];
-				const step: string =
-					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].step[0];
-				const min: string =
-					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].minValue[0];
-				const max: string =
-					jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg[0].maxValue[0];
-				// this.log.debug(`${JSON.stringify(common, null, 2)}`);
-				if (desc === 'Enum Var') {
-					const enums = getEnumKeys(prop);
-					if (enums) {
-						enums.forEach((e) => (states[e] = this.oidEnumsDict![name][Number(e)] ?? 'undefined'));
-						// this.log.debug(`${JSON.stringify(states)}`);
-					}
-				}
-				// this.log.debug(`OID name: ${name}`);
-				const common: ioBroker.StateCommon = {
-					name: this.config.OIDs[index].name.length ? this.config.OIDs[index].name : this.oidNamesDict![name],
-					type: 'number',
-					role: 'value',
-					read: prop[1] === 'r' ? true : false,
-					write: prop[2] === 'w' ? true : false,
-					unit: unit.length === 0 ? undefined : unit,
-					min: min.length === 0 ? undefined : Number(min),
-					max: max.length === 0 ? undefined : Number(max),
-					step: step.length === 0 ? undefined : Number(step),
-					//TODO: add states based on XML
-					states: Object.keys(states).length == 0 ? undefined : states,
-					// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
-				};
-
-				if (this.config.OIDs[index].name.length === 0)
-					this.oidUpdate[this.config.OIDs[index].oid] = this.oidNamesDict![name] ?? name;
-
-				// this.log.info(`data: ${JSON.stringify(result, null, 2)}`);
-				if (value.length > 0) {
-					await this.setObjectNotExistsAsync('OID.' + oid, {
-						type: 'state',
-						common,
-						native: {},
-					});
-
-					this.setState('OID.' + oid, { val: Number(value), ack: true });
-
-					if (this.config.OIDs[index].isStatus) {
-						const status = this.oidEnumsDict![name][Number(value)];
-						if (status) {
-							await this.setObjectNotExistsAsync('Status.' + oid, {
-								type: 'state',
-								common: {
-									name: 'Status.' + this.config.OIDs[index].name,
-									type: 'string',
-									role: 'value',
-									read: true,
-									write: false,
-								},
-								native: {},
-							});
-							this.setState('Status.' + oid, { val: status, ack: true });
-							this.log.debug(`Status object updated for ${oid}`);
-						}
-					}
-				} else this.log.debug(`reading ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
-			} else {
-				this.log.error(`result for ${oid} not valid`);
-				this.setState('info.connection', false, true);
-			}
-		} catch (error) {
-			this.log.error(`OID read error: ${oid}`);
-		}
-	}
-
-	/**
-	 * Write OID to roomterminal, given by index
-	 *
-	 * @param index index of the OID etnry to tread in this.config.OiDs
-	 */
-	private async oidWrite(index: number, value: any): Promise<void> {
-		// this.log.debug(JSON.stringify(oids, null, 2));
-		// this.log.debug(JSON.stringify(status, null, 2));
-		const oid = this.config.OIDs[index].oid;
-		// TODO: wrong UID error handling
-		const body = `<?xml version="1.0" encoding="UTF-8"?>
-		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
-		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-		xmlns:ns="http://ws01.lom.ch/soap/">
-		<SOAP-ENV:Body>
-		  <ns:writeDpRequest>
-		   <ref>
-			<oid>${oid}</oid>
-			<prop/>
-		   </ref>
-		   <dp>
-			<index>0</index>
-			<name/>
-			<prop/>
-			<desc/>
-			<value>${value}</value>
-			<unit/>
-			<timestamp>0</timestamp>
-		   </dp>
-		  </ns:writeDpRequest>   
-		</SOAP-ENV:Body>
-	   </SOAP-ENV:Envelope>`;
-		this.log.debug(`write body ${oid}: ${body}`);
-
-		const options = {
-			method: 'post',
-			body: body,
-			headers: {
-				Connection: 'Keep-Alive',
-				Accept: '*/*',
-				Pragma: 'no-cache',
-				SOAPAction: 'http://ws01.lom.ch/soap/writeDP',
-				'Cache-Control': 'no-cache',
-				'Content-Type': 'text/xml; charset=utf-8',
-				'Content-length': body.length,
-			},
-		};
-		try {
-			this.log.debug(`Write [ ${oid} ] with value: ${value}`);
-			const response = await this.client.fetch(this.getUrl, options);
-			if (response.ok != true)
-				this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
-		} catch (error) {
-			this.log.error(`OID (${oid})read error: ${JSON.stringify(error)}`);
-		}
 	}
 }
 

@@ -91,7 +91,7 @@
 								"zh-cn": "姓名"
 							},
 							"filter": false,
-							"sort": false
+							"sort": true
 						},
 						{
 							"type": "checkbox",
@@ -113,6 +113,29 @@
 							},
 							"filter": false,
 							"sort": false
+						},
+						{
+							"type": "number",
+							"attr": "group",
+							"min": 0,
+							"max": 5,
+							"default": 0,
+							"width": "5%",
+							"title": {
+								"en": "Group",
+								"de": "Gruppe",
+								"ru": "Группа",
+								"pt": "Grupo",
+								"nl": "Groep",
+								"fr": "Groupe",
+								"it": "Gruppo",
+								"es": "Grupo",
+								"pl": "Grupa",
+								"uk": "Група",
+								"zh-cn": "集团"
+							},
+							"filter": false,
+							"sort": true
 						}
 					]
 				}

@@ -8,6 +8,7 @@ declare global {
 			oid: string;
 			name: string;
 			isStatus: boolean;
+			group: number;
 			// isWriteable: boolean;
 			// statusID: string;
 		}
