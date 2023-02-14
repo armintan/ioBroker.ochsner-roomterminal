@@ -1,232 +1,245 @@
 {
-    "common": {
-        "name": "ochsner-roomterminal",
-        "version": "0.0.1",
-        "news": {
-            "0.0.1": {
-                "en": "initial release",
-                "de": "Erstveröffentlichung",
-                "ru": "Начальная версия",
-                "pt": "lançamento inicial",
-                "nl": "Eerste uitgave",
-                "fr": "Première version",
-                "it": "Versione iniziale",
-                "es": "Versión inicial",
-                "pl": "Pierwsze wydanie",
-                "zh-cn": "首次出版",
-                "uk": "початковий випуск"
-            }
-        },
-        "title": "Ochsner Roomterminal Webserver (web2comm)",
-        "titleLang": {
-            "en": "Ochsner Roomterminal (web2comm)",
-            "de": "Ochsner Roomterminal (web2comm)",
-            "ru": "Ochsner Roomterminal (web2comm)",
-            "pt": "Ochsner Roomterminal (web2comm)",
-            "nl": "Ochsner Roomterminal (web2comm)",
-            "fr": "Ochsner Roomterminal (web2comm)",
-            "it": "Ochsner Roomterminal (web2comm)",
-            "es": "Ochsner Roomterminal (web2comm)",
-            "pl": "Ochsner Room (ang.)",
-            "uk": "Ochsner Roomterminal (web2comm)",
-            "zh-cn": "常驻代表"
-        },
-        "desc": {
-            "en": "Interface to the Ochsner Roomterminal (web2comm)",
-            "de": "Schnittstelle zum Ochsner Roomterminal (web2comm)",
-            "ru": "Интерфейс к Ochsner Roomterminal (web2comm)",
-            "pt": "Interface para o Ochsner Roomterminal (web2comm)",
-            "nl": "Vertaling:",
-            "fr": "Interface de l'Ochsner Roomterminal (web2comm)",
-            "it": "Interfaccia a Ochsner Roomterminal (web2comm)",
-            "es": "Interfaz al Ochsner Roomterminal (web2comm)",
-            "pl": "Strona internetowa Ochsner Room terminal (web2comm)",
-            "uk": "Інтерфейс в Ochsner Roomterminal (web2comm)",
-            "zh-cn": "临时代办"
-        },
-        "authors": [
-            "Armin Stegerer <Armin.Stegerer@t-online.de>"
-        ],
-        "keywords": [
-            "ochsner",
-            "heatpump",
-            "web2comm"
-        ],
-        "license": "MIT",
-        "platform": "Javascript/Node.js",
-        "main": "build/main.js",
-        "icon": "ochsner-roomterminal.png",
-        "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/Armin Stegerer/ioBroker.ochsner-roomterminal/main/admin/ochsner-roomterminal.png",
-        "readme": "https://github.com/Armin Stegerer/ioBroker.ochsner-roomterminal/blob/main/README.md",
-        "loglevel": "info",
-        "mode": "daemon",
-        "type": "climate-control",
-        "compact": true,
-        "connectionType": "local",
-        "dataSource": "poll",
-        "adminUI": {
-            "config": "json"
-        },
-        "eraseOnUpload": true,
-        "dependencies": [
-            {
-                "js-controller": ">=3.3.22"
-            }
-        ],
-        "globalDependencies": [
-            {
-                "admin": ">=5.1.28"
-            }
-        ]
+  "common": {
+    "name": "ochsner-roomterminal",
+    "version": "0.1.0",
+    "news": {
+      "0.1.0": {
+        "en": "initial release",
+        "de": "erstausstrahlung",
+        "ru": "начальный выпуск",
+        "pt": "lançamento inicial",
+        "nl": "niet",
+        "fr": "initial release",
+        "it": "rilascio iniziale",
+        "es": "liberación inicial",
+        "pl": "pierwsze wydanie",
+        "uk": "початковий реліз",
+        "zh-cn": "初步释放"
+      },
+      "0.0.1": {
+        "en": "initial release",
+        "de": "Erstveröffentlichung",
+        "ru": "Начальная версия",
+        "pt": "lançamento inicial",
+        "nl": "Eerste uitgave",
+        "fr": "Première version",
+        "it": "Versione iniziale",
+        "es": "Versión inicial",
+        "pl": "Pierwsze wydanie",
+        "zh-cn": "首次出版",
+        "uk": "початковий випуск"
+      }
     },
-    "native": {
-        "username": "USER",
-        "password": "123",
-        "serverIP": "192.168.1.108",
-        "pollInterval": 20
+    "title": "Ochsner Roomterminal Webserver (web2comm)",
+    "titleLang": {
+      "en": "Ochsner Roomterminal (web2comm)",
+      "de": "Ochsner Roomterminal (web2comm)",
+      "ru": "Ochsner Roomterminal (web2comm)",
+      "pt": "Ochsner Roomterminal (web2comm)",
+      "nl": "Ochsner Roomterminal (web2comm)",
+      "fr": "Ochsner Roomterminal (web2comm)",
+      "it": "Ochsner Roomterminal (web2comm)",
+      "es": "Ochsner Roomterminal (web2comm)",
+      "pl": "Ochsner Room (ang.)",
+      "uk": "Ochsner Roomterminal (web2comm)",
+      "zh-cn": "常驻代表"
     },
-    "protectedNative": [
-        "username",
-        "password"
+    "desc": {
+      "en": "Interface to the Ochsner Roomterminal (web2comm)",
+      "de": "Schnittstelle zum Ochsner Roomterminal (web2comm)",
+      "ru": "Интерфейс к Ochsner Roomterminal (web2comm)",
+      "pt": "Interface para o Ochsner Roomterminal (web2comm)",
+      "nl": "Vertaling:",
+      "fr": "Interface de l'Ochsner Roomterminal (web2comm)",
+      "it": "Interfaccia a Ochsner Roomterminal (web2comm)",
+      "es": "Interfaz al Ochsner Roomterminal (web2comm)",
+      "pl": "Strona internetowa Ochsner Room terminal (web2comm)",
+      "uk": "Інтерфейс в Ochsner Roomterminal (web2comm)",
+      "zh-cn": "临时代办"
+    },
+    "authors": [
+      "Armin Stegerer <Armin.Stegerer@t-online.de>"
     ],
-    "encryptedNative": [
-        "password"
+    "keywords": [
+      "ochsner",
+      "heatpump",
+      "web2comm"
     ],
-    "objects": [],
-    "instanceObjects": [
-        {
-            "_id": "info",
-            "type": "channel",
-            "common": {
-                "name": {
-                    "en": "Information",
-                    "de": "Informationen",
-                    "ru": "Информация",
-                    "pt": "Informação",
-                    "nl": "Informatie",
-                    "fr": "Information",
-                    "it": "Informazioni",
-                    "es": "Información",
-                    "pl": "Informacja",
-                    "uk": "Інформація",
-                    "zh-cn": "信息"
-                }
-            },
-            "native": {}
-        },
-        {
-            "_id": "info.connection",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Device or service connected",
-                    "de": "Geräte- oder Serviceanschluss",
-                    "ru": "Устройство или сервис подключены",
-                    "pt": "Dispositivo ou serviço conectado",
-                    "nl": "Device of dienst verbonden",
-                    "fr": "Appareil ou service connecté",
-                    "it": "Dispositivo o servizio collegato",
-                    "es": "Dispositivo o servicio conectado",
-                    "pl": "Device",
-                    "uk": "Пристрої або послуги підключені",
-                    "zh-cn": "证人或有关服务"
-                },
-                "type": "boolean",
-                "role": "indicator.connected",
-                "read": true,
-                "write": false,
-                "def": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "deviceInfo",
-            "type": "channel",
-            "common": {
-                "name": {
-                    "en": "Device information",
-                    "de": "Informationen zum Produkt",
-                    "ru": "Информация об устройстве",
-                    "pt": "InformaÃ§Ã£o do dispositivo",
-                    "nl": "Device Informatie",
-                    "fr": "Information sur les dispositifs",
-                    "it": "Informazioni sul dispositivo",
-                    "es": "Información sobre dispositivos",
-                    "pl": "Device Information",
-                    "uk": "Інформація про пристрій",
-                    "zh-cn": "证人信息"
-                }
-            },
-            "native": {}
-        },
-        {
-            "_id": "deviceInfo.name",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Device name",
-                    "de": "Name des Geräts",
-                    "ru": "Наименование устройства",
-                    "pt": "Nome do dispositivo",
-                    "nl": "Vernietig Name",
-                    "fr": "Nom du dispositif",
-                    "it": "Nome del dispositivo",
-                    "es": "Nombre del dispositivo",
-                    "pl": "Nazwisko",
-                    "uk": "Назва пристрою",
-                    "zh-cn": "Device姓名"
-                },
-                "type": "string",
-                "role": "text",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "deviceInfo.version",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Device version",
-                    "de": "Geräteversion",
-                    "ru": "Версия устройства",
-                    "pt": "Versão do dispositivo",
-                    "nl": "Vertaling:",
-                    "fr": "Version du dispositif",
-                    "it": "Versione del dispositivo",
-                    "es": "Versión del dispositivo",
-                    "pl": "Wersja Device",
-                    "uk": "Версія пристрою",
-                    "zh-cn": "目 录"
-                },
-                "type": "string",
-                "role": "text",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "",
-            "type": "meta",
-            "common": {
-                "name": {
-                    "en": "File storage",
-                    "de": "Dateispeicher",
-                    "ru": "Хранение файлов",
-                    "pt": "Armazenamento de arquivos",
-                    "nl": "Veldopslag",
-                    "fr": "Stockage de fichiers",
-                    "it": "Archiviazione file",
-                    "es": "Almacenamiento de archivos",
-                    "pl": "Storage room",
-                    "zh-cn": "储存"
-                },
-                "type": "meta.user"
-            },
-            "native": {}
-        }
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "main": "build/main.js",
+    "icon": "ochsner-roomterminal.png",
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/Armin Stegerer/ioBroker.ochsner-roomterminal/main/admin/ochsner-roomterminal.png",
+    "readme": "https://github.com/Armin Stegerer/ioBroker.ochsner-roomterminal/blob/main/README.md",
+    "loglevel": "info",
+    "mode": "daemon",
+    "type": "climate-control",
+    "compact": true,
+    "connectionType": "local",
+    "dataSource": "poll",
+    "adminUI": {
+      "config": "json"
+    },
+    "eraseOnUpload": true,
+    "dependencies": [
+      {
+        "js-controller": ">=3.3.22"
+      }
+    ],
+    "globalDependencies": [
+      {
+        "admin": ">=5.1.28"
+      }
     ]
+  },
+  "native": {
+    "username": "USER",
+    "password": "123",
+    "serverIP": "192.168.1.108",
+    "pollInterval": 20
+  },
+  "protectedNative": [
+    "username",
+    "password"
+  ],
+  "encryptedNative": [
+    "password"
+  ],
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": {
+          "en": "Information",
+          "de": "Informationen",
+          "ru": "Информация",
+          "pt": "Informação",
+          "nl": "Informatie",
+          "fr": "Information",
+          "it": "Informazioni",
+          "es": "Información",
+          "pl": "Informacja",
+          "uk": "Інформація",
+          "zh-cn": "信息"
+        }
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Device or service connected",
+          "de": "Geräte- oder Serviceanschluss",
+          "ru": "Устройство или сервис подключены",
+          "pt": "Dispositivo ou serviço conectado",
+          "nl": "Device of dienst verbonden",
+          "fr": "Appareil ou service connecté",
+          "it": "Dispositivo o servizio collegato",
+          "es": "Dispositivo o servicio conectado",
+          "pl": "Device",
+          "uk": "Пристрої або послуги підключені",
+          "zh-cn": "证人或有关服务"
+        },
+        "type": "boolean",
+        "role": "indicator.connected",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "deviceInfo",
+      "type": "channel",
+      "common": {
+        "name": {
+          "en": "Device information",
+          "de": "Informationen zum Produkt",
+          "ru": "Информация об устройстве",
+          "pt": "InformaÃ§Ã£o do dispositivo",
+          "nl": "Device Informatie",
+          "fr": "Information sur les dispositifs",
+          "it": "Informazioni sul dispositivo",
+          "es": "Información sobre dispositivos",
+          "pl": "Device Information",
+          "uk": "Інформація про пристрій",
+          "zh-cn": "证人信息"
+        }
+      },
+      "native": {}
+    },
+    {
+      "_id": "deviceInfo.name",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Device name",
+          "de": "Name des Geräts",
+          "ru": "Наименование устройства",
+          "pt": "Nome do dispositivo",
+          "nl": "Vernietig Name",
+          "fr": "Nom du dispositif",
+          "it": "Nome del dispositivo",
+          "es": "Nombre del dispositivo",
+          "pl": "Nazwisko",
+          "uk": "Назва пристрою",
+          "zh-cn": "Device姓名"
+        },
+        "type": "string",
+        "role": "text",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "deviceInfo.version",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Device version",
+          "de": "Geräteversion",
+          "ru": "Версия устройства",
+          "pt": "Versão do dispositivo",
+          "nl": "Vertaling:",
+          "fr": "Version du dispositif",
+          "it": "Versione del dispositivo",
+          "es": "Versión del dispositivo",
+          "pl": "Wersja Device",
+          "uk": "Версія пристрою",
+          "zh-cn": "目 录"
+        },
+        "type": "string",
+        "role": "text",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "",
+      "type": "meta",
+      "common": {
+        "name": {
+          "en": "File storage",
+          "de": "Dateispeicher",
+          "ru": "Хранение файлов",
+          "pt": "Armazenamento de arquivos",
+          "nl": "Veldopslag",
+          "fr": "Stockage de fichiers",
+          "it": "Archiviazione file",
+          "es": "Almacenamiento de archivos",
+          "pl": "Storage room",
+          "zh-cn": "储存"
+        },
+        "type": "meta.user"
+      },
+      "native": {}
+    }
+  ]
 }
