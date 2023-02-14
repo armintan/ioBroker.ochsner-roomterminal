@@ -30,7 +30,7 @@ Integrate with Ochsner Roomterminal Webserver (web2comm)
 
 MIT License
 
-Copyright (c) 2022 Armin Stegerer <Armin.Stegerer@t-online.de>
+Copyright (c) 2023 Armin Stegerer <Armin.Stegerer@t-online.de>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
