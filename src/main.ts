@@ -161,26 +161,6 @@ class OchsnerRoomterminal extends utils.Adapter {
 		this.log.info('config serverIP: ' + this.config.serverIP);
 		this.log.info('config pollInterval: ' + this.config.pollInterval);
 
-		/**
-		 * Prepare Group Handling
-		 * this.groups = {"group01": [OIDsIndex01, OIDsIndex02, ....],"group02": [OIDsIndex01, OIDsIndex02, ....], .... }
-		 * this.groupOIDString = {"group01": "oid1;oid3", "group02": "oid2;oid4"}
-		 */
-		this.config.OIDs.forEach((value, key) => {
-			const group = this.config.OIDs[key].group;
-			const enabled = this.config.OIDs[key].enabled;
-			const oid = this.config.OIDs[key].oid;
-			// this.log.debug(`Key: ${key} Object: ${JSON.stringify(this.config.OIDs[key])}`);
-			if (enabled) {
-				if (this.groups[group] == undefined) this.groups[group] = [key];
-				else this.groups[group].push(key);
-				if (this.groupOidString[group] == undefined) this.groupOidString[group] = oid;
-				else this.groupOidString[group] = this.groupOidString[group] + ';' + oid;
-			}
-		});
-		this.log.debug(`Groups: ${JSON.stringify(this.groups)}`);
-		this.log.debug(`Group OIDs: ${JSON.stringify(this.groupOidString)}`);
-
 		// check if connection to server is available with given credentials
 		const connected = await this.checkForConnection();
 		if (!connected) {
@@ -188,19 +168,35 @@ class OchsnerRoomterminal extends utils.Adapter {
 		}
 		this.setState('info.connection', true, true);
 
-		// In order to get state updates, you need to subscribe to them. The following line adds a subscription for our variable we have created above.
-		// You can also add a subscription for multiple states. The following line watches all states starting with "lights."
-		// this.subscribeStates('lights.*');
-		// Or, if you really must, you can also watch all states. Don't do this if you don't need to. Otherwise this will cause a lot of unnecessary load on the system:
-		// this.subscribeStates('*');
+		/**
+		 * Prepare Group Handling
+		 * this.groups = {"group01": [OIDsIndex01, OIDsIndex02, ....],"group02": [OIDsIndex01, OIDsIndex02, ....], .... }
+		 * this.groupOIDString = {"group01": "oid1;oid3", "group02": "oid2;oid4"}
+		 */
+		if (this.config.OIDs?.length) {
+			this.config.OIDs.forEach((value, key) => {
+				const group = this.config.OIDs[key].group;
+				const enabled = this.config.OIDs[key].enabled;
+				const oid = this.config.OIDs[key].oid;
+				// this.log.debug(`Key: ${key} Object: ${JSON.stringify(this.config.OIDs[key])}`);
+				if (enabled) {
+					if (this.groups[group] == undefined) this.groups[group] = [key];
+					else this.groups[group].push(key);
+					if (this.groupOidString[group] == undefined) this.groupOidString[group] = oid;
+					else this.groupOidString[group] = this.groupOidString[group] + ';' + oid;
+				}
+			});
+			this.log.debug(`Groups: ${JSON.stringify(this.groups)}`);
+			this.log.debug(`Group OIDs: ${JSON.stringify(this.groupOidString)}`);
 
-		// load the oidNames and oiEnums dictionary
-		// TODO: read both dictionary also, when device version changed
-		this.oidNamesDict = await this.oidGetNames();
-		this.oidEnumsDict = await this.oidGetEnums();
+			// load the oidNames and oiEnums dictionary
+			// TODO: read both dictionary also, when device version changed
+			this.oidNamesDict = await this.oidGetNames();
+			this.oidEnumsDict = await this.oidGetEnums();
 
-		// Start polling the OID's with the given pollingIntervall
-		if (Object.keys(this.groups).length > 0) this.poll(2);
+			// Start polling the OID's with the given pollingIntervall
+			if (Object.keys(this.groups).length > 0) this.poll(2);
+		}
 	}
 
 	/**

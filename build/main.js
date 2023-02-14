@@ -80,6 +80,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     }
   }
   async main() {
+    var _a;
     this.setState("info.connection", false, true);
     this.deviceInfoUrl = `http://${this.config.serverIP}/api/1.0/info/deviceinfo`;
     this.getUrl = `http://${this.config.serverIP}/ws`;
@@ -91,32 +92,34 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.log.info("config username: " + this.config.username);
     this.log.info("config serverIP: " + this.config.serverIP);
     this.log.info("config pollInterval: " + this.config.pollInterval);
-    this.config.OIDs.forEach((value, key) => {
-      const group = this.config.OIDs[key].group;
-      const enabled = this.config.OIDs[key].enabled;
-      const oid = this.config.OIDs[key].oid;
-      if (enabled) {
-        if (this.groups[group] == void 0)
-          this.groups[group] = [key];
-        else
-          this.groups[group].push(key);
-        if (this.groupOidString[group] == void 0)
-          this.groupOidString[group] = oid;
-        else
-          this.groupOidString[group] = this.groupOidString[group] + ";" + oid;
-      }
-    });
-    this.log.debug(`Groups: ${JSON.stringify(this.groups)}`);
-    this.log.debug(`Group OIDs: ${JSON.stringify(this.groupOidString)}`);
     const connected = await this.checkForConnection();
     if (!connected) {
       return;
     }
     this.setState("info.connection", true, true);
-    this.oidNamesDict = await this.oidGetNames();
-    this.oidEnumsDict = await this.oidGetEnums();
-    if (Object.keys(this.groups).length > 0)
-      this.poll(2);
+    if ((_a = this.config.OIDs) == null ? void 0 : _a.length) {
+      this.config.OIDs.forEach((value, key) => {
+        const group = this.config.OIDs[key].group;
+        const enabled = this.config.OIDs[key].enabled;
+        const oid = this.config.OIDs[key].oid;
+        if (enabled) {
+          if (this.groups[group] == void 0)
+            this.groups[group] = [key];
+          else
+            this.groups[group].push(key);
+          if (this.groupOidString[group] == void 0)
+            this.groupOidString[group] = oid;
+          else
+            this.groupOidString[group] = this.groupOidString[group] + ";" + oid;
+        }
+      });
+      this.log.debug(`Groups: ${JSON.stringify(this.groups)}`);
+      this.log.debug(`Group OIDs: ${JSON.stringify(this.groupOidString)}`);
+      this.oidNamesDict = await this.oidGetNames();
+      this.oidEnumsDict = await this.oidGetEnums();
+      if (Object.keys(this.groups).length > 0)
+        this.poll(2);
+    }
   }
   async poll(groupIndex = 0) {
     try {

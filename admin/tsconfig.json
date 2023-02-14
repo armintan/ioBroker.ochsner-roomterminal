@@ -11,6 +11,6 @@
 		"lib": ["es2018", "DOM"],
 		"jsx": "react"
 	},
-	"include": ["./**/*.ts", "./**/*.tsx", "../src/lib/adapter-config.d.ts", "src/components/Table.tsxold"],
+	"include": ["./**/*.ts", "./**/*.tsx", "../src/lib/adapter-config.d.ts"],
 	"exclude": ["./**/*.test.ts", "./**/*.test.tsx"]
 }

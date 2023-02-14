@@ -84,7 +84,7 @@
         "username": "USER",
         "password": "123",
         "serverIP": "192.168.1.108",
-        "pollInterval": 20000
+        "pollInterval": 20
     },
     "protectedNative": [
         "username",
