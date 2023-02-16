@@ -22,7 +22,7 @@ Integrate with Ochsner Roomterminal Webserver (web2comm)
 	### **WORK IN PROGRESS**
 -->
 
-    ### **WORK IN PROGRESS**
+### **WORK IN PROGRESS**
 
 -   (Armin Stegerer) initial release
 
