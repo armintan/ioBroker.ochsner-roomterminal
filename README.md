@@ -21,9 +21,14 @@ Integrate with Ochsner Roomterminal Webserver (web2comm)
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+-   fixed problem with only having one group
+
 ### 0.0.1 (2023-02-16)
 
--   (Armin Stegerer) initial release
+-   (armintan) initial release
 
 ## License
 

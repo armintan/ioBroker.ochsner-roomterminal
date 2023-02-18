@@ -118,8 +118,9 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.oidNamesDict = await this.oidGetNames();
       this.oidEnumsDict = await this.oidGetEnums();
       if (Object.keys(this.groups).length > 0)
-        this.poll(2);
-    }
+        this.poll();
+    } else
+      this.log.debug("No OIDs in instance configuration");
   }
   async poll(groupIndex = 0) {
     try {

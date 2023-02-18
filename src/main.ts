@@ -195,8 +195,8 @@ class OchsnerRoomterminal extends utils.Adapter {
 			this.oidEnumsDict = await this.oidGetEnums();
 
 			// Start polling the OID's with the given pollingIntervall
-			if (Object.keys(this.groups).length > 0) this.poll(2);
-		}
+			if (Object.keys(this.groups).length > 0) this.poll();
+		} else this.log.debug('No OIDs in instance configuration');
 	}
 
 	/**
@@ -402,7 +402,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 					}
 				});
 			} else {
-				this.log.debug(`reading ${oids} failed" Message: ${JSON.stringify(response.statusText)}`);
+				this.log.debug(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
 				this.setState('info.connection', false, true);
 			}
 		} catch (_error) {
@@ -507,7 +507,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 					}
 				}
 				await this.writeFileAsync(this.namespace, fileName, JSON.stringify(oidNamesDict));
-				this.log.debug(`${fileName} written to files`);
+				this.log.debug(`${fileName} written to 'Files'`);
 				// return oidNamesDict;
 			}
 		} catch (error) {
@@ -562,7 +562,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 					}
 				}
 				await this.writeFileAsync(this.namespace, fileName, JSON.stringify(oidEnumsDict));
-				this.log.debug(`${fileName} written to files`);
+				this.log.debug(`${fileName} written to 'Files'`);
 				// return oidEnumsDict;
 			}
 		} catch (error) {
