@@ -276,7 +276,7 @@ class OchsnerRoomterminal extends utils.Adapter {
           }
         });
       } else {
-        this.log.debug(`reading ${oids} failed" Message: ${JSON.stringify(response.statusText)}`);
+        this.log.debug(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
         this.setState("info.connection", false, true);
       }
     } catch (_error) {
@@ -361,7 +361,7 @@ class OchsnerRoomterminal extends utils.Adapter {
           }
         }
         await this.writeFileAsync(this.namespace, fileName, JSON.stringify(oidNamesDict));
-        this.log.debug(`${fileName} written to files`);
+        this.log.debug(`${fileName} written to 'Files'`);
       }
     } catch (error) {
       this.log.error(`oidGetNames error: ${JSON.stringify(error)}`);
@@ -402,7 +402,7 @@ class OchsnerRoomterminal extends utils.Adapter {
           }
         }
         await this.writeFileAsync(this.namespace, fileName, JSON.stringify(oidEnumsDict));
-        this.log.debug(`${fileName} written to files`);
+        this.log.debug(`${fileName} written to 'Files'`);
       }
     } catch (error) {
       console.log("error:", { error });

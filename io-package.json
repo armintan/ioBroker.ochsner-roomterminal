@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "ochsner-roomterminal",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "news": {
+      "0.0.2": {
+        "en": "fixed problem with only having one group",
+        "de": "problem mit nur einer gruppe",
+        "ru": "фиксированная проблема с только иметь одну группу",
+        "pt": "problema fixo com apenas um grupo",
+        "nl": "het probleem met maar één groep",
+        "fr": "problème fixe avec seulement un groupe",
+        "it": "problema fisso con un solo gruppo",
+        "es": "problema fijo con sólo tener un grupo",
+        "pl": "problem stał się problemem tylko z jedną grupą",
+        "uk": "виправлена проблема з однією групою",
+        "zh-cn": "只存在一个集团的固定问题"
+      },
       "0.1.0": {
         "en": "initial release",
         "de": "erstausstrahlung",
