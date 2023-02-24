@@ -300,6 +300,8 @@ class OchsnerRoomterminal extends utils.Adapter {
 			const response = await this.client.fetch(this.getUrl, options);
 			if (response.ok == true) {
 				// Reading was succcesfull
+				this.setState('info.connection', true, true);
+
 				const data = await response.text();
 				this.log.debug(`OID Raw Data: ${data}`);
 				const jsonResult = await parseStringPromise(data);
@@ -402,11 +404,11 @@ class OchsnerRoomterminal extends utils.Adapter {
 					}
 				});
 			} else {
-				this.log.debug(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
-				this.setState('info.connection', false, true);
+				this.log.error(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
 			}
 		} catch (_error) {
 			this.log.error('OID read or parse error: ' + oids);
+			this.setState('info.connection', false, true);
 		}
 	}
 
@@ -465,7 +467,8 @@ class OchsnerRoomterminal extends utils.Adapter {
 			if (response.ok != true)
 				this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
 		} catch (error) {
-			this.log.error(`OID (${oid})read error: ${JSON.stringify(error)}`);
+			this.log.error(`OID (${oid}) write error: ${JSON.stringify(error)}`);
+			this.setState('info.connection', false, true);
 		}
 	}
 
