@@ -21,6 +21,11 @@ Integrate with Ochsner Roomterminal Webserver (web2comm)
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+    - added message support to trigger group reads
+
 ### 0.0.2 (2023-02-18)
 
 -   fixed problem with only having one group
