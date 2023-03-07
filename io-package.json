@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "ochsner-roomterminal",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "news": {
+      "0.0.3": {
+        "en": "added message support to trigger group reads",
+        "de": "unterstützung von nachrichten zur triggergruppe liest",
+        "ru": "добавлена поддержка сообщений, чтобы вызвать групповые чтения",
+        "pt": "suporte de mensagem adicionado para ativar leituras de grupo",
+        "nl": "vertaling:",
+        "fr": "support de message ajouté pour déclencher les lectures du groupe",
+        "it": "supporto messaggio aggiunto per attivare le letture del gruppo",
+        "es": "apoyo de mensaje añadido al grupo de disparador lee",
+        "pl": "dodano wsparcie dla grupy wyzwalające do odczytu",
+        "uk": "додано підтримку повідомлення для зчитувачів групи",
+        "zh-cn": "增加信息支持触发团体阅读"
+      },
       "0.0.2": {
         "en": "fixed problem with only having one group",
         "de": "problem mit nur einer gruppe",

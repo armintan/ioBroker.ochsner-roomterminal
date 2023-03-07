@@ -242,7 +242,6 @@ class OchsnerRoomterminal extends utils.Adapter {
               this.oidEnumsDict[name].forEach((val, key2) => states[key2] = val != null ? val : "undefined");
             }
           }
-          this.log.debug(`OID states: ${JSON.stringify(states)}`);
           this.log.debug(`oid: ${oid} - "${name}"`);
           const common = {
             name: this.config.OIDs[configOidIndex].name.length ? this.config.OIDs[configOidIndex].name : this.oidNamesDict[name],
@@ -256,7 +255,6 @@ class OchsnerRoomterminal extends utils.Adapter {
             step: prop[2] === "w" ? step.length === 0 ? void 0 : Number(step) : void 0,
             states: Object.keys(states).length == 0 ? void 0 : states
           };
-          this.log.debug(`common: ${JSON.stringify(common)}`);
           if (this.config.OIDs[configOidIndex].name.length === 0)
             this.oidUpdate[oid] = (_a = this.oidNamesDict[name]) != null ? _a : name;
           try {
@@ -368,7 +366,6 @@ class OchsnerRoomterminal extends utils.Adapter {
               this.oidEnumsDict[name].forEach((val, key) => states[key] = val != null ? val : "undefined");
             }
           }
-          this.log.debug(`OID states: ${JSON.stringify(states)}`);
           this.log.debug(`oid: ${oid} - "${name}"`);
           const common = {
             name: this.config.OIDs[index].name.length ? this.config.OIDs[index].name : this.oidNamesDict[name],
@@ -382,7 +379,6 @@ class OchsnerRoomterminal extends utils.Adapter {
             step: prop[2] === "w" ? step.length === 0 ? void 0 : Number(step) : void 0,
             states: Object.keys(states).length == 0 ? void 0 : states
           };
-          this.log.debug(`common: ${JSON.stringify(common)}`);
           try {
             if (value.length > 0) {
               await this.setObjectNotExistsAsync("OID." + oid, {
