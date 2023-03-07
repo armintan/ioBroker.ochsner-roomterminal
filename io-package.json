@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "ochsner-roomterminal",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "news": {
+      "0.0.4": {
+        "en": "groups with names bigger than 9 are reserved for messages",
+        "de": "gruppen mit namen größer als 9 sind für nachrichten reserviert",
+        "ru": "группы с названиями более 9 зарезервированы для сообщений",
+        "pt": "grupos com nomes maiores que 9 são reservados para mensagens",
+        "nl": "quality over quantity (qoq) releases vertaling:",
+        "fr": "groupes avec des noms supérieurs à 9 sont réservés aux messages",
+        "it": "gruppi con nomi più grandi di 9 sono riservati per i messaggi",
+        "es": "grupos con nombres mayores de 9 se reservan para mensajes",
+        "pl": "grupy o imionach większych niż 9 są zarezerwowane",
+        "uk": "групи з іменами більше, ніж 9 зарезервовані для повідомлень",
+        "zh-cn": "姓名最多于9人以上的团体保留供电"
+      },
       "0.0.3": {
         "en": "added message support to trigger group reads",
         "de": "unterstützung von nachrichten zur triggergruppe liest",
