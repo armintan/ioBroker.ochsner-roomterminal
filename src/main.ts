@@ -102,6 +102,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 				// we are only interested in state changes, which are not from reading our OIDs
 				if (!state.from.startsWith(`system.adapter.${this.name}`)) {
 					await this.oidWrite(index, state.val);
+					await this.delay(1000);
 					await this.oidRead(index);
 				}
 			}
@@ -120,14 +121,13 @@ class OchsnerRoomterminal extends utils.Adapter {
 		this.log.debug('message received' + JSON.stringify(obj, null, 2));
 		if (typeof obj === 'object' && obj.message) {
 			if (obj.command === 'readGroup') {
-				// e.g. send email or pushover or whatever
-				this.log.debug('readGroup: ' + obj.message);
+				// read group with string 'obj.command'
 
 				const groupIndex = Object.keys(this.groups).indexOf(String(obj.message));
-				this.log.debug('groupIndex: ' + groupIndex);
+				this.log.debug(`read group ${obj.message} (groupIndex: ${groupIndex})`);
 
-				if (groupIndex !== -1) this.oidReadGroup(groupIndex);
-				else this.log.info(`Group ${obj.message} does not exist`);
+				if (groupIndex !== -1) this.oidReadGroup(String(obj.message));
+				else this.log.info(`group "${obj.message}" does not exist`);
 				// Send response in callback if required
 				// if (obj.callback) this.sendTo(obj.from, obj.command, 'Message received', obj.callback);
 			}
@@ -199,10 +199,12 @@ class OchsnerRoomterminal extends utils.Adapter {
 			// TODO: read both dictionary also, when device version changed
 			this.oidNamesDict = await this.oidGetNames();
 			this.oidEnumsDict = await this.oidGetEnums();
+		}
 
-			// Start polling the OID's with the given pollingIntervall
-			if (Object.keys(this.groups).length > 0) this.poll();
-		} else this.log.debug('No OIDs in instance configuration');
+		// Start polling the OID's when there is at least one OID group <= 10
+		if (Object.keys(this.groups).findIndex((groupName) => +groupName < 10) == -1)
+			this.log.debug('No OIDs to poll in instance configuration');
+		else this.poll();
 	}
 
 	/**
@@ -212,22 +214,29 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 * 				(only called when there is at least one oid)
 	 */
 	private async poll(groupIndex = 0): Promise<void> {
-		// this.log.debug(`poll with groupIndex: ${index}`);
+		const keys = Object.keys(this.groups);
+		// this.log.debug(`poll with groupIndex: ${groupIndex}; keys length: ${keys.length}`);
 
 		// TODO: avoid delay when OID is disabled
 		try {
-			await this.delay(this.config.pollInterval * 1000);
 			// read the next OID group from roomterminal
-			await this.oidReadGroup(groupIndex);
-			// this.log.debug(`oidUpdate: ${JSON.stringify(this.oidUpdate)}`);
-			if (groupIndex == Object.keys(this.groups).length - 1) {
-				// we read last group
+			if (groupIndex >= keys.length) {
+				// we read the last group
 				await this.updateNativeOIDs(Object.keys(this.oidUpdate));
-				this.poll();
-			} else this.poll(++groupIndex);
+				this.poll(0); // start from the beginning, without delay
+			} else if (+keys[groupIndex] > 9) {
+				// groupNames from 10 onwards are reserved for messages
+				this.log.debug(`skip group ${keys[groupIndex]}, this number is reserved for messages!!`);
+				this.poll(++groupIndex);
+			} else {
+				await this.oidReadGroup(keys[groupIndex]);
+				await this.delay(this.config.pollInterval * 1000);
+				this.poll(++groupIndex);
+			}
 		} catch (error) {
 			this.log.error(`Error: ${JSON.stringify(error)}`);
-			this.poll();
+			await this.delay(this.config.pollInterval * 1000);
+			this.poll(0);
 		}
 	}
 
@@ -237,6 +246,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 * @param keys to update
 	 */
 	private async updateNativeOIDs(keys: string[]): Promise<void> {
+		this.log.debug(`UpdateNativeOIDs: ${JSON.stringify(keys)}`);
 		if (!keys.length) return; // there is nothing to update
 		try {
 			const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
@@ -257,17 +267,17 @@ class OchsnerRoomterminal extends utils.Adapter {
 	}
 
 	/**
-	 * Read OID group from roomterminal, given by index
+	 * Read OID group from roomterminal, given by group name
 	 *
-	 * @param index index of the OID group to tread in this.config.OiDs
+	 * @param groupKey Name of the OID group to read
 	 */
-	private async oidReadGroup(groupIndex: number): Promise<void> {
-		this.log.debug(`Read GroupIndex: ${groupIndex}`);
-		const oids = this.groupOidString[groupIndex];
-		const group = this.groups[groupIndex];
+	private async oidReadGroup(groupKey: string): Promise<void> {
+		this.log.debug(`Read Group ${groupKey}`);
+		const oids = this.groupOidString[groupKey];
+		const group = this.groups[groupKey];
 
+		this.log.debug(`OID Config Indices: [ ${JSON.stringify(group)} ]`);
 		this.log.debug(`Read [ ${oids} ]`);
-		this.log.debug(`Group [ ${JSON.stringify(group)} ]`);
 
 		// TODO: wrong UID error handling
 
@@ -354,7 +364,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 					// this.log.debug(`name: ${this.config.OIDs[configOidIndex].name}`);
 					// this.log.debug(`prop: ${prop}`);
 					// this.log.debug(`unit: ${unit}`);
-					this.log.debug(`oid: ${oid} - "${name}"`);
+					this.log.debug(`update oid: ${oid} - "${name}"`);
 
 					const common: ioBroker.StateCommon = {
 						name: this.config.OIDs[configOidIndex].name.length
@@ -428,7 +438,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 
 		// TODO: wrong UID error handling
 
-		this.log.debug(`Read oid: ${oid}`);
+		this.log.debug(`read oid: ${oid}`);
 		const body = `<?xml version="1.0" encoding="UTF-8"?>
 			<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 			xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -511,7 +521,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 					// this.log.debug(`name: ${this.config.OIDs[configOidIndex].name}`);
 					// this.log.debug(`prop: ${prop}`);
 					// this.log.debug(`unit: ${unit}`);
-					this.log.debug(`oid: ${oid} - "${name}"`);
+					this.log.debug(`update oid: ${oid} - "${name}"`);
 
 					const common: ioBroker.StateCommon = {
 						name: this.config.OIDs[index].name.length
@@ -584,7 +594,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// this.log.debug(JSON.stringify(oids, null, 2));
 		// this.log.debug(JSON.stringify(status, null, 2));
 		const oid = this.config.OIDs[index].oid;
-		this.log.debug(`Write oid: ${oid}`);
+		this.log.debug(`write oid: ${oid}`);
 		// TODO: wrong UID error handling
 		const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 

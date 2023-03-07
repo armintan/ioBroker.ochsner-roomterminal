@@ -118,7 +118,7 @@
 							"type": "number",
 							"attr": "group",
 							"min": 0,
-							"max": 5,
+							"max": 15,
 							"default": 0,
 							"width": "5%",
 							"title": {

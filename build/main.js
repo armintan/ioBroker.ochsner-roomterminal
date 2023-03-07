@@ -73,6 +73,7 @@ class OchsnerRoomterminal extends utils.Adapter {
         this.log.debug(`From: system.adapter.${this.name}`);
         if (!state.from.startsWith(`system.adapter.${this.name}`)) {
           await this.oidWrite(index, state.val);
+          await this.delay(1e3);
           await this.oidRead(index);
         }
       }
@@ -84,13 +85,12 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.log.debug("message received" + JSON.stringify(obj, null, 2));
     if (typeof obj === "object" && obj.message) {
       if (obj.command === "readGroup") {
-        this.log.debug("readGroup: " + obj.message);
         const groupIndex = Object.keys(this.groups).indexOf(String(obj.message));
-        this.log.debug("groupIndex: " + groupIndex);
+        this.log.debug(`read group ${obj.message} (groupIndex: ${groupIndex})`);
         if (groupIndex !== -1)
-          this.oidReadGroup(groupIndex);
+          this.oidReadGroup(String(obj.message));
         else
-          this.log.info(`Group ${obj.message} does not exist`);
+          this.log.info(`group "${obj.message}" does not exist`);
       }
     }
   }
@@ -132,26 +132,34 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.log.debug(`Group OIDs: ${JSON.stringify(this.groupOidString)}`);
       this.oidNamesDict = await this.oidGetNames();
       this.oidEnumsDict = await this.oidGetEnums();
-      if (Object.keys(this.groups).length > 0)
-        this.poll();
-    } else
-      this.log.debug("No OIDs in instance configuration");
+    }
+    if (Object.keys(this.groups).findIndex((groupName) => +groupName < 10) == -1)
+      this.log.debug("No OIDs to poll in instance configuration");
+    else
+      this.poll();
   }
   async poll(groupIndex = 0) {
+    const keys = Object.keys(this.groups);
     try {
-      await this.delay(this.config.pollInterval * 1e3);
-      await this.oidReadGroup(groupIndex);
-      if (groupIndex == Object.keys(this.groups).length - 1) {
+      if (groupIndex >= keys.length) {
         await this.updateNativeOIDs(Object.keys(this.oidUpdate));
-        this.poll();
-      } else
+        this.poll(0);
+      } else if (+keys[groupIndex] > 9) {
+        this.log.debug(`skip group ${keys[groupIndex]}, this number is reserved for messages!!`);
         this.poll(++groupIndex);
+      } else {
+        await this.oidReadGroup(keys[groupIndex]);
+        await this.delay(this.config.pollInterval * 1e3);
+        this.poll(++groupIndex);
+      }
     } catch (error) {
       this.log.error(`Error: ${JSON.stringify(error)}`);
-      this.poll();
+      await this.delay(this.config.pollInterval * 1e3);
+      this.poll(0);
     }
   }
   async updateNativeOIDs(keys) {
+    this.log.debug(`UpdateNativeOIDs: ${JSON.stringify(keys)}`);
     if (!keys.length)
       return;
     try {
@@ -170,12 +178,12 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.log.debug(`getObject error: ${JSON.stringify(error, null, 2)}`);
     }
   }
-  async oidReadGroup(groupIndex) {
-    this.log.debug(`Read GroupIndex: ${groupIndex}`);
-    const oids = this.groupOidString[groupIndex];
-    const group = this.groups[groupIndex];
+  async oidReadGroup(groupKey) {
+    this.log.debug(`Read Group ${groupKey}`);
+    const oids = this.groupOidString[groupKey];
+    const group = this.groups[groupKey];
+    this.log.debug(`OID Config Indices: [ ${JSON.stringify(group)} ]`);
     this.log.debug(`Read [ ${oids} ]`);
-    this.log.debug(`Group [ ${JSON.stringify(group)} ]`);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -242,7 +250,7 @@ class OchsnerRoomterminal extends utils.Adapter {
               this.oidEnumsDict[name].forEach((val, key2) => states[key2] = val != null ? val : "undefined");
             }
           }
-          this.log.debug(`oid: ${oid} - "${name}"`);
+          this.log.debug(`update oid: ${oid} - "${name}"`);
           const common = {
             name: this.config.OIDs[configOidIndex].name.length ? this.config.OIDs[configOidIndex].name : this.oidNamesDict[name],
             type: "number",
@@ -299,7 +307,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   }
   async oidRead(index) {
     const oid = this.config.OIDs[index].oid;
-    this.log.debug(`Read oid: ${oid}`);
+    this.log.debug(`read oid: ${oid}`);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 			<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 			xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -366,7 +374,7 @@ class OchsnerRoomterminal extends utils.Adapter {
               this.oidEnumsDict[name].forEach((val, key) => states[key] = val != null ? val : "undefined");
             }
           }
-          this.log.debug(`oid: ${oid} - "${name}"`);
+          this.log.debug(`update oid: ${oid} - "${name}"`);
           const common = {
             name: this.config.OIDs[index].name.length ? this.config.OIDs[index].name : this.oidNamesDict[name],
             type: "number",
@@ -423,7 +431,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   }
   async oidWrite(index, value) {
     const oid = this.config.OIDs[index].oid;
-    this.log.debug(`Write oid: ${oid}`);
+    this.log.debug(`write oid: ${oid}`);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
