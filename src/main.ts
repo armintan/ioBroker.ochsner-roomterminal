@@ -201,7 +201,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 			this.oidEnumsDict = await this.oidGetEnums();
 
 			// Start polling the OID's with the given pollingIntervall
-			// if (Object.keys(this.groups).length > 0) this.poll();
+			if (Object.keys(this.groups).length > 0) this.poll();
 		} else this.log.debug('No OIDs in instance configuration');
 	}
 
@@ -349,7 +349,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 					}
 					// else this.log.debug('No enums for ' + name);
 
-					this.log.debug(`OID states: ${JSON.stringify(states)}`);
+					// this.log.debug(`OID states: ${JSON.stringify(states)}`);
 					// this.log.debug(`configOidIndex: ${configOidIndex}`);
 					// this.log.debug(`name: ${this.config.OIDs[configOidIndex].name}`);
 					// this.log.debug(`prop: ${prop}`);
@@ -372,7 +372,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 						states: Object.keys(states).length == 0 ? undefined : states,
 						// 	// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
 					};
-					this.log.debug(`common: ${JSON.stringify(common)}`);
+					// this.log.debug(`common: ${JSON.stringify(common)}`);
 
 					if (this.config.OIDs[configOidIndex].name.length === 0)
 						this.oidUpdate[oid] = this.oidNamesDict![name] ?? name;
@@ -424,10 +424,11 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 * @param index index of the OID group to tread in this.config.OiDs
 	 */
 	private async oidRead(index: number): Promise<void> {
-		const oid = this.config.OIDs[index];
+		const oid = this.config.OIDs[index].oid;
 
 		// TODO: wrong UID error handling
 
+		this.log.debug(`Read oid: ${oid}`);
 		const body = `<?xml version="1.0" encoding="UTF-8"?>
 			<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 			xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -445,7 +446,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 			   </ns:getDpRequest>
 			 </SOAP-ENV:Body>
 			</SOAP-ENV:Envelope>`;
-
+		this.log.debug(`Fetch body: ${JSON.stringify(body, null, 2)}`);
 		const options = {
 			method: 'post',
 			body: body,
@@ -461,6 +462,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		};
 		try {
 			const response = await this.client.fetch(this.getUrl, options);
+			this.log.debug(`Fetch response: ${JSON.stringify(response, null, 2)}`);
 			if (response.ok == true) {
 				// Reading was succcesfull
 				this.setState('info.connection', true, true);
@@ -470,7 +472,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 				const jsonResult = await parseStringPromise(data);
 				const dpCfg: any[] = jsonResult['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['ns:getDpResponse'][0].dpCfg;
 				// this.log.debug(`DP JSON Length: ${dpCfg.length} / oid array length: ${oidArray.length}`);
-				// this.log.debug(`Data: ${JSON.stringify(dpCfg)}`);
+				this.log.debug(`Data: ${JSON.stringify(dpCfg)}`);
 
 				// loop through dpCfg[]
 				dpCfg.forEach(async (dp) => {
@@ -504,7 +506,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 					}
 					// else this.log.debug('No enums for ' + name);
 
-					this.log.debug(`OID states: ${JSON.stringify(states)}`);
+					// this.log.debug(`OID states: ${JSON.stringify(states)}`);
 					// this.log.debug(`configOidIndex: ${configOidIndex}`);
 					// this.log.debug(`name: ${this.config.OIDs[configOidIndex].name}`);
 					// this.log.debug(`prop: ${prop}`);
@@ -527,7 +529,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 						states: Object.keys(states).length == 0 ? undefined : states,
 						// 	// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
 					};
-					this.log.debug(`common: ${JSON.stringify(common)}`);
+					// this.log.debug(`common: ${JSON.stringify(common)}`);
 
 					try {
 						if (value.length > 0) {
@@ -563,7 +565,9 @@ class OchsnerRoomterminal extends utils.Adapter {
 					}
 				});
 			} else {
-				this.log.error(`reading ${oid} failed! Message: ${JSON.stringify(response.statusText)}`);
+				this.log.error(
+					`reading ${JSON.stringify(oid, null, 2)} failed! Message: ${JSON.stringify(response.statusText)}`,
+				);
 			}
 		} catch (_error) {
 			this.log.error('OID read or parse error: ' + oid);
@@ -580,6 +584,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// this.log.debug(JSON.stringify(oids, null, 2));
 		// this.log.debug(JSON.stringify(status, null, 2));
 		const oid = this.config.OIDs[index].oid;
+		this.log.debug(`Write oid: ${oid}`);
 		// TODO: wrong UID error handling
 		const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
