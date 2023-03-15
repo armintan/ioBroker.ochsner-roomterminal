@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "ochsner-roomterminal",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "news": {
+      "0.0.5": {
+        "en": "async message support",
+        "de": "async message support",
+        "ru": "поддержка сообщений async",
+        "pt": "suporte de mensagem async",
+        "nl": "assistent bericht",
+        "fr": "async message support",
+        "it": "supporto dei messaggi",
+        "es": "soporte para mensajes",
+        "pl": "strona internetowa",
+        "uk": "підтримка повідомлень async",
+        "zh-cn": "传播信息支持"
+      },
       "0.0.4": {
         "en": "groups with names bigger than 9 are reserved for messages",
         "de": "gruppen mit namen größer als 9 sind für nachrichten reserviert",

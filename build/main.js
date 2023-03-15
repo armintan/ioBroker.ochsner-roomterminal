@@ -98,7 +98,7 @@ class OchsnerRoomterminal extends utils.Adapter {
           }
         } else {
           this.log.info(`group "${obj.message}" does not exist`);
-          resultMsg = { error: `group "${obj.message}" does not exist` };
+          resultMsg = { error: `group ${obj.message} does not exist` };
         }
       } else
         resultMsg = { error: "message command not supported" };
