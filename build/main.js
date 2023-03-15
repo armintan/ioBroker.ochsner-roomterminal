@@ -82,16 +82,29 @@ class OchsnerRoomterminal extends utils.Adapter {
     }
   }
   async onMessage(obj) {
+    var _a;
     this.log.debug("message received" + JSON.stringify(obj, null, 2));
+    let resultMsg = { error: "internal error" };
     if (typeof obj === "object" && obj.message) {
       if (obj.command === "readGroup") {
         const groupIndex = Object.keys(this.groups).indexOf(String(obj.message));
         this.log.debug(`read group ${obj.message} (groupIndex: ${groupIndex})`);
-        if (groupIndex !== -1)
-          this.oidReadGroup(String(obj.message));
-        else
+        if (groupIndex !== -1) {
+          try {
+            await this.oidReadGroup(String(obj.message));
+            resultMsg = "success";
+          } catch (error) {
+            resultMsg = { error: (_a = error.message) != null ? _a : "unknown error" };
+          }
+        } else {
           this.log.info(`group "${obj.message}" does not exist`);
-      }
+          resultMsg = { error: `group "${obj.message}" does not exist` };
+        }
+      } else
+        resultMsg = { error: "message command not supported" };
+    }
+    if (obj.callback) {
+      this.sendTo(obj.from, obj.command, resultMsg, obj.callback);
     }
   }
   async main() {
@@ -179,6 +192,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     }
   }
   async oidReadGroup(groupKey) {
+    var _a;
     this.log.debug(`Read Group ${groupKey}`);
     const oids = this.groupOidString[groupKey];
     const group = this.groups[groupKey];
@@ -223,7 +237,7 @@ class OchsnerRoomterminal extends utils.Adapter {
         const jsonResult = await (0, import_xml2js.parseStringPromise)(data);
         const dpCfg = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg;
         dpCfg.forEach(async (dp, key) => {
-          var _a;
+          var _a2;
           const configOidIndex = group[key];
           const oid = this.config.OIDs[configOidIndex].oid;
           const states = {};
@@ -241,8 +255,8 @@ class OchsnerRoomterminal extends utils.Adapter {
               if (enums) {
                 enums.forEach(
                   (val) => {
-                    var _a2;
-                    return states[val] = (_a2 = this.oidEnumsDict[name][Number(val)]) != null ? _a2 : "undefined";
+                    var _a3;
+                    return states[val] = (_a3 = this.oidEnumsDict[name][Number(val)]) != null ? _a3 : "undefined";
                   }
                 );
               }
@@ -264,7 +278,7 @@ class OchsnerRoomterminal extends utils.Adapter {
             states: Object.keys(states).length == 0 ? void 0 : states
           };
           if (this.config.OIDs[configOidIndex].name.length === 0)
-            this.oidUpdate[oid] = (_a = this.oidNamesDict[name]) != null ? _a : name;
+            this.oidUpdate[oid] = (_a2 = this.oidNamesDict[name]) != null ? _a2 : name;
           try {
             if (value.length > 0) {
               await this.setObjectNotExistsAsync("OID." + oid, {
@@ -299,10 +313,12 @@ class OchsnerRoomterminal extends utils.Adapter {
         });
       } else {
         this.log.error(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
+        throw new Error(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
       }
     } catch (_error) {
       this.log.error("OID read or parse error: " + oids);
       this.setState("info.connection", false, true);
+      throw new Error((_a = _error.message) != null ? _a : "OID read or parse error");
     }
   }
   async oidRead(index) {

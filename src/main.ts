@@ -119,18 +119,31 @@ class OchsnerRoomterminal extends utils.Adapter {
 	//  */
 	private async onMessage(obj: ioBroker.Message): Promise<void> {
 		this.log.debug('message received' + JSON.stringify(obj, null, 2));
+		let resultMsg: any = { error: 'internal error' };
+		// let resultMsg = { error: false, result: 'success' };
 		if (typeof obj === 'object' && obj.message) {
 			if (obj.command === 'readGroup') {
 				// read group with string 'obj.command'
-
 				const groupIndex = Object.keys(this.groups).indexOf(String(obj.message));
 				this.log.debug(`read group ${obj.message} (groupIndex: ${groupIndex})`);
 
-				if (groupIndex !== -1) this.oidReadGroup(String(obj.message));
-				else this.log.info(`group "${obj.message}" does not exist`);
-				// Send response in callback if required
-				// if (obj.callback) this.sendTo(obj.from, obj.command, 'Message received', obj.callback);
-			}
+				if (groupIndex !== -1) {
+					try {
+						await this.oidReadGroup(String(obj.message));
+						resultMsg = 'success';
+					} catch (error: any) {
+						resultMsg = { error: error.message ?? 'unknown error' };
+					}
+				} else {
+					this.log.info(`group "${obj.message}" does not exist`);
+					resultMsg = { error: `group ${obj.message} does not exist` };
+				}
+			} else resultMsg = { error: 'message command not supported' };
+		}
+		// Send response in callback if required
+		// if (obj.callback) this.sendTo(obj.from, obj.command, 'Message received', obj.callback);
+		if (obj.callback) {
+			this.sendTo(obj.from, obj.command, resultMsg, obj.callback);
 		}
 	}
 
@@ -421,10 +434,12 @@ class OchsnerRoomterminal extends utils.Adapter {
 				});
 			} else {
 				this.log.error(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
+				throw new Error(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
 			}
-		} catch (_error) {
+		} catch (_error: any) {
 			this.log.error('OID read or parse error: ' + oids);
 			this.setState('info.connection', false, true);
+			throw new Error(_error.message ?? 'OID read or parse error');
 		}
 	}
 
