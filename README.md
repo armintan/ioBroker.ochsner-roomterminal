@@ -17,12 +17,14 @@ Integrate with Ochsner Roomterminal Webserver (web2comm)
 
 ## Changelog
 
--   fixed vulnerabilities
-
 <!--
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+-   updated vulnerable packages
 
 ### 0.0.5 (2023-03-15)
 
