@@ -90,8 +90,8 @@ class OchsnerRoomterminal extends utils.Adapter {
 		if (state) {
 			// The state was changed
 			if (!state.ack) {
-				// only write to device value of state is not acknowledges
-				this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+				// only write to device value if state is not acknowledged
+				this.log.debug(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
 				const index = oids.findIndex((elem) => id.endsWith(elem.oid));
 				if (index == -1) {
 					this.log.error(`state ${id} not found in OID list`);

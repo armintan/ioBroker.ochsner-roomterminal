@@ -64,7 +64,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     const oids = this.config.OIDs;
     if (state) {
       if (!state.ack) {
-        this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+        this.log.debug(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
         const index = oids.findIndex((elem) => id.endsWith(elem.oid));
         if (index == -1) {
           this.log.error(`state ${id} not found in OID list`);
