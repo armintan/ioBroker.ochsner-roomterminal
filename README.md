@@ -21,8 +21,7 @@ Integrate with Ochsner Roomterminal Webserver (web2comm)
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.0.7 (2023-06-11)
 
 -   updated the newest npm packages
 

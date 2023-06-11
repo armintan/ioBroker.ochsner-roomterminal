@@ -1,6 +1,6 @@
 {
   "name": "iobroker.ochsner-roomterminal",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Interface to the Ochsner Roomterminal Webserver (web2comm)",
   "author": {
     "name": "Armin Stegerer",

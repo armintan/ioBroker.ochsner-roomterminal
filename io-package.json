@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "ochsner-roomterminal",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "news": {
+      "0.0.7": {
+        "en": "updated the newest npm packages",
+        "de": "aktualisiert die neuesten npm-pakete",
+        "ru": "обновлены новейшие пакеты npm",
+        "pt": "atualizado o mais novo npm pacotes",
+        "nl": "vertaling:",
+        "fr": "mis à jour les nouveaux paquets npm",
+        "it": "aggiornato i nuovi pacchetti npm",
+        "es": "actualizado los nuevos paquetes npm",
+        "pl": "zaktualizował nowe pakiety n.p.m",
+        "uk": "оновлено нові пакети npm",
+        "zh-cn": "最新的一揽子方案"
+      },
       "0.0.6": {
         "en": "updated vulnerable packages",
         "de": "aktualisierte verwundbare pakete",
@@ -80,19 +93,6 @@
         "pl": "pierwsze wydanie",
         "uk": "початковий реліз",
         "zh-cn": "初步释放"
-      },
-      "0.0.1": {
-        "en": "initial release",
-        "de": "Erstveröffentlichung",
-        "ru": "Начальная версия",
-        "pt": "lançamento inicial",
-        "nl": "Eerste uitgave",
-        "fr": "Première version",
-        "it": "Versione iniziale",
-        "es": "Versión inicial",
-        "pl": "Pierwsze wydanie",
-        "zh-cn": "首次出版",
-        "uk": "початковий випуск"
       }
     },
     "title": "Ochsner Roomterminal Webserver (web2comm)",
