@@ -22,7 +22,8 @@ Integrate with Ochsner Roomterminal Webserver (web2comm)
 	### **WORK IN PROGRESS**
 -->
 
-    ### **WORK IN PROGRESS**
+### **WORK IN PROGRESS**
+
     - removed React components
     - NPM packages updates
 
