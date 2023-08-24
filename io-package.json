@@ -1,311 +1,311 @@
 {
-    "common": {
-        "name": "ochsner-roomterminal",
-        "version": "0.0.7",
-        "news": {
-            "0.0.7": {
-                "en": "updated the newest npm packages",
-                "de": "aktualisiert die neuesten npm-pakete",
-                "ru": "обновлены новейшие пакеты npm",
-                "pt": "atualizado o mais novo npm pacotes",
-                "nl": "vertaling:",
-                "fr": "mis à jour les nouveaux paquets npm",
-                "it": "aggiornato i nuovi pacchetti npm",
-                "es": "actualizado los nuevos paquetes npm",
-                "pl": "zaktualizował nowe pakiety n.p.m",
-                "uk": "оновлено нові пакети npm",
-                "zh-cn": "最新的一揽子方案"
-            },
-            "0.0.6": {
-                "en": "updated vulnerable packages",
-                "de": "aktualisierte verwundbare pakete",
-                "ru": "обновленные уязвимые пакеты",
-                "pt": "pacotes vulneráveis atualizados",
-                "nl": "vertaling:",
-                "fr": "paquets vulnérables mis à jour",
-                "it": "pacchetti vulnerabili aggiornati",
-                "es": "actualizados paquetes vulnerables",
-                "pl": "uaktualnione pakiety",
-                "uk": "оновлені вразливі пакети",
-                "zh-cn": "更新的脆弱一揽子计划"
-            },
-            "0.0.5": {
-                "en": "async message support",
-                "de": "async message support",
-                "ru": "поддержка сообщений async",
-                "pt": "suporte de mensagem async",
-                "nl": "assistent bericht",
-                "fr": "async message support",
-                "it": "supporto dei messaggi",
-                "es": "soporte para mensajes",
-                "pl": "strona internetowa",
-                "uk": "підтримка повідомлень async",
-                "zh-cn": "传播信息支持"
-            },
-            "0.0.4": {
-                "en": "groups with names bigger than 9 are reserved for messages",
-                "de": "gruppen mit namen größer als 9 sind für nachrichten reserviert",
-                "ru": "группы с названиями более 9 зарезервированы для сообщений",
-                "pt": "grupos com nomes maiores que 9 são reservados para mensagens",
-                "nl": "quality over quantity (qoq) releases vertaling:",
-                "fr": "groupes avec des noms supérieurs à 9 sont réservés aux messages",
-                "it": "gruppi con nomi più grandi di 9 sono riservati per i messaggi",
-                "es": "grupos con nombres mayores de 9 se reservan para mensajes",
-                "pl": "grupy o imionach większych niż 9 są zarezerwowane",
-                "uk": "групи з іменами більше, ніж 9 зарезервовані для повідомлень",
-                "zh-cn": "姓名最多于9人以上的团体保留供电"
-            },
-            "0.0.3": {
-                "en": "added message support to trigger group reads",
-                "de": "unterstützung von nachrichten zur triggergruppe liest",
-                "ru": "добавлена поддержка сообщений, чтобы вызвать групповые чтения",
-                "pt": "suporte de mensagem adicionado para ativar leituras de grupo",
-                "nl": "vertaling:",
-                "fr": "support de message ajouté pour déclencher les lectures du groupe",
-                "it": "supporto messaggio aggiunto per attivare le letture del gruppo",
-                "es": "apoyo de mensaje añadido al grupo de disparador lee",
-                "pl": "dodano wsparcie dla grupy wyzwalające do odczytu",
-                "uk": "додано підтримку повідомлення для зчитувачів групи",
-                "zh-cn": "增加信息支持触发团体阅读"
-            },
-            "0.0.2": {
-                "en": "fixed problem with only having one group",
-                "de": "problem mit nur einer gruppe",
-                "ru": "фиксированная проблема с только иметь одну группу",
-                "pt": "problema fixo com apenas um grupo",
-                "nl": "het probleem met maar één groep",
-                "fr": "problème fixe avec seulement un groupe",
-                "it": "problema fisso con un solo gruppo",
-                "es": "problema fijo con sólo tener un grupo",
-                "pl": "problem stał się problemem tylko z jedną grupą",
-                "uk": "виправлена проблема з однією групою",
-                "zh-cn": "只存在一个集团的固定问题"
-            },
-            "0.1.0": {
-                "en": "initial release",
-                "de": "erstausstrahlung",
-                "ru": "начальный выпуск",
-                "pt": "lançamento inicial",
-                "nl": "niet",
-                "fr": "initial release",
-                "it": "rilascio iniziale",
-                "es": "liberación inicial",
-                "pl": "pierwsze wydanie",
-                "uk": "початковий реліз",
-                "zh-cn": "初步释放"
-            }
-        },
-        "title": "Ochsner Roomterminal Webserver (web2comm)",
-        "titleLang": {
-            "en": "Ochsner Roomterminal (web2comm)",
-            "de": "Ochsner Roomterminal (web2comm)",
-            "ru": "Ochsner Roomterminal (web2comm)",
-            "pt": "Ochsner Roomterminal (web2comm)",
-            "nl": "Ochsner Roomterminal (web2comm)",
-            "fr": "Ochsner Roomterminal (web2comm)",
-            "it": "Ochsner Roomterminal (web2comm)",
-            "es": "Ochsner Roomterminal (web2comm)",
-            "pl": "Ochsner Room (ang.)",
-            "uk": "Ochsner Roomterminal (web2comm)",
-            "zh-cn": "常驻代表"
-        },
-        "desc": {
-            "en": "Interface to the Ochsner Roomterminal (web2comm)",
-            "de": "Schnittstelle zum Ochsner Roomterminal (web2comm)",
-            "ru": "Интерфейс к Ochsner Roomterminal (web2comm)",
-            "pt": "Interface para o Ochsner Roomterminal (web2comm)",
-            "nl": "Vertaling:",
-            "fr": "Interface de l'Ochsner Roomterminal (web2comm)",
-            "it": "Interfaccia a Ochsner Roomterminal (web2comm)",
-            "es": "Interfaz al Ochsner Roomterminal (web2comm)",
-            "pl": "Strona internetowa Ochsner Room terminal (web2comm)",
-            "uk": "Інтерфейс в Ochsner Roomterminal (web2comm)",
-            "zh-cn": "临时代办"
-        },
-        "authors": [
-            "Armin Stegerer <Armin.Stegerer@t-online.de>"
-        ],
-        "keywords": [
-            "ochsner",
-            "heatpump",
-            "web2comm"
-        ],
-        "license": "MIT",
-        "platform": "Javascript/Node.js",
-        "main": "build/main.js",
-        "icon": "ochsner-roomterminal.png",
-        "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/armintan/ioBroker.ochsner-roomterminal/main/admin/ochsner-roomterminal.png",
-        "readme": "https://github.com/armintan/ioBroker.ochsner-roomterminal/blob/main/README.md",
-        "loglevel": "info",
-        "mode": "daemon",
-        "type": "climate-control",
-        "compact": true,
-        "connectionType": "local",
-        "dataSource": "poll",
-        "messagebox": true,
-        "adminUI": {
-            "config": "json"
-        },
-        "eraseOnUpload": true,
-        "dependencies": [
-            {
-                "js-controller": ">=3.3.22"
-            }
-        ],
-        "globalDependencies": [
-            {
-                "admin": ">=5.1.28"
-            }
-        ]
+  "common": {
+    "name": "ochsner-roomterminal",
+    "version": "0.0.8",
+    "news": {
+      "0.0.8": {
+        "en": "removed React components\nNPM packages updates",
+        "de": "entfernt Reaktionskomponenten\nNPM Pakete Updates",
+        "ru": "удалено React компоненты\nОбновления пакетов NPM",
+        "pt": "removido componentes de reação\nAtualizações de pacotes NPM",
+        "nl": "verwijderd Reageer componenten\nNPM updates",
+        "fr": "enlevé Composants\nMise à jour des paquets NPM",
+        "it": "rimosso Componenti reattivi\nAggiornamento dei pacchetti NPM",
+        "es": "retirada Componentes de reacción\nActualizaciones de paquetes NPM",
+        "pl": "usunąć Reaktywność\nPakiety NPM",
+        "uk": "видалення Компоненти\nОновлення пакетів NPM",
+        "zh-cn": "拆除 重新定性\n国家一揽子计划更新"
+      },
+      "0.0.7": {
+        "en": "updated the newest npm packages",
+        "de": "aktualisiert die neuesten npm-pakete",
+        "ru": "обновлены новейшие пакеты npm",
+        "pt": "atualizado o mais novo npm pacotes",
+        "nl": "vertaling:",
+        "fr": "mis à jour les nouveaux paquets npm",
+        "it": "aggiornato i nuovi pacchetti npm",
+        "es": "actualizado los nuevos paquetes npm",
+        "pl": "zaktualizował nowe pakiety n.p.m",
+        "uk": "оновлено нові пакети npm",
+        "zh-cn": "最新的一揽子方案"
+      },
+      "0.0.6": {
+        "en": "updated vulnerable packages",
+        "de": "aktualisierte verwundbare pakete",
+        "ru": "обновленные уязвимые пакеты",
+        "pt": "pacotes vulneráveis atualizados",
+        "nl": "vertaling:",
+        "fr": "paquets vulnérables mis à jour",
+        "it": "pacchetti vulnerabili aggiornati",
+        "es": "actualizados paquetes vulnerables",
+        "pl": "uaktualnione pakiety",
+        "uk": "оновлені вразливі пакети",
+        "zh-cn": "更新的脆弱一揽子计划"
+      },
+      "0.0.5": {
+        "en": "async message support",
+        "de": "async message support",
+        "ru": "поддержка сообщений async",
+        "pt": "suporte de mensagem async",
+        "nl": "assistent bericht",
+        "fr": "async message support",
+        "it": "supporto dei messaggi",
+        "es": "soporte para mensajes",
+        "pl": "strona internetowa",
+        "uk": "підтримка повідомлень async",
+        "zh-cn": "传播信息支持"
+      },
+      "0.0.4": {
+        "en": "groups with names bigger than 9 are reserved for messages",
+        "de": "gruppen mit namen größer als 9 sind für nachrichten reserviert",
+        "ru": "группы с названиями более 9 зарезервированы для сообщений",
+        "pt": "grupos com nomes maiores que 9 são reservados para mensagens",
+        "nl": "quality over quantity (qoq) releases vertaling:",
+        "fr": "groupes avec des noms supérieurs à 9 sont réservés aux messages",
+        "it": "gruppi con nomi più grandi di 9 sono riservati per i messaggi",
+        "es": "grupos con nombres mayores de 9 se reservan para mensajes",
+        "pl": "grupy o imionach większych niż 9 są zarezerwowane",
+        "uk": "групи з іменами більше, ніж 9 зарезервовані для повідомлень",
+        "zh-cn": "姓名最多于9人以上的团体保留供电"
+      },
+      "0.0.3": {
+        "en": "added message support to trigger group reads",
+        "de": "unterstützung von nachrichten zur triggergruppe liest",
+        "ru": "добавлена поддержка сообщений, чтобы вызвать групповые чтения",
+        "pt": "suporte de mensagem adicionado para ativar leituras de grupo",
+        "nl": "vertaling:",
+        "fr": "support de message ajouté pour déclencher les lectures du groupe",
+        "it": "supporto messaggio aggiunto per attivare le letture del gruppo",
+        "es": "apoyo de mensaje añadido al grupo de disparador lee",
+        "pl": "dodano wsparcie dla grupy wyzwalające do odczytu",
+        "uk": "додано підтримку повідомлення для зчитувачів групи",
+        "zh-cn": "增加信息支持触发团体阅读"
+      },
+      "0.0.2": {
+        "en": "fixed problem with only having one group",
+        "de": "problem mit nur einer gruppe",
+        "ru": "фиксированная проблема с только иметь одну группу",
+        "pt": "problema fixo com apenas um grupo",
+        "nl": "het probleem met maar één groep",
+        "fr": "problème fixe avec seulement un groupe",
+        "it": "problema fisso con un solo gruppo",
+        "es": "problema fijo con sólo tener un grupo",
+        "pl": "problem stał się problemem tylko z jedną grupą",
+        "uk": "виправлена проблема з однією групою",
+        "zh-cn": "只存在一个集团的固定问题"
+      }
     },
-    "native": {
-        "username": "USER",
-        "password": "123",
-        "serverIP": "192.168.1.108",
-        "pollInterval": 20
+    "title": "Ochsner Roomterminal Webserver (web2comm)",
+    "titleLang": {
+      "en": "Ochsner Roomterminal (web2comm)",
+      "de": "Ochsner Roomterminal (web2comm)",
+      "ru": "Ochsner Roomterminal (web2comm)",
+      "pt": "Ochsner Roomterminal (web2comm)",
+      "nl": "Ochsner Roomterminal (web2comm)",
+      "fr": "Ochsner Roomterminal (web2comm)",
+      "it": "Ochsner Roomterminal (web2comm)",
+      "es": "Ochsner Roomterminal (web2comm)",
+      "pl": "Ochsner Room (ang.)",
+      "uk": "Ochsner Roomterminal (web2comm)",
+      "zh-cn": "常驻代表"
     },
-    "protectedNative": [
-        "username",
-        "password"
+    "desc": {
+      "en": "Interface to the Ochsner Roomterminal (web2comm)",
+      "de": "Schnittstelle zum Ochsner Roomterminal (web2comm)",
+      "ru": "Интерфейс к Ochsner Roomterminal (web2comm)",
+      "pt": "Interface para o Ochsner Roomterminal (web2comm)",
+      "nl": "Vertaling:",
+      "fr": "Interface de l'Ochsner Roomterminal (web2comm)",
+      "it": "Interfaccia a Ochsner Roomterminal (web2comm)",
+      "es": "Interfaz al Ochsner Roomterminal (web2comm)",
+      "pl": "Strona internetowa Ochsner Room terminal (web2comm)",
+      "uk": "Інтерфейс в Ochsner Roomterminal (web2comm)",
+      "zh-cn": "临时代办"
+    },
+    "authors": [
+      "Armin Stegerer <Armin.Stegerer@t-online.de>"
     ],
-    "encryptedNative": [
-        "password"
+    "keywords": [
+      "ochsner",
+      "heatpump",
+      "web2comm"
     ],
-    "objects": [],
-    "instanceObjects": [
-        {
-            "_id": "info",
-            "type": "channel",
-            "common": {
-                "name": {
-                    "en": "Information",
-                    "de": "Informationen",
-                    "ru": "Информация",
-                    "pt": "Informação",
-                    "nl": "Informatie",
-                    "fr": "Information",
-                    "it": "Informazioni",
-                    "es": "Información",
-                    "pl": "Informacja",
-                    "uk": "Інформація",
-                    "zh-cn": "信息"
-                }
-            },
-            "native": {}
-        },
-        {
-            "_id": "info.connection",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Device or service connected",
-                    "de": "Geräte- oder Serviceanschluss",
-                    "ru": "Устройство или сервис подключены",
-                    "pt": "Dispositivo ou serviço conectado",
-                    "nl": "Device of dienst verbonden",
-                    "fr": "Appareil ou service connecté",
-                    "it": "Dispositivo o servizio collegato",
-                    "es": "Dispositivo o servicio conectado",
-                    "pl": "Device",
-                    "uk": "Пристрої або послуги підключені",
-                    "zh-cn": "证人或有关服务"
-                },
-                "type": "boolean",
-                "role": "indicator.connected",
-                "read": true,
-                "write": false,
-                "def": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "deviceInfo",
-            "type": "channel",
-            "common": {
-                "name": {
-                    "en": "Device information",
-                    "de": "Informationen zum Produkt",
-                    "ru": "Информация об устройстве",
-                    "pt": "InformaÃ§Ã£o do dispositivo",
-                    "nl": "Device Informatie",
-                    "fr": "Information sur les dispositifs",
-                    "it": "Informazioni sul dispositivo",
-                    "es": "Información sobre dispositivos",
-                    "pl": "Device Information",
-                    "uk": "Інформація про пристрій",
-                    "zh-cn": "证人信息"
-                }
-            },
-            "native": {}
-        },
-        {
-            "_id": "deviceInfo.name",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Device name",
-                    "de": "Name des Geräts",
-                    "ru": "Наименование устройства",
-                    "pt": "Nome do dispositivo",
-                    "nl": "Vernietig Name",
-                    "fr": "Nom du dispositif",
-                    "it": "Nome del dispositivo",
-                    "es": "Nombre del dispositivo",
-                    "pl": "Nazwisko",
-                    "uk": "Назва пристрою",
-                    "zh-cn": "Device姓名"
-                },
-                "type": "string",
-                "role": "text",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "deviceInfo.version",
-            "type": "state",
-            "common": {
-                "name": {
-                    "en": "Device version",
-                    "de": "Geräteversion",
-                    "ru": "Версия устройства",
-                    "pt": "Versão do dispositivo",
-                    "nl": "Vertaling:",
-                    "fr": "Version du dispositif",
-                    "it": "Versione del dispositivo",
-                    "es": "Versión del dispositivo",
-                    "pl": "Wersja Device",
-                    "uk": "Версія пристрою",
-                    "zh-cn": "目 录"
-                },
-                "type": "string",
-                "role": "text",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "",
-            "type": "meta",
-            "common": {
-                "name": {
-                    "en": "File storage",
-                    "de": "Dateispeicher",
-                    "ru": "Хранение файлов",
-                    "pt": "Armazenamento de arquivos",
-                    "nl": "Veldopslag",
-                    "fr": "Stockage de fichiers",
-                    "it": "Archiviazione file",
-                    "es": "Almacenamiento de archivos",
-                    "pl": "Storage room",
-                    "zh-cn": "储存"
-                },
-                "type": "meta.user"
-            },
-            "native": {}
-        }
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "main": "build/main.js",
+    "icon": "ochsner-roomterminal.png",
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/armintan/ioBroker.ochsner-roomterminal/main/admin/ochsner-roomterminal.png",
+    "readme": "https://github.com/armintan/ioBroker.ochsner-roomterminal/blob/main/README.md",
+    "loglevel": "info",
+    "mode": "daemon",
+    "type": "climate-control",
+    "compact": true,
+    "connectionType": "local",
+    "dataSource": "poll",
+    "messagebox": true,
+    "adminUI": {
+      "config": "json"
+    },
+    "eraseOnUpload": true,
+    "dependencies": [
+      {
+        "js-controller": ">=3.3.22"
+      }
+    ],
+    "globalDependencies": [
+      {
+        "admin": ">=5.1.28"
+      }
     ]
+  },
+  "native": {
+    "username": "USER",
+    "password": "123",
+    "serverIP": "192.168.1.108",
+    "pollInterval": 20
+  },
+  "protectedNative": [
+    "username",
+    "password"
+  ],
+  "encryptedNative": [
+    "password"
+  ],
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": {
+          "en": "Information",
+          "de": "Informationen",
+          "ru": "Информация",
+          "pt": "Informação",
+          "nl": "Informatie",
+          "fr": "Information",
+          "it": "Informazioni",
+          "es": "Información",
+          "pl": "Informacja",
+          "uk": "Інформація",
+          "zh-cn": "信息"
+        }
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Device or service connected",
+          "de": "Geräte- oder Serviceanschluss",
+          "ru": "Устройство или сервис подключены",
+          "pt": "Dispositivo ou serviço conectado",
+          "nl": "Device of dienst verbonden",
+          "fr": "Appareil ou service connecté",
+          "it": "Dispositivo o servizio collegato",
+          "es": "Dispositivo o servicio conectado",
+          "pl": "Device",
+          "uk": "Пристрої або послуги підключені",
+          "zh-cn": "证人或有关服务"
+        },
+        "type": "boolean",
+        "role": "indicator.connected",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "deviceInfo",
+      "type": "channel",
+      "common": {
+        "name": {
+          "en": "Device information",
+          "de": "Informationen zum Produkt",
+          "ru": "Информация об устройстве",
+          "pt": "InformaÃ§Ã£o do dispositivo",
+          "nl": "Device Informatie",
+          "fr": "Information sur les dispositifs",
+          "it": "Informazioni sul dispositivo",
+          "es": "Información sobre dispositivos",
+          "pl": "Device Information",
+          "uk": "Інформація про пристрій",
+          "zh-cn": "证人信息"
+        }
+      },
+      "native": {}
+    },
+    {
+      "_id": "deviceInfo.name",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Device name",
+          "de": "Name des Geräts",
+          "ru": "Наименование устройства",
+          "pt": "Nome do dispositivo",
+          "nl": "Vernietig Name",
+          "fr": "Nom du dispositif",
+          "it": "Nome del dispositivo",
+          "es": "Nombre del dispositivo",
+          "pl": "Nazwisko",
+          "uk": "Назва пристрою",
+          "zh-cn": "Device姓名"
+        },
+        "type": "string",
+        "role": "text",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "deviceInfo.version",
+      "type": "state",
+      "common": {
+        "name": {
+          "en": "Device version",
+          "de": "Geräteversion",
+          "ru": "Версия устройства",
+          "pt": "Versão do dispositivo",
+          "nl": "Vertaling:",
+          "fr": "Version du dispositif",
+          "it": "Versione del dispositivo",
+          "es": "Versión del dispositivo",
+          "pl": "Wersja Device",
+          "uk": "Версія пристрою",
+          "zh-cn": "目 录"
+        },
+        "type": "string",
+        "role": "text",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "",
+      "type": "meta",
+      "common": {
+        "name": {
+          "en": "File storage",
+          "de": "Dateispeicher",
+          "ru": "Хранение файлов",
+          "pt": "Armazenamento de arquivos",
+          "nl": "Veldopslag",
+          "fr": "Stockage de fichiers",
+          "it": "Archiviazione file",
+          "es": "Almacenamiento de archivos",
+          "pl": "Storage room",
+          "zh-cn": "储存"
+        },
+        "type": "meta.user"
+      },
+      "native": {}
+    }
+  ]
 }
