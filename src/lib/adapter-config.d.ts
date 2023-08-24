@@ -24,7 +24,6 @@ declare global {
 	}
 }
 
-// declare module 'digest-fetch';
 // this is required so the above AdapterConfig is found by TypeScript / type checking
+export { };
 
-export {};

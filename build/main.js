@@ -18,10 +18,10 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 var utils = __toESM(require("@iobroker/adapter-core"));
-var import_digest_fetch = __toESM(require("digest-fetch"));
 var import_xml2js = require("xml2js");
 var import_package = __toESM(require("../package.json"));
-var import_util = require("./lib/util");
+var import_util = require("./lib/util.js");
+var import_digest_fetch = __toESM(require("digest-fetch"));
 const adapterName = import_package.default.name.split(".").pop();
 const getOptions = {
   method: "get",
@@ -34,19 +34,19 @@ const getOptions = {
   }
 };
 class OchsnerRoomterminal extends utils.Adapter {
+  deviceInfoUrl = "";
+  getUrl = "";
+  client = void 0;
+  oidNamesDict = void 0;
+  oidEnumsDict = void 0;
+  oidUpdate = {};
+  groups = {};
+  groupOidString = {};
   constructor(options = {}) {
     super({
       ...options,
       name: adapterName
     });
-    this.deviceInfoUrl = "";
-    this.getUrl = "";
-    this.client = void 0;
-    this.oidNamesDict = void 0;
-    this.oidEnumsDict = void 0;
-    this.oidUpdate = {};
-    this.groups = {};
-    this.groupOidString = {};
     this.on("ready", this.onReady.bind(this));
     this.on("stateChange", this.onStateChange.bind(this));
     this.on("message", this.onMessage.bind(this));

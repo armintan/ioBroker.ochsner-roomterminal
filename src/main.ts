@@ -5,12 +5,12 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from '@iobroker/adapter-core';
+import { parseStringPromise } from 'xml2js';
+import packageJson from '../package.json';
+import { getEnumKeys } from './lib/util.js';
 
 // Load your modules here, e.g.:
 import DigestFetch from 'digest-fetch';
-import { parseStringPromise } from 'xml2js';
-import packageJson from '../package.json';
-import { getEnumKeys } from './lib/util';
 
 // import * as fs from "fs";
 const adapterName = packageJson.name.split('.').pop();
