@@ -1,5 +1,5 @@
 /*
- * Created with @iobroker/create-adapter v2.3.0
+ * Created with @iobroker/create-adapter v2.6.2
  */
 
 // The adapter-core module gives you access to the core ioBroker functions
@@ -24,6 +24,7 @@ const getOptions = {
 		'Content-Type': 'text/xml; charset=utf-8',
 	},
 };
+
 // /home/parallels/ioBroker.ochsner-roomterminal/node_modules/@types/iobroker/index.d.ts
 class OchsnerRoomterminal extends utils.Adapter {
 	private deviceInfoUrl = '';
@@ -32,7 +33,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	private oidNamesDict: { [id: string]: string } | undefined = undefined;
 	private oidEnumsDict: { [id: string]: string[] } | undefined = undefined;
 	private oidUpdate: { [id: string]: string } = {};
-	private groups: Record<string, number[]> = {};
+	private oidGroups: Record<string, number[]> = {};
 	private groupOidString: Record<string, string> = {};
 
 	public constructor(options: Partial<utils.AdapterOptions> = {}) {
@@ -64,7 +65,17 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 * Is called when adapter shuts down - callback has to be called under any circumstances!
 	 */
 	private onUnload(callback: () => void): void {
-		callback();
+		try {
+			// Here you must clear all timeouts or intervals that may still be active
+			// clearTimeout(timeout1);
+			// clearTimeout(timeout2);
+			// ...
+			// clearInterval(interval1);
+
+			callback();
+		} catch (e) {
+			callback();
+		}
 	}
 
 	// If you need to react to object changes, uncomment the following block and the corresponding line in the constructor.
@@ -124,7 +135,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		if (typeof obj === 'object' && obj.message) {
 			if (obj.command === 'readGroup') {
 				// read group with string 'obj.command'
-				const groupIndex = Object.keys(this.groups).indexOf(String(obj.message));
+				const groupIndex = Object.keys(this.oidGroups).indexOf(String(obj.message));
 				this.log.debug(`read group ${obj.message} (groupIndex: ${groupIndex})`);
 
 				if (groupIndex !== -1) {
@@ -189,7 +200,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 
 		/**
 		 * Prepare Group Handling
-		 * this.groups = {"group01": [OIDsIndex01, OIDsIndex02, ....],"group02": [OIDsIndex01, OIDsIndex02, ....], .... }
+		 * this.oidGroups = {"group01": [OIDsIndex01, OIDsIndex02, ....],"group02": [OIDsIndex01, OIDsIndex02, ....], .... }
 		 * this.groupOIDString = {"group01": "oid1;oid3", "group02": "oid2;oid4"}
 		 */
 		if (this.config.OIDs?.length) {
@@ -199,13 +210,13 @@ class OchsnerRoomterminal extends utils.Adapter {
 				const oid = this.config.OIDs[key].oid;
 				// this.log.debug(`Key: ${key} Object: ${JSON.stringify(this.config.OIDs[key])}`);
 				if (enabled) {
-					if (this.groups[group] == undefined) this.groups[group] = [key];
-					else this.groups[group].push(key);
+					if (this.oidGroups[group] == undefined) this.oidGroups[group] = [key];
+					else this.oidGroups[group].push(key);
 					if (this.groupOidString[group] == undefined) this.groupOidString[group] = oid;
 					else this.groupOidString[group] = this.groupOidString[group] + ';' + oid;
 				}
 			});
-			this.log.debug(`Groups: ${JSON.stringify(this.groups)}`);
+			this.log.debug(`Groups: ${JSON.stringify(this.oidGroups)}`);
 			this.log.debug(`Group OIDs: ${JSON.stringify(this.groupOidString)}`);
 
 			// load the oidNames and oiEnums dictionary
@@ -215,7 +226,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		}
 
 		// Start polling the OID's when there is at least one OID group <= 10
-		if (Object.keys(this.groups).findIndex((groupName) => +groupName < 10) == -1)
+		if (Object.keys(this.oidGroups).findIndex((groupName) => +groupName < 10) == -1)
 			this.log.debug('No OIDs to poll in instance configuration');
 		else this.poll();
 	}
@@ -227,7 +238,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 * 				(only called when there is at least one oid)
 	 */
 	private async poll(groupIndex = 0): Promise<void> {
-		const keys = Object.keys(this.groups);
+		const keys = Object.keys(this.oidGroups);
 		// this.log.debug(`poll with groupIndex: ${groupIndex}; keys length: ${keys.length}`);
 
 		// TODO: avoid delay when OID is disabled
@@ -287,7 +298,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	private async oidReadGroup(groupKey: string): Promise<void> {
 		this.log.debug(`Read Group ${groupKey}`);
 		const oids = this.groupOidString[groupKey];
-		const group = this.groups[groupKey];
+		const group = this.oidGroups[groupKey];
 
 		this.log.debug(`OID Config Indices: [ ${JSON.stringify(group)} ]`);
 		this.log.debug(`Read [ ${oids} ]`);

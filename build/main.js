@@ -14,6 +14,10 @@ var __copyProps = (to, from, except, desc) => {
   return to;
 };
 var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
@@ -40,7 +44,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   oidNamesDict = void 0;
   oidEnumsDict = void 0;
   oidUpdate = {};
-  groups = {};
+  oidGroups = {};
   groupOidString = {};
   constructor(options = {}) {
     super({
@@ -52,14 +56,41 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.on("message", this.onMessage.bind(this));
     this.on("unload", this.onUnload.bind(this));
   }
+  /**
+   * Is called when databases are connected and adapter received configuration.
+   */
   async onReady() {
     this.subscribeStates("OID.*");
     this.log.info(`Adapter Name: ${this.name} is ready !!!!!!`);
     this.main();
   }
+  /**
+   * Is called when adapter shuts down - callback has to be called under any circumstances!
+   */
   onUnload(callback) {
-    callback();
+    try {
+      callback();
+    } catch (e) {
+      callback();
+    }
   }
+  // If you need to react to object changes, uncomment the following block and the corresponding line in the constructor.
+  // You also need to subscribe to the objects with `this.subscribeObjects`, similar to `this.subscribeStates`.
+  // /**
+  //  * Is called if a subscribed object changes
+  //  */
+  // private onObjectChange(id: string, obj: ioBroker.Object | null | undefined): void {
+  // 	if (obj) {
+  // 		// The object was changed
+  // 		this.log.info(`object ${id} changed: ${JSON.stringify(obj)}`);
+  // 	} else { 17058
+  // 		// The object was deleted
+  // 		this.log.info(`object ${id} deleted`);
+  // 	}
+  // }
+  /**
+   * Is called if a subscribed state changes
+   */
   async onStateChange(id, state) {
     const oids = this.config.OIDs;
     if (state) {
@@ -81,13 +112,18 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.log.info(`state ${id} deleted`);
     }
   }
+  // If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
+  // /**
+  //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
+  //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
+  //  */
   async onMessage(obj) {
     var _a;
     this.log.debug("message received" + JSON.stringify(obj, null, 2));
     let resultMsg = { error: "internal error" };
     if (typeof obj === "object" && obj.message) {
       if (obj.command === "readGroup") {
-        const groupIndex = Object.keys(this.groups).indexOf(String(obj.message));
+        const groupIndex = Object.keys(this.oidGroups).indexOf(String(obj.message));
         this.log.debug(`read group ${obj.message} (groupIndex: ${groupIndex})`);
         if (groupIndex !== -1) {
           try {
@@ -107,6 +143,14 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.sendTo(obj.from, obj.command, resultMsg, obj.callback);
     }
   }
+  /**
+   * Private functions
+   */
+  /**
+   * ----------------------------
+   *  Inititialize the adapter
+   * ----------------------------
+   */
   async main() {
     var _a;
     this.setState("info.connection", false, true);
@@ -131,28 +175,34 @@ class OchsnerRoomterminal extends utils.Adapter {
         const enabled = this.config.OIDs[key].enabled;
         const oid = this.config.OIDs[key].oid;
         if (enabled) {
-          if (this.groups[group] == void 0)
-            this.groups[group] = [key];
+          if (this.oidGroups[group] == void 0)
+            this.oidGroups[group] = [key];
           else
-            this.groups[group].push(key);
+            this.oidGroups[group].push(key);
           if (this.groupOidString[group] == void 0)
             this.groupOidString[group] = oid;
           else
             this.groupOidString[group] = this.groupOidString[group] + ";" + oid;
         }
       });
-      this.log.debug(`Groups: ${JSON.stringify(this.groups)}`);
+      this.log.debug(`Groups: ${JSON.stringify(this.oidGroups)}`);
       this.log.debug(`Group OIDs: ${JSON.stringify(this.groupOidString)}`);
       this.oidNamesDict = await this.oidGetNames();
       this.oidEnumsDict = await this.oidGetEnums();
     }
-    if (Object.keys(this.groups).findIndex((groupName) => +groupName < 10) == -1)
+    if (Object.keys(this.oidGroups).findIndex((groupName) => +groupName < 10) == -1)
       this.log.debug("No OIDs to poll in instance configuration");
     else
       this.poll();
   }
+  /**
+   * Main polling routine - fetching next Group in list
+   *
+   * @description Started once during startup, restarts itself when finished
+   * 				(only called when there is at least one oid)
+   */
   async poll(groupIndex = 0) {
-    const keys = Object.keys(this.groups);
+    const keys = Object.keys(this.oidGroups);
     try {
       if (groupIndex >= keys.length) {
         await this.updateNativeOIDs(Object.keys(this.oidUpdate));
@@ -171,6 +221,11 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.poll(0);
     }
   }
+  /**
+   * Check for empty OID names in config and add default names
+   * and update common.native.OIDs in instance object (which restarts the adapter)
+   * @param keys to update
+   */
   async updateNativeOIDs(keys) {
     this.log.debug(`UpdateNativeOIDs: ${JSON.stringify(keys)}`);
     if (!keys.length)
@@ -191,11 +246,16 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.log.debug(`getObject error: ${JSON.stringify(error, null, 2)}`);
     }
   }
+  /**
+   * Read OID group from roomterminal, given by group name
+   *
+   * @param groupKey Name of the OID group to read
+   */
   async oidReadGroup(groupKey) {
     var _a;
     this.log.debug(`Read Group ${groupKey}`);
     const oids = this.groupOidString[groupKey];
-    const group = this.groups[groupKey];
+    const group = this.oidGroups[groupKey];
     this.log.debug(`OID Config Indices: [ ${JSON.stringify(group)} ]`);
     this.log.debug(`Read [ ${oids} ]`);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
@@ -275,7 +335,9 @@ class OchsnerRoomterminal extends utils.Adapter {
             min: prop[2] === "w" ? min.length === 0 ? void 0 : Number(min) : void 0,
             max: prop[2] === "w" ? max.length === 0 ? void 0 : Number(max) : void 0,
             step: prop[2] === "w" ? step.length === 0 ? void 0 : Number(step) : void 0,
+            //TODO: add states based on XML
             states: Object.keys(states).length == 0 ? void 0 : states
+            // 	// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
           };
           if (this.config.OIDs[configOidIndex].name.length === 0)
             this.oidUpdate[oid] = (_a2 = this.oidNamesDict[name]) != null ? _a2 : name;
@@ -321,6 +383,11 @@ class OchsnerRoomterminal extends utils.Adapter {
       throw new Error((_a = _error.message) != null ? _a : "OID read or parse error");
     }
   }
+  /**
+   * Read OID group from roomterminal, given by index
+   *
+   * @param index index of the OID group to tread in this.config.OiDs
+   */
   async oidRead(index) {
     const oid = this.config.OIDs[index].oid;
     this.log.debug(`read oid: ${oid}`);
@@ -401,7 +468,9 @@ class OchsnerRoomterminal extends utils.Adapter {
             min: prop[2] === "w" ? min.length === 0 ? void 0 : Number(min) : void 0,
             max: prop[2] === "w" ? max.length === 0 ? void 0 : Number(max) : void 0,
             step: prop[2] === "w" ? step.length === 0 ? void 0 : Number(step) : void 0,
+            //TODO: add states based on XML
             states: Object.keys(states).length == 0 ? void 0 : states
+            // 	// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
           };
           try {
             if (value.length > 0) {
@@ -445,6 +514,11 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.setState("info.connection", false, true);
     }
   }
+  /**
+   * Write OID to roomterminal, given by index
+   *
+   * @param index index of the OID etnry to tread in this.config.OiDs
+   */
   async oidWrite(index, value) {
     const oid = this.config.OIDs[index].oid;
     this.log.debug(`write oid: ${oid}`);
@@ -496,6 +570,14 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.setState("info.connection", false, true);
     }
   }
+  /**
+   * Ochnser API for getting the oidNames Dictionary,
+   * 		either from file
+   * 		or
+   * 		from device (then stored to file)
+   *
+   * @returns oiNameDictionary
+   */
   async oidGetNames() {
     let oidNamesDict = {};
     const fileName = "oidNames.json";
@@ -532,6 +614,14 @@ class OchsnerRoomterminal extends utils.Adapter {
     }
     return oidNamesDict;
   }
+  /**
+   * Ochnser API for getting the oidEnum Dictionary,
+   * 		either from file
+   * 		or
+   * 		from device (then stored to file)
+   *
+   * @returns oidEnumDictionary
+   */
   async oidGetEnums() {
     let oidEnumsDict = {};
     const fileName = "oidEnums.json";
@@ -573,6 +663,10 @@ class OchsnerRoomterminal extends utils.Adapter {
     }
     return oidEnumsDict;
   }
+  /**
+   * Ochnser API for getting the DeviceInfo
+   * @returns
+   */
   async checkForConnection() {
     try {
       const response = await this.client.fetch(this.deviceInfoUrl, getOptions);
