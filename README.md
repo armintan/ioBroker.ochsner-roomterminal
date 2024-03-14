@@ -24,7 +24,8 @@ Integrate with Ochsner Roomterminal Webserver (web2comm)
 
 ### **WORK IN PROGRESS**
 
--   update to the newest npm packages to fix vulnerabilities
+-   update the newest npm packages to fix vulnerabilities
+-   provide correct index when writing OIDs
 
 ### 0.0.8 (2023-08-24)
 

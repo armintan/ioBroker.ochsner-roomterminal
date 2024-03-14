@@ -521,7 +521,7 @@ class OchsnerRoomterminal extends utils.Adapter {
    */
   async oidWrite(index, value) {
     const oid = this.config.OIDs[index].oid;
-    this.log.debug(`write oid: ${oid}`);
+    const ind = oid.slice(oid.lastIndexOf("/") - oid.length + 1);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -535,7 +535,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 			<prop/>
 		   </ref>
 		   <dp>
-			<index>0</index>
+			<index>${ind}</index>
 			<name/>
 			<prop/>
 			<desc/>
@@ -561,7 +561,7 @@ class OchsnerRoomterminal extends utils.Adapter {
       }
     };
     try {
-      this.log.debug(`Write [ ${oid} ] with value: ${value}`);
+      this.log.debug(`Write [ ${oid} ] (index ${ind}) with value: ${value}`);
       const response = await this.client.fetch(this.getUrl, options);
       if (response.ok != true)
         this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);

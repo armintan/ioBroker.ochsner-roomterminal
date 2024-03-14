@@ -620,7 +620,9 @@ class OchsnerRoomterminal extends utils.Adapter {
 		// this.log.debug(JSON.stringify(oids, null, 2));
 		// this.log.debug(JSON.stringify(status, null, 2));
 		const oid = this.config.OIDs[index].oid;
-		this.log.debug(`write oid: ${oid}`);
+		const ind = oid.slice(oid.lastIndexOf('/') - oid.length + 1);
+		// const ind = oid.charAt(oid.length - 1);
+
 		// TODO: wrong UID error handling
 		const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
@@ -635,7 +637,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 			<prop/>
 		   </ref>
 		   <dp>
-			<index>0</index>
+			<index>${ind}</index>
 			<name/>
 			<prop/>
 			<desc/>
@@ -662,7 +664,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 			},
 		};
 		try {
-			this.log.debug(`Write [ ${oid} ] with value: ${value}`);
+			this.log.debug(`Write [ ${oid} ] (index ${ind}) with value: ${value}`);
 			const response = await this.client.fetch(this.getUrl, options);
 			if (response.ok != true)
 				this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
