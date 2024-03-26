@@ -250,7 +250,9 @@ class OchsnerRoomterminal extends utils.Adapter {
 				this.poll(0); // start from the beginning, without delay
 			} else if (+keys[groupIndex] > 9) {
 				// groupNames from 10 onwards are reserved for messages
-				this.log.debug(`skip group ${keys[groupIndex]}, this number is reserved for messages!!`);
+				this.log.debug(
+					`skip group ${keys[groupIndex]}, this number is reserved for readGroup messages, only!!`,
+				);
 				this.poll(++groupIndex);
 			} else {
 				await this.oidReadGroup(keys[groupIndex]);
