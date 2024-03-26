@@ -8,5 +8,6 @@
     "Your password for the Ochsner Roomterminal": "La tua password per l'Ochsner Roomterminal",
     "Your IP or hostname of the Ochsner Roomterminal": "Il tuo IP o nome host dell'Ochsner Roomterminal",
     "Interval in ms between single OID requests": "Intervallo in ms tra singole richieste OID",
-    "Interval in sec between single OID requests": "Intervallo in secondi tra singole richieste OID"
+    "Interval in sec between single OID requests": "Intervallo in secondi tra singole richieste OID",
+    "Interval in sec between group read requests": "Intervallo in secondi tra le richieste di lettura del gruppo"
 }
