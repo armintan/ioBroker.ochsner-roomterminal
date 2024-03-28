@@ -37,7 +37,7 @@ All OIDs can be derived from the web2com web page.
 
 E.g <code>/1/2/7/106/1</code> specifies the _Normal setpoint DWH temperature_ on my heatpump.
 
-> Since OIDs are hierachical, it is recommended to use only OIDs which specifiy only one device endpoint. You can also use one level above (e.g. <code>/1/2/7/106</code>), which read all endpoints below.<br> However, this feature is not tested!.
+> Since OIDs are hierachical, it is recommended to only use OIDs which specifiy only one device endpoint. You can also use one level above (e.g. <code>/1/2/7/106</code>), which read all endpoints below.<br> However, this feature is not tested!.
 
 ### Instance Configuration
 
@@ -48,21 +48,22 @@ as well as the <code>polling interval</code>, which specifies the time in second
 
 #### OID Tab
 
-Here you can create and modify a table of OID endpoints.
+Here you can create and modify a table of OID endpoints. For each **enabled** endpoint, an ioBroker object is created in the _OID_ folder of the adapter instance.
 
-Each table entry has the followin fields:
-| Field Name | Description |
-| :--- | :---- |  
-| Enabled | Only enabled endpoints can be read or updated |
-| OID | Address of the device endpoint to read or update |
-| Name | Name of the device endpoint to read or update |
-| is state | indicates, that you intent to update the device endpoint |
-| Group | group identfier (positive integer number) of the endpoint |
+Each OID endpoint has the following configuration fields:
+
+> | Endpoint Name | Description                                                                                                                                                                               |
+> | :------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | Enabled       | Only enabled endpoints can be read or updated                                                                                                                                             |
+> | OID           | Address of the device endpoint to read or update - e.g. <code>/1/2/7/106/1</code>                                                                                                         |
+> | Name          | Name of the device endpoint to read or update (optional). If ommitted, roomterminals endpoint info is used instead.                                                                       |
+> | is state      | indicates, that this OID is considered a _ochnser state_, which means an additional object is created in the _Status folder_, which holds the object's current state in <u>text form</u>. |
+> | Group         | group identfier (positive integer number) of the endpoint                                                                                                                                 |
 
 ### ioBroker Instance Messages
 
-The adapter supports sending a <code>readGroup</code> message, in order to trigger a **group read request**, either from the cmd line - or - from script.
-This allows to get in-time information, whenever you need them.
+The adapter supports receiving a <code>readGroup</code> message, in order to trigger a **group read request**, either from the cmd line, or from script. The result is written to the corresponding adapter instance objects.
+This allows you to get just-in-time device information, whenever you need them.
 
 #### E.g. read all endpoints, which belong to group 15 ...
 
@@ -72,11 +73,11 @@ This allows to get in-time information, whenever you need them.
 
 ### Important Hints
 
-> 1.  This adapter is based on the reverse engineering results on my heatpump. It works on my device and my endpoint configuration since 2 years.
+> 1.  This adapter is based on the reverse engineering results on my speific heatpump.
 > 2.  **I had to add a group with only one OID**, in order to avoid a situation, when the web2comm interface suddenly stopped providing data back.
-> 3.  There were no test executed on any other endpoints or any other ochsner heatpump. So enjoy to give it a try with your endpoints on your device :blush: - and don't forget to perform the required tests in your environment
-> 4.  The web2comm interface does not give any error codes back, when reading or writing to endpoints, which do not exist.
->     So check that your OIDs are provided correctly and supported by your ochsner heatpump.
+> 3.  There were no tests executed on any other endpoints or any other ochsner heatpumps. So enjoy to give it a try with your endpoints on your device :blush: - and don't forget to perform the required tests in your environment
+> 4.  The web2comm interface does not give back any error codes, when reading or writing to endpoints, which do not exist.
+>     So you have to carefully check, that your OIDs are provided correctly and supported by your ochsner heatpump.
 
 ## Changelog
 
