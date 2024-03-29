@@ -227,7 +227,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 
 		// Start polling the OID's when there is at least one OID group <= 10
 		if (Object.keys(this.oidGroups).findIndex((groupName) => +groupName < 10) == -1)
-			this.log.debug('No OIDs to poll in instance configuration');
+			this.log.info('No OIDs to poll in instance configuration');
 		else this.poll();
 	}
 
@@ -423,26 +423,33 @@ class OchsnerRoomterminal extends utils.Adapter {
 							this.setState('OID.' + oid, { val: Number(value), ack: true });
 						}
 						if (this.config.OIDs[configOidIndex].isStatus) {
-							const status = this.oidEnumsDict![name][Number(value)];
-							if (status) {
-								await this.setObjectNotExistsAsync('Status.' + oid, {
-									type: 'state',
-									common: {
-										name: 'Status.' + this.config.OIDs[configOidIndex].name,
-										type: 'string',
-										role: 'value',
-										read: true,
-										write: false,
-									},
-									native: {},
-								});
-								this.setState('Status.' + oid, { val: status, ack: true });
-								this.log.debug(`Status object updated for ${oid}`);
+							// this.log.debug(`oidReadGroup: for ${name}`);
+							// this.log.debug(`Enums ${JSON.stringify(this.oidEnumsDict![name])}`);
+							if (this.oidEnumsDict![name]) {
+								const status = this.oidEnumsDict![name][Number(value)];
+								if (status) {
+									await this.setObjectNotExistsAsync('Status.' + oid, {
+										type: 'state',
+										common: {
+											name: 'Status.' + this.config.OIDs[configOidIndex].name,
+											type: 'string',
+											role: 'value',
+											read: true,
+											write: false,
+										},
+										native: {},
+									});
+									this.setState('Status.' + oid, { val: status, ack: true });
+									this.log.debug(`Status object updated for ${oid}`);
+								}
+							} else {
+								this.log.info(`No status text found for ${oid} (${name})`);
+								this.log.info(`Please check isStatus configuration for ${oid}`);
 							}
 						}
 					} catch (error: any) {
 						this.log.error('Error message: ' + error?.message);
-						this.log.error(`State update for ${oids} failes`);
+						this.log.error(`State update for ${oids} failed`);
 					}
 				});
 			} else {
@@ -580,26 +587,32 @@ class OchsnerRoomterminal extends utils.Adapter {
 							this.setState('OID.' + oid, { val: Number(value), ack: true });
 						}
 						if (this.config.OIDs[index].isStatus) {
-							const status = this.oidEnumsDict![name][Number(value)];
-							if (status) {
-								await this.setObjectNotExistsAsync('Status.' + oid, {
-									type: 'state',
-									common: {
-										name: 'Status.' + this.config.OIDs[index].name,
-										type: 'string',
-										role: 'value',
-										read: true,
-										write: false,
-									},
-									native: {},
-								});
-								this.setState('Status.' + oid, { val: status, ack: true });
-								this.log.debug(`Status object updated for ${oid}`);
+							if (this.oidEnumsDict![name]) {
+								const status = this.oidEnumsDict![name][Number(value)];
+
+								if (status) {
+									await this.setObjectNotExistsAsync('Status.' + oid, {
+										type: 'state',
+										common: {
+											name: 'Status.' + this.config.OIDs[index].name,
+											type: 'string',
+											role: 'value',
+											read: true,
+											write: false,
+										},
+										native: {},
+									});
+									this.setState('Status.' + oid, { val: status, ack: true });
+									this.log.debug(`Status object updated for ${oid}`);
+								}
+							} else {
+								this.log.info(`No status text found for ${oid} (${name})`);
+								this.log.info(`Please check isStatus configuration for ${oid}`);
 							}
 						}
 					} catch (error: any) {
 						this.log.error('Error message: ' + error?.message);
-						this.log.error(`State update for ${oid} failes`);
+						this.log.error(`State update for ${oid} failed`);
 					}
 				});
 			} else {

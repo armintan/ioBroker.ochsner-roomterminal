@@ -7,25 +7,23 @@
 ![Number of Installations](https://iobroker.live/badges/ochsner-roomterminal-installed.svg)
 ![Current version in stable repository](https://iobroker.live/badges/ochsner-roomterminal-stable.svg)
 
-[![NPM](https://nodei.co/npm/iobroker.ochsner-roomterminal.png?downloads=true)](https://nodei.co/npm/iobroker.ochsner-roomterminal/)
+[![NPM](https://nodei.co/npm/iobroker.ochsner_logo.svg?downloads=true)](https://nodei.co/npm/iobroker.ochsner-roomterminal/)
 
 ## ochsner-roomterminal Adapter for ioBroker
 
 ### Description
 
-This adapter connects to the Ochsner Roomterminal Webserver (web2comm) via SOAP, to both monitor and control your OCHSNER heatpump system.
+This adapter connects to the Ochsner Roomterminal Webserver (web2comm) via SOAP, to both monitor and control your OCHSNER heatpump device.
 It offers almost the same _devices and functions_ features to ioBroker, which are available when you access the Roomterminal's web2comm interface with you browser.
 
-During adapter startup, meta data like names, min/max values, units, etc. are read from the roomterminal and used during object creation. However, valid values are neither enforced by the adapter, nor by the web2com interface. It is for information only, and e.g. iobroker provides you with a log entry, when e.g. values are not within the given range.
+During adapter startup, meta data like names, min/max values, units, steps, etc. are read from the device and used during object creation. However, value ranges are neither enforced by the adapter, nor by the web2com interface. It is for information only (e.g. iobroker provides you with a log entry, when values are not within the given range).
 
-OIDs are read in **groups**, which means all ochsner endpoints, which belong to same group, are read in one request (simultaneously). A specific group is identified via a positive integer number.
+OIDs are read in **groups**, which means all ochsner device endpoints, which belong to same group, are read in one request (simultaneously). A specific group is identified via a positive integer number.
 
-If you intent to change/update the value of a given endpoint, you have to configure the endpoint to be a **state**.
-
-Group reads can be triggered in 2 ways:
+Group read request can be triggered in 2 ways:
 
 1. **Via Polling:** <br>
-   Groups identified with numbers from 0 to 9 are read in a round robin fashion - one after the other. The time between 2 group reads is specified via the polling intervall in seconds.
+   Groups, identified with numbers from 0 to 10, are read in a round robin fashion - one after the other. The time between 2 group reads is configured via the _polling intervall_ in seconds. Details, see Instance Configuration below ....
 2. Via **ioBroker Message:**<br>
    Any group read can be triggered via a readGroup iobroker message, which is sent to the adapter instace.
 
@@ -35,15 +33,23 @@ All OIDs can be derived from the web2com web page.
 
 ![web2comm](admin/web2comm.png)
 
-E.g <code>/1/2/7/106/1</code> specifies the _Normal setpoint DWH temperature_ on my heatpump.
+> E.g <code>/1/2/7/106/1</code> specifies the _Normal setpoint DWH temperature_ on my heatpump.
 
-> Since OIDs are hierachical, it is recommended to only use OIDs which specifiy only one device endpoint. You can also use one level above (e.g. <code>/1/2/7/106</code>), which read all endpoints below.<br> However, this feature is not tested!.
+> Since OIDs are hierachical, it is recommended to only use OIDs which specifiy as specific single device endpoint. You could also use one level above (e.g. <code>/1/2/7/106</code>), which would read all endpoints below.<br> However, this feature is not tested!.
+
+### Ochsner Device Status endpoints
+
+There are certain endpoints, which represent **Ochsner Device Status** information. In web2comm, those endpoints are usually under the _operational mode_ group and include the text _Status_ in their name.<br>
+As an example, see <code>/1/2/7/121/0 (Status hot water)</code> in the picture above.
+
+Those endpoints can be marked <code>is status</code> in the OID instance configuration.
+When this field is checked, an additional iobroker object is created in the _Status folder_ of the adapter instance. For visualization purposes, it holds the current status of the device endpoint in <u>text form</u>.
 
 ### Instance Configuration
 
 #### Options Tab
 
-Here you can provide <code>username</code>, <code>password</code> and <code>IP or hostame</code> of your web2com web interface,
+Requires <code>username</code>, <code>password</code> and <code>IP or hostame</code> of your web2com web interface,
 as well as the <code>polling interval</code>, which specifies the time in seconds between subsequent group reads
 
 #### OID Tab
@@ -52,13 +58,13 @@ Here you can create and modify a table of OID endpoints. For each **enabled** en
 
 Each OID endpoint has the following configuration fields:
 
-> | Endpoint Name | Description                                                                                                                                                                               |
-> | :------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-> | Enabled       | Only enabled endpoints can be read or updated                                                                                                                                             |
-> | OID           | Address of the device endpoint to read or update - e.g. <code>/1/2/7/106/1</code>                                                                                                         |
-> | Name          | Name of the device endpoint to read or update (optional). If ommitted, roomterminals endpoint info is used instead.                                                                       |
-> | is state      | indicates, that this OID is considered a _ochnser state_, which means an additional object is created in the _Status folder_, which holds the object's current state in <u>text form</u>. |
-> | Group         | group identfier (positive integer number) of the endpoint                                                                                                                                 |
+> | Endpoint Name   | Description                                                                                              |
+> | :-------------- | :------------------------------------------------------------------------------------------------------- |
+> | Enabled         | Only enabled endpoints can be read or updated                                                            |
+> | OID             | Address of the device endpoint to read or update - e.g. <code>/1/2/7/106/1</code>                        |
+> | Name (optional) | Name of the device endpoint to read or update. If ommitted, roomterminals endpoint info is used instead. |
+> | is state        | indicates, that this OID is considered a _Ochnser Device Status_                                         |
+> | Group           | group identfier (positive integer number) of the endpoint                                                |
 
 ### ioBroker Instance Messages
 

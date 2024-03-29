@@ -12,6 +12,7 @@
     "ioBroker",
     "ochsner",
     "heatpump",
+    "roomterminal",
     "web2comm"
   ],
   "repository": {
