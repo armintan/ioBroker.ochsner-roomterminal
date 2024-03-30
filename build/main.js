@@ -161,9 +161,9 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.log.error("Server IP address configuration must not be emtpy");
       return;
     }
-    this.log.info("config username: " + this.config.username);
-    this.log.info("config serverIP: " + this.config.serverIP);
-    this.log.info("config pollInterval: " + this.config.pollInterval);
+    this.log.info("Config username: " + this.config.username);
+    this.log.info("Config serverIP: " + this.config.serverIP);
+    this.log.info("Config pollInterval: " + this.config.pollInterval);
     const connected = await this.checkForConnection();
     if (!connected) {
       return;
@@ -259,7 +259,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     const oids = this.groupOidString[groupKey];
     const group = this.oidGroups[groupKey];
     this.log.debug(`OID Config Indices: [ ${JSON.stringify(group)} ]`);
-    this.log.debug(`Read [ ${oids} ]`);
+    this.log.debug(`Read OIDs ${oids} ]`);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -326,7 +326,7 @@ class OchsnerRoomterminal extends utils.Adapter {
               this.oidEnumsDict[name].forEach((val, key2) => states[key2] = val != null ? val : "undefined");
             }
           }
-          this.log.debug(`update oid: ${oid} - "${name}"`);
+          this.log.debug(`Update object: ${oid} - "${name}" with value: ${value} `);
           const common = {
             name: this.config.OIDs[configOidIndex].name.length ? this.config.OIDs[configOidIndex].name : this.oidNamesDict[name],
             type: "number",
@@ -368,7 +368,7 @@ class OchsnerRoomterminal extends utils.Adapter {
                     native: {}
                   });
                   this.setState("Status." + oid, { val: status, ack: true });
-                  this.log.debug(`Status object updated for ${oid}`);
+                  this.log.debug(`Update status object: ${oid} with value: ${status}`);
                 }
               } else {
                 this.log.info(`No status text found for ${oid} (${name})`);
@@ -397,7 +397,7 @@ class OchsnerRoomterminal extends utils.Adapter {
    */
   async oidRead(index) {
     const oid = this.config.OIDs[index].oid;
-    this.log.debug(`read oid: ${oid}`);
+    this.log.debug(`Read OID ${oid}`);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 			<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 			xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -464,7 +464,7 @@ class OchsnerRoomterminal extends utils.Adapter {
               this.oidEnumsDict[name].forEach((val, key) => states[key] = val != null ? val : "undefined");
             }
           }
-          this.log.debug(`update oid: ${oid} - "${name}"`);
+          this.log.debug(`Update object: ${oid} - "${name}" with value: ${value} `);
           const common = {
             name: this.config.OIDs[index].name.length ? this.config.OIDs[index].name : this.oidNamesDict[name],
             type: "number",
@@ -504,7 +504,7 @@ class OchsnerRoomterminal extends utils.Adapter {
                     native: {}
                   });
                   this.setState("Status." + oid, { val: status, ack: true });
-                  this.log.debug(`Status object updated for ${oid}`);
+                  this.log.debug(`Update status object: ${oid} with value: ${status}`);
                 }
               } else {
                 this.log.info(`No status text found for ${oid} (${name})`);
@@ -573,7 +573,7 @@ class OchsnerRoomterminal extends utils.Adapter {
       }
     };
     try {
-      this.log.debug(`Write [ ${oid} ] (index ${ind}) with value: ${value}`);
+      this.log.debug(`Write OID ${oid} (index ${ind}) with value: ${value}`);
       const response = await this.client.fetch(this.getUrl, options);
       if (response.ok != true)
         this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
@@ -596,7 +596,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     try {
       const oidNamesExists = await this.fileExistsAsync(this.namespace, fileName);
       if (oidNamesExists) {
-        this.log.debug("oidNames exists");
+        this.log.debug("oidNames.json exists - skip reading from Device");
         const res = await this.readFileAsync(this.namespace, fileName);
         oidNamesDict = JSON.parse(res.file);
       } else {
@@ -640,7 +640,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     try {
       const oidEnumsExists = await this.fileExistsAsync(this.namespace, fileName);
       if (oidEnumsExists) {
-        this.log.debug("oidEnums exists");
+        this.log.debug("oidEnums.json exists - skip reading from Device");
         const res = await this.readFileAsync(this.namespace, fileName);
         oidEnumsDict = JSON.parse(res.file);
       } else {

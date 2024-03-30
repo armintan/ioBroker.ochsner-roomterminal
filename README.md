@@ -94,8 +94,8 @@ This allows you to get just-in-time device information, whenever you need them.
 
 ### **WORK IN PROGRESS**
 
--   added initial description in README.md
--   provide correct index when writing OIDs
+-   added initial description
+-   fix OID write index problem
 
 ### 0.0.8 (2023-08-24)
 

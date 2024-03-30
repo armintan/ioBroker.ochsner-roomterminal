@@ -186,10 +186,10 @@ class OchsnerRoomterminal extends utils.Adapter {
 			return;
 		}
 
-		this.log.info('config username: ' + this.config.username);
-		// this.log.info('config password: ' + this.config.password);
-		this.log.info('config serverIP: ' + this.config.serverIP);
-		this.log.info('config pollInterval: ' + this.config.pollInterval);
+		this.log.info('Config username: ' + this.config.username);
+		// this.log.info('Config password: ' + this.config.password);
+		this.log.info('Config serverIP: ' + this.config.serverIP);
+		this.log.info('Config pollInterval: ' + this.config.pollInterval);
 
 		// check if connection to server is available with given credentials
 		const connected = await this.checkForConnection();
@@ -303,7 +303,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		const group = this.oidGroups[groupKey];
 
 		this.log.debug(`OID Config Indices: [ ${JSON.stringify(group)} ]`);
-		this.log.debug(`Read [ ${oids} ]`);
+		this.log.debug(`Read OIDs ${oids} ]`);
 
 		// TODO: wrong UID error handling
 
@@ -390,7 +390,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 					// this.log.debug(`name: ${this.config.OIDs[configOidIndex].name}`);
 					// this.log.debug(`prop: ${prop}`);
 					// this.log.debug(`unit: ${unit}`);
-					this.log.debug(`update oid: ${oid} - "${name}"`);
+					this.log.debug(`Update object: ${oid} - "${name}" with value: ${value} `);
 
 					const common: ioBroker.StateCommon = {
 						name: this.config.OIDs[configOidIndex].name.length
@@ -440,7 +440,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 										native: {},
 									});
 									this.setState('Status.' + oid, { val: status, ack: true });
-									this.log.debug(`Status object updated for ${oid}`);
+									this.log.debug(`Update status object: ${oid} with value: ${status}`);
 								}
 							} else {
 								this.log.info(`No status text found for ${oid} (${name})`);
@@ -473,7 +473,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 
 		// TODO: wrong UID error handling
 
-		this.log.debug(`read oid: ${oid}`);
+		this.log.debug(`Read OID ${oid}`);
 		const body = `<?xml version="1.0" encoding="UTF-8"?>
 			<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 			xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -556,7 +556,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 					// this.log.debug(`name: ${this.config.OIDs[configOidIndex].name}`);
 					// this.log.debug(`prop: ${prop}`);
 					// this.log.debug(`unit: ${unit}`);
-					this.log.debug(`update oid: ${oid} - "${name}"`);
+					this.log.debug(`Update object: ${oid} - "${name}" with value: ${value} `);
 
 					const common: ioBroker.StateCommon = {
 						name: this.config.OIDs[index].name.length
@@ -603,7 +603,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 										native: {},
 									});
 									this.setState('Status.' + oid, { val: status, ack: true });
-									this.log.debug(`Status object updated for ${oid}`);
+									this.log.debug(`Update status object: ${oid} with value: ${status}`);
 								}
 							} else {
 								this.log.info(`No status text found for ${oid} (${name})`);
@@ -679,7 +679,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 			},
 		};
 		try {
-			this.log.debug(`Write [ ${oid} ] (index ${ind}) with value: ${value}`);
+			this.log.debug(`Write OID ${oid} (index ${ind}) with value: ${value}`);
 			const response = await this.client.fetch(this.getUrl, options);
 			if (response.ok != true)
 				this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
@@ -703,7 +703,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		try {
 			const oidNamesExists = await this.fileExistsAsync(this.namespace, fileName);
 			if (oidNamesExists) {
-				this.log.debug('oidNames exists');
+				this.log.debug('oidNames.json exists - skip reading from Device');
 				const res = await this.readFileAsync(this.namespace, fileName);
 				// @ts-expect-error Type of res in invalid.
 				oidNamesDict = JSON.parse(res.file);
@@ -750,7 +750,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		try {
 			const oidEnumsExists = await this.fileExistsAsync(this.namespace, fileName);
 			if (oidEnumsExists) {
-				this.log.debug('oidEnums exists');
+				this.log.debug('oidEnums.json exists - skip reading from Device');
 				const res = await this.readFileAsync(this.namespace, fileName);
 				// @ts-expect-error Type of res in invalid.
 				oidEnumsDict = JSON.parse(res.file);
