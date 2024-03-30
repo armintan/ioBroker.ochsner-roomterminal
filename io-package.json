@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "ochsner-roomterminal",
-    "version": "0.0.9",
+    "version": "0.0.10",
     "news": {
+      "0.0.10": {
+        "en": "added initial description\nfix OID write index problem",
+        "de": "weitere beschreibung\noID Schreibindex Problem beheben",
+        "ru": "добавленное первоначальное описание\nисправить проблему индекса записи OID",
+        "pt": "descrição inicial adicionada\ncorrigir problema de índice de gravação OID",
+        "nl": "toegevoegde initiële beschrijving\noID schrijfindex probleem oplossen",
+        "fr": "description initiale ajoutée\ncorrection du problème d'index d'écriture d'OID",
+        "it": "descrizione iniziale aggiunta\nrisolvere il problema dell'indice di scrittura OID",
+        "es": "descripción inicial\nsolucionar el problema del índice de escritura OID",
+        "pl": "dodany opis początkowy\nfix OID write index problem",
+        "uk": "доданий початковий опис\nвиправити проблему індексу OID",
+        "zh-cn": "增加的初步说明\n修复 OID 写入索引问题"
+      },
       "0.0.8": {
         "en": "removed React components\nNPM packages updates",
         "de": "entfernt Reaktionskomponenten\nNPM Pakete Updates",
@@ -80,19 +93,6 @@
         "pl": "dodano wsparcie dla grupy wyzwalające do odczytu",
         "uk": "додано підтримку повідомлення для зчитувачів групи",
         "zh-cn": "增加信息支持触发团体阅读"
-      },
-      "0.0.2": {
-        "en": "fixed problem with only having one group",
-        "de": "problem mit nur einer gruppe",
-        "ru": "фиксированная проблема с только иметь одну группу",
-        "pt": "problema fixo com apenas um grupo",
-        "nl": "het probleem met maar één groep",
-        "fr": "problème fixe avec seulement un groupe",
-        "it": "problema fisso con un solo gruppo",
-        "es": "problema fijo con sólo tener un grupo",
-        "pl": "problem stał się problemem tylko z jedną grupą",
-        "uk": "виправлена проблема з однією групою",
-        "zh-cn": "只存在一个集团的固定问题"
       }
     },
     "title": "Ochsner Roomterminal Webserver (web2comm)",

@@ -91,8 +91,7 @@ This allows you to get just-in-time device information, whenever you need them.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 0.0.10 (2024-03-30)
 
 -   added initial description
 -   fix OID write index problem
