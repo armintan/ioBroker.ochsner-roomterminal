@@ -1,4 +1,4 @@
-![Logo](admin/ochsner_logo.svg)
+![Logo](admin/ochsner-logo.svg)
 
 # ioBroker.ochsner-roomterminal
 
@@ -7,7 +7,7 @@
 ![Number of Installations](https://iobroker.live/badges/ochsner-roomterminal-installed.svg)
 ![Current version in stable repository](https://iobroker.live/badges/ochsner-roomterminal-stable.svg)
 
-[![NPM](https://nodei.co/npm/iobroker.ochsner_logo.svg?downloads=true)](https://nodei.co/npm/iobroker.ochsner-roomterminal/)
+[![NPM](https://nodei.co/npm/iobroker.ochsner_roomterminal.png?downloads=true)](https://nodei.co/npm/iobroker.ochsner-roomterminal/)
 
 ## ochsner-roomterminal Adapter for ioBroker
 
@@ -91,6 +91,7 @@ This allows you to get just-in-time device information, whenever you need them.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
 ### 0.0.10 (2024-03-30)
 
 -   added initial description
