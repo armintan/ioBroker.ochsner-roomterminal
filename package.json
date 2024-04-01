@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.0.4",
-    "digest-fetch": "v2",
+    "digest-fetch": "v3",
     "node-fetch": "v2",
     "xml2js": "^0.6.0"
   },
