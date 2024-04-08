@@ -249,7 +249,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 			// read the next OID group from roomterminal
 			if (groupIndex >= keys.length) {
 				// we read the last group
-				await this.updateNativeOIDs(Object.keys(this.oidUpdate));
+				await this.updateNativeOIDs();
 				this.poll(0); // start from the beginning, without delay
 			} else if (+keys[groupIndex] > 9) {
 				// groupNames from 10 onwards are reserved for messages
@@ -277,9 +277,11 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 * and update common.native.OIDs in instance object (which restarts the adapter)
 	 * @param keys to update
 	 */
-	private async updateNativeOIDs(keys: string[]): Promise<void> {
-		this.log.debug(`UpdateNativeOIDs: ${JSON.stringify(keys)}`);
+	private async updateNativeOIDs(): Promise<void> {
+		const keys = Object.keys(this.oidUpdate);
 		if (!keys.length) return; // there is nothing to update
+
+		this.log.debug(`UpdateNativeOIDs: ${JSON.stringify(keys)}`);
 		try {
 			const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
 			if (instanceObj) {
