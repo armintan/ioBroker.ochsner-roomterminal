@@ -23,7 +23,7 @@ OIDs are read in **groups**, which means all ochsner device endpoints, which bel
 Group read request can be triggered in 2 ways:
 
 1. **Via Polling:** <br>
-   Groups, identified with numbers from 0 to 10, are read in a round robin fashion - one after the other. The time between 2 group reads is configured via the _polling intervall_ in seconds. Details, see Instance Configuration below ....
+   Groups, identified with numbers from 0 to 9, are read in a round robin fashion - one after the other. The time between 2 group reads is configured via the _polling intervall_ in seconds. Details, see Instance Configuration below ....
 2. Via **ioBroker Message:**<br>
    Any group read can be triggered via a readGroup iobroker message, which is sent to the adapter instace.
 
@@ -91,6 +91,10 @@ This allows you to get just-in-time device information, whenever you need them.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+-   code cleanup
 
 ### 0.0.10 (2024-03-30)
 
