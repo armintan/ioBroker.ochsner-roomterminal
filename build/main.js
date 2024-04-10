@@ -145,10 +145,11 @@ class OchsnerRoomterminal extends utils.Adapter {
     }
   }
   /**
+   * -----------------
    * Private functions
+   * -----------------
    */
   /**
-   * ----------------------------
    *  Inititialize the adapter
    * ----------------------------
    */
@@ -201,13 +202,13 @@ class OchsnerRoomterminal extends utils.Adapter {
    * Main polling routine - fetching next Group in list
    *
    * @description Started once during startup, restarts itself when finished
-   * 				(only called when there is at least one oid)
+   * 				(only called when there is at least one group 0-9)
    */
   async poll(groupIndex = 0) {
     const keys = Object.keys(this.oidGroups);
     try {
       if (groupIndex >= keys.length) {
-        await this.updateNativeOIDs(Object.keys(this.oidUpdate));
+        await this.updateNativeOIDs();
         this.poll(0);
       } else if (+keys[groupIndex] > 9) {
         this.log.debug(
@@ -230,12 +231,12 @@ class OchsnerRoomterminal extends utils.Adapter {
   /**
    * Check for empty OID names in config, add default names
    * and update common.native.OIDs in instance object (which restarts the adapter)
-   * @param keys to update
    */
-  async updateNativeOIDs(keys) {
-    this.log.debug(`UpdateNativeOIDs: ${JSON.stringify(keys)}`);
+  async updateNativeOIDs() {
+    const keys = Object.keys(this.oidUpdate);
     if (!keys.length)
       return;
+    this.log.debug(`UpdateNativeOIDs: ${JSON.stringify(keys)}`);
     try {
       const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
       if (instanceObj) {
@@ -252,7 +253,6 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.log.debug(`getObject error: ${JSON.stringify(error, null, 2)}`);
     }
   }
-  // TODO: pass only index array, and extract OID string from there
   /**
    * Read OID group from roomterminal, given by group oids and group indices
    *
@@ -395,7 +395,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   /**
    * Write OID to roomterminal, given by index
    *
-   * @param index index of the OID etnry to tread in this.config.OiDs
+   * @param index index of the OID etnry to read in this.config.OiDs
    */
   async oidWrite(index, value) {
     const oid = this.config.OIDs[index].oid;

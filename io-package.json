@@ -95,7 +95,6 @@
         "zh-cn": "姓名最多于9人以上的团体保留供电"
       }
     },
-    "title": "Ochsner Roomterminal Webserver (web2comm)",
     "titleLang": {
       "en": "Ochsner Roomterminal (web2comm)",
       "de": "Ochsner Roomterminal (web2comm)",
@@ -126,11 +125,15 @@
       "Armin Stegerer <Armin.Stegerer@t-online.de>"
     ],
     "keywords": [
+      "iobroker",
       "ochsner",
       "heatpump",
       "web2comm"
     ],
-    "license": "MIT",
+    "licenseInformation": {
+      "type": "free",
+      "license": "MIT"
+    },
     "platform": "Javascript/Node.js",
     "main": "build/main.js",
     "icon": "ochsner-roomterminal.png",
@@ -138,6 +141,7 @@
     "extIcon": "https://raw.githubusercontent.com/armintan/ioBroker.ochsner-roomterminal/main/admin/ochsner-roomterminal.png",
     "readme": "https://github.com/armintan/ioBroker.ochsner-roomterminal/blob/main/README.md",
     "loglevel": "info",
+    "tier": 3,
     "mode": "daemon",
     "type": "climate-control",
     "compact": true,
@@ -161,9 +165,9 @@
   },
   "native": {
     "username": "USER",
-    "password": "123",
+    "password": "",
     "serverIP": "192.168.1.108",
-    "pollInterval": 20
+    "pollInterval": 30
   },
   "protectedNative": [
     "username",
