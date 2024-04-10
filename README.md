@@ -93,6 +93,7 @@ This allows you to get just-in-time device information, whenever you need them.
 -->
 
     ### **WORK IN PROGRESS**
+    - fixed adapter checker issues
 
 ### 0.0.11 (2024-04-08)
 
