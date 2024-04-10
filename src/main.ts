@@ -161,11 +161,12 @@ class OchsnerRoomterminal extends utils.Adapter {
 	}
 
 	/**
+	 * -----------------
 	 * Private functions
+	 * -----------------
 	 */
 
 	/**
-	 * ----------------------------
 	 *  Inititialize the adapter
 	 * ----------------------------
 	 */
@@ -238,7 +239,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	 * Main polling routine - fetching next Group in list
 	 *
 	 * @description Started once during startup, restarts itself when finished
-	 * 				(only called when there is at least one oid)
+	 * 				(only called when there is at least one group 0-9)
 	 */
 	private async poll(groupIndex = 0): Promise<void> {
 		const keys = Object.keys(this.oidGroups);
@@ -275,7 +276,6 @@ class OchsnerRoomterminal extends utils.Adapter {
 	/**
 	 * Check for empty OID names in config, add default names
 	 * and update common.native.OIDs in instance object (which restarts the adapter)
-	 * @param keys to update
 	 */
 	private async updateNativeOIDs(): Promise<void> {
 		const keys = Object.keys(this.oidUpdate);
@@ -300,7 +300,6 @@ class OchsnerRoomterminal extends utils.Adapter {
 		}
 	}
 
-	// TODO: pass only index array, and extract OID string from there
 	/**
 	 * Read OID group from roomterminal, given by group oids and group indices
 	 *
@@ -471,7 +470,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 	/**
 	 * Write OID to roomterminal, given by index
 	 *
-	 * @param index index of the OID etnry to tread in this.config.OiDs
+	 * @param index index of the OID etnry to read in this.config.OiDs
 	 */
 	private async oidWrite(index: number, value: any): Promise<void> {
 		// this.log.debug(JSON.stringify(oids, null, 2));
@@ -480,7 +479,7 @@ class OchsnerRoomterminal extends utils.Adapter {
 		const ind = oid.slice(oid.lastIndexOf('/') - oid.length + 1);
 		// const ind = oid.charAt(oid.length - 1);
 
-		// TODO: wrong UID error handling
+		// TODO: wrong OID error handling
 		const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
