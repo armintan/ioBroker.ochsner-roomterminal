@@ -137,8 +137,7 @@ class OchsnerRoomterminal extends utils.Adapter {
           this.log.info(`group "${obj.message}" does not exist`);
           resultMsg = { error: `group ${obj.message} does not exist` };
         }
-      } else
-        resultMsg = { error: "message command not supported" };
+      } else resultMsg = { error: "message command not supported" };
     }
     if (obj.callback) {
       this.sendTo(obj.from, obj.command, resultMsg, obj.callback);
@@ -178,14 +177,10 @@ class OchsnerRoomterminal extends utils.Adapter {
         const oid = this.config.OIDs[key].oid;
         this.log.debug(`Key: ${key} Object: ${JSON.stringify(this.config.OIDs[key])}`);
         if (enabled) {
-          if (this.oidGroups[group] == void 0)
-            this.oidGroups[group] = [key];
-          else
-            this.oidGroups[group].push(key);
-          if (this.groupOidString[group] == void 0)
-            this.groupOidString[group] = oid;
-          else
-            this.groupOidString[group] = this.groupOidString[group] + ";" + oid;
+          if (this.oidGroups[group] == void 0) this.oidGroups[group] = [key];
+          else this.oidGroups[group].push(key);
+          if (this.groupOidString[group] == void 0) this.groupOidString[group] = oid;
+          else this.groupOidString[group] = this.groupOidString[group] + ";" + oid;
         }
       });
       this.log.debug(`Groups: ${JSON.stringify(this.oidGroups)}`);
@@ -195,8 +190,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     }
     if (Object.keys(this.oidGroups).findIndex((groupName) => +groupName < 10) == -1)
       this.log.info("No OIDs to poll in instance configuration");
-    else
-      this.poll();
+    else this.poll();
   }
   /**
    * Main polling routine - fetching next Group in list
@@ -234,8 +228,7 @@ class OchsnerRoomterminal extends utils.Adapter {
    */
   async updateNativeOIDs() {
     const keys = Object.keys(this.oidUpdate);
-    if (!keys.length)
-      return;
+    if (!keys.length) return;
     this.log.debug(`UpdateNativeOIDs: ${JSON.stringify(keys)}`);
     try {
       const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
@@ -243,8 +236,7 @@ class OchsnerRoomterminal extends utils.Adapter {
         keys.forEach((key) => {
           var _a;
           const index = instanceObj.native.OIDs.findIndex((oid) => key === oid.oid);
-          if (index !== -1)
-            instanceObj.native.OIDs[index].name = (_a = this.oidUpdate[key]) != null ? _a : key;
+          if (index !== -1) instanceObj.native.OIDs[index].name = (_a = this.oidUpdate[key]) != null ? _a : key;
         });
         await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, instanceObj);
         this.oidUpdate = {};
@@ -476,10 +468,8 @@ class OchsnerRoomterminal extends utils.Adapter {
           for (const mnIndex in result["VarIdentTexte"]["gn"][gnIndex]["mn"]) {
             let gn = result["VarIdentTexte"]["gn"][gnIndex]["$"]["id"];
             let mn = result["VarIdentTexte"]["gn"][gnIndex]["mn"][mnIndex]["$"]["id"];
-            if (gn.length == 1)
-              gn = "0" + gn;
-            if (mn.length == 1)
-              mn = "0" + mn;
+            if (gn.length == 1) gn = "0" + gn;
+            if (mn.length == 1) mn = "0" + mn;
             const key = `${gn}:${mn}`;
             oidNamesDict[key] = result["VarIdentTexte"]["gn"][gnIndex]["mn"][mnIndex]["_"];
           }

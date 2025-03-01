@@ -20,7 +20,7 @@
 	"dataSource": "poll",
 	"connectionIndicator": "yes",
 	"language": "TypeScript",
-	"nodeVersion": "18",
+	"nodeVersion": "20",
 	"adminUi": "json",
 	"tabReact": "no",
 	"tools": [

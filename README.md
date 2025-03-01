@@ -91,51 +91,56 @@ This allows you to get just-in-time device information, whenever you need them.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- updated the newest npm packages
+
 ### 0.0.12 (2024-04-10)
 
--   fixed adapter checker warnings
+- fixed adapter checker warnings
 
 ### 0.0.11 (2024-04-08)
 
--   code cleanup
+- code cleanup
 
 ### 0.0.10 (2024-03-30)
 
--   added initial description
--   fix OID write index problem
+- added initial description
+- fix OID write index problem
 
 ### 0.0.8 (2023-08-24)
 
--   removed React components
--   NPM packages updates
+- removed React components
+- NPM packages updates
 
 ### 0.0.7 (2023-06-11)
 
--   updated the newest npm packages
+- updated the newest npm packages
 
 ### 0.0.6 (2023-05-20)
 
--   updated vulnerable packages
+- updated vulnerable packages
 
 ### 0.0.5 (2023-03-15)
 
--   async message support
+- async message support
 
 ### 0.0.4 (2023-03-07)
 
--   groups with names bigger than 9 are reserved for messages
+- groups with names bigger than 9 are reserved for messages
 
 ### 0.0.3 (2023-03-07)
 
--   added message support to trigger group reads
+- added message support to trigger group reads
 
 ### 0.0.2 (2023-02-18)
 
--   fixed problem with only having one group
+- fixed problem with only having one group
 
 ### 0.0.1 (2023-02-16)
 
--   (armintan) initial release
+- (armintan) initial release
 
 ## License
 
