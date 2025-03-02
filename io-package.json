@@ -1,21 +1,8 @@
 {
   "common": {
     "name": "ochsner-roomterminal",
-    "version": "0.0.13",
+    "version": "0.0.12",
     "news": {
-      "0.0.13": {
-        "en": "updated the newest npm packages",
-        "de": "aktualisiert die neuesten npm-pakete",
-        "ru": "обновлены новейшие пакеты npm",
-        "pt": "atualizado os mais novos pacotes npm",
-        "nl": "de nieuwste npm pakketten bijgewerkt",
-        "fr": "mis à jour les nouveaux paquets npm",
-        "it": "aggiornato i nuovi pacchetti npm",
-        "es": "actualizado los nuevos paquetes npm",
-        "pl": "zaktualizowane najnowsze pakiety npm",
-        "uk": "оновлено нові пакети npm",
-        "zh-cn": "更新最新的 npm 软件包"
-      },
       "0.0.12": {
         "en": "fixed adapter checker warnings",
         "de": "feste adapter-checker warnungen",
