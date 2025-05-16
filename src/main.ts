@@ -550,8 +550,10 @@ class OchsnerRoomterminal extends utils.Adapter {
 				oidNamesDict = JSON.parse(res.file);
 				// this.log.info(`res: ${JSON.stringify(res.file)}`);
 			} else {
+				console.log(`http://${this.config.serverIP}/res/xml/VarIdentTexte_de.xml`);
 				const response = await this.client.fetch(
-					'http://192.168.1.108/res/xml/VarIdentTexte_de.xml',
+					`http://${this.config.serverIP}/res/xml/VarIdentTexte_de.xml`,
+					// 'http://192.168.1.108/res/xml/VarIdentTexte_de.xml',
 					getOptions,
 				);
 				const data = await response.text();
@@ -597,8 +599,10 @@ class OchsnerRoomterminal extends utils.Adapter {
 				oidEnumsDict = JSON.parse(res.file);
 				// this.log.info(`res: ${JSON.stringify(res.file)}`);
 			} else {
+				console.log(`http://${this.config.serverIP}/res/xml/AufzaehlTexte_de.xml`);
 				const response = await this.client.fetch(
-					'http://192.168.1.108/res/xml/AufzaehlTexte_de.xml',
+					`http://${this.config.serverIP}/res/xml/AufzaehlTexte_de.xml`,
+					//`http://192.168.1.108/res/xml/AufzaehlTexte_de.xml`,
 					getOptions,
 				);
 				const data = await response.text();
