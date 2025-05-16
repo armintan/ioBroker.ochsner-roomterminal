@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "ochsner-roomterminal",
-    "version": "0.0.13",
+    "version": "0.0.14",
     "news": {
+      "0.0.14": {
+        "en": "fix issue #115. Removed hard coded IP when requesting descriptions\nupdate NPM packages",
+        "de": "problem #115 beheben. Entfernte hart kodierte IP bei der Anforderung von Beschreibungen\nnPM-Pakete aktualisieren",
+        "ru": "устранение проблемы #115. Удаление жестко закодированного IP при запросе описания\nобновление пакетов NPM",
+        "pt": "corrigir o problema #115. Removido IP codificado rígido ao solicitar descrições\natualizar pacotes NPM",
+        "nl": "fix probleem #115. Gecodeerde IP verwijderd bij het aanvragen van beschrijvingen\nnPM-pakketten bijwerken",
+        "fr": "corriger le numéro 115. Supprimé IP codé dur lors de la demande de descriptions\nmettre à jour les paquets NPM",
+        "it": "risolvere il problema #115. Rimosso IP codificato duro quando si richiedono descrizioni\naggiornamento pacchetti NPM",
+        "es": "solucionar el problema #115. Eliminado IP codificado duro al solicitar descripciones\nactualizar paquetes NPM",
+        "pl": "fix issue # 115. Usunięto zaszyfrowany adres IP podczas żądania opisów\naktualizacja pakietów NPM",
+        "uk": "виправити проблему #115. Видалити жорсткий кодований IP при запитуванні описів\nоновлення пакетів NPM",
+        "zh-cn": "修复第115期。 在请求描述时删除了硬编码的 IP\n更新国家预防机制一揽子计划"
+      },
       "0.0.13": {
         "en": "updated the newest npm packages",
         "de": "aktualisiert die neuesten npm-pakete",
@@ -80,19 +93,6 @@
         "pl": "zaktualizował nowe pakiety n.p.m",
         "uk": "оновлено нові пакети npm",
         "zh-cn": "最新的一揽子方案"
-      },
-      "0.0.6": {
-        "en": "updated vulnerable packages",
-        "de": "aktualisierte verwundbare pakete",
-        "ru": "обновленные уязвимые пакеты",
-        "pt": "pacotes vulneráveis atualizados",
-        "nl": "vertaling:",
-        "fr": "paquets vulnérables mis à jour",
-        "it": "pacchetti vulnerabili aggiornati",
-        "es": "actualizados paquetes vulnerables",
-        "pl": "uaktualnione pakiety",
-        "uk": "оновлені вразливі пакети",
-        "zh-cn": "更新的脆弱一揽子计划"
       }
     },
     "titleLang": {
