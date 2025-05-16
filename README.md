@@ -94,7 +94,8 @@ This allows you to get just-in-time device information, whenever you need them.
 
 ### **WORK IN PROGRESS**
 
-- fixing issue #115. Removed hard coded IP when requesting descriptions
+- fix issue #115. Removed hard coded IP when requesting descriptions
+- update NPM packages
 
 ### 0.0.13 (2025-03-02)
 
