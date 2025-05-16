@@ -544,16 +544,15 @@ class OchsnerRoomterminal extends utils.Adapter {
 		try {
 			const oidNamesExists = await this.fileExistsAsync(this.namespace, fileName);
 			if (oidNamesExists) {
-				this.log.debug('oidNames.json exists - skip reading from Device');
+				this.log.debug('oidNames.json file exists - skip reading from device');
 				const res = await this.readFileAsync(this.namespace, fileName);
 				// @ts-expect-error Type of res in invalid.
 				oidNamesDict = JSON.parse(res.file);
 				// this.log.info(`res: ${JSON.stringify(res.file)}`);
 			} else {
-				console.log(`http://${this.config.serverIP}/res/xml/VarIdentTexte_de.xml`);
+				// this.log.debug(`Read oidNames.json file from device`);
 				const response = await this.client.fetch(
 					`http://${this.config.serverIP}/res/xml/VarIdentTexte_de.xml`,
-					// 'http://192.168.1.108/res/xml/VarIdentTexte_de.xml',
 					getOptions,
 				);
 				const data = await response.text();
@@ -593,16 +592,15 @@ class OchsnerRoomterminal extends utils.Adapter {
 		try {
 			const oidEnumsExists = await this.fileExistsAsync(this.namespace, fileName);
 			if (oidEnumsExists) {
-				this.log.debug('oidEnums.json exists - skip reading from Device');
+				this.log.debug('oidEnums.json file exists - skip reading from device');
 				const res = await this.readFileAsync(this.namespace, fileName);
 				// @ts-expect-error Type of res in invalid.
 				oidEnumsDict = JSON.parse(res.file);
 				// this.log.info(`res: ${JSON.stringify(res.file)}`);
 			} else {
-				console.log(`http://${this.config.serverIP}/res/xml/AufzaehlTexte_de.xml`);
+				//this.log.debug(`Read oidEnums.json file from device`);
 				const response = await this.client.fetch(
 					`http://${this.config.serverIP}/res/xml/AufzaehlTexte_de.xml`,
-					//`http://192.168.1.108/res/xml/AufzaehlTexte_de.xml`,
 					getOptions,
 				);
 				const data = await response.text();
