@@ -24,8 +24,10 @@ module.exports = __toCommonJS(util_exports);
 const getEnumKeys = (prop) => {
   const regex = /(?<=enum = )(\d|,)*$/g;
   const found = prop.match(regex);
-  if (found) return found[0].split(",");
-  else return null;
+  if (found) {
+    return found[0].split(",");
+  }
+  return null;
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

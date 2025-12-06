@@ -66,6 +66,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   }
   /**
    * Is called when adapter shuts down - callback has to be called under any circumstances!
+   * @param callback
    */
   onUnload(callback) {
     try {
@@ -90,6 +91,10 @@ class OchsnerRoomterminal extends utils.Adapter {
   // }
   /**
    * Is called if a subscribed state changes
+   * @param id
+   * @param state
+   * @param id
+   * @param state
    */
   async onStateChange(id, state) {
     const oids = this.config.OIDs;
@@ -137,7 +142,9 @@ class OchsnerRoomterminal extends utils.Adapter {
           this.log.info(`group "${obj.message}" does not exist`);
           resultMsg = { error: `group ${obj.message} does not exist` };
         }
-      } else resultMsg = { error: "message command not supported" };
+      } else {
+        resultMsg = { error: "message command not supported" };
+      }
     }
     if (obj.callback) {
       this.sendTo(obj.from, obj.command, resultMsg, obj.callback);
@@ -195,6 +202,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   /**
    * Main polling routine - fetching next Group in list
    *
+   * @param groupIndex number
    * @description Started once during startup, restarts itself when finished
    * 				(only called when there is at least one group 0-9)
    */
@@ -250,6 +258,7 @@ class OchsnerRoomterminal extends utils.Adapter {
    *
    * @param oids OID string to read e.g. "/1/2/3/5/8;/1/2/3/5/;/1/2/3/5/10"
    * @param indices OID config indices [5,7,9] (must correspond to oids)
+   * @param oidIndices number
    */
   async oidRead(oids, oidIndices) {
     var _a;
@@ -539,7 +548,6 @@ class OchsnerRoomterminal extends utils.Adapter {
     try {
       const response = await this.client.fetch(this.deviceInfoUrl, getOptions);
       const data = await response.json();
-      this.log.info("DeviceInfo: " + JSON.stringify(data));
       this.setStateAsync("deviceInfo.name", { val: data.device, ack: true });
       this.setStateAsync("deviceInfo.version", { val: data.version, ack: true });
     } catch (error) {
