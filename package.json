@@ -2,6 +2,7 @@
   "name": "iobroker.ochsner-roomterminal",
   "version": "0.0.14",
   "description": "Interface to the Ochsner Roomterminal Webserver (web2comm)",
+  "type": "module",
   "author": {
     "name": "Armin Stegerer",
     "email": "Armin.Stegerer@t-online.de"
@@ -25,8 +26,8 @@
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",
-    "digest-fetch": "v2",
-    "node-fetch": "v2",
+    "digest-fetch": "v3",
+    "node-fetch": "v3",
     "xml2js": "^0.6.0"
   },
   "devDependencies": {
@@ -58,11 +59,11 @@
   ],
   "scripts": {
     "prebuild": "rimraf build",
-    "build": "build-adapter ts",
-    "watch": "build-adapter ts --watch",
+    "build": "build-adapter ts --typescriptFormat esm --typescriptCompileTarget node24",
+    "watch": "build-adapter ts --watch --typescriptFormat esm --typescriptCompileTarget node24",
     "prebuild:ts": "rimraf build",
-    "build:ts": "build-adapter ts",
-    "watch:ts": "build-adapter ts --watch",
+    "build:ts": "build-adapter ts --typescriptFormat esm --typescriptCompileTarget node24",
+    "watch:ts": "build-adapter ts --watch --typescriptFormat esm --typescriptCompileTarget node24",
     "test:ts": "mocha --config test/mocharc.custom.json src/**/*.test.ts",
     "test:package": "mocha test/package --exit",
     "test:integration": "mocha test/integration --exit",

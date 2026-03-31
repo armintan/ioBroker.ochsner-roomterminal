@@ -1,32 +1,11 @@
-"use strict";
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var utils = __toESM(require("@iobroker/adapter-core"));
-var import_xml2js = require("xml2js");
-var import_package = __toESM(require("../package.json"));
-var import_util = require("./lib/util.js");
-var import_digest_fetch = __toESM(require("digest-fetch"));
-const adapterName = import_package.default.name.split(".").pop();
+import * as utils from "@iobroker/adapter-core";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { parseStringPromise } from "xml2js";
+import { getEnumKeys } from "./lib/util.js";
+const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
+import DigestClient from "digest-fetch";
+const adapterName = packageJson.name.split(".").pop();
 const getOptions = {
   method: "get",
   headers: {
@@ -62,16 +41,18 @@ class OchsnerRoomterminal extends utils.Adapter {
   async onReady() {
     this.subscribeStates("OID.*");
     this.log.info(`Adapter Name: ${this.name} is ready !!!!!!`);
-    this.main();
+    await this.main();
   }
   /**
    * Is called when adapter shuts down - callback has to be called under any circumstances!
-   * @param callback
+   *
+   * @param callback Callback to be called when shutdown cleanup is complete.
    */
   onUnload(callback) {
     try {
       callback();
-    } catch (e) {
+    } catch (error) {
+      this.log.error(`Error during unloading: ${error.message}`);
       callback();
     }
   }
@@ -91,6 +72,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   // }
   /**
    * Is called if a subscribed state changes
+   *
    * @param id
    * @param state
    * @param id
@@ -123,8 +105,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
   //  */
   async onMessage(obj) {
-    var _a;
-    this.log.debug("message received" + JSON.stringify(obj, null, 2));
+    this.log.debug(`message received ${JSON.stringify(obj, null, 2)}`);
     let resultMsg = { error: "internal error" };
     if (typeof obj === "object" && obj.message) {
       if (obj.command === "readGroup") {
@@ -136,7 +117,7 @@ class OchsnerRoomterminal extends utils.Adapter {
             await this.oidRead(this.groupOidString[group], this.oidGroups[group]);
             resultMsg = "success";
           } catch (error) {
-            resultMsg = { error: (_a = error.message) != null ? _a : "unknown error" };
+            resultMsg = { error: error.message ?? "unknown error" };
           }
         } else {
           this.log.info(`group "${obj.message}" does not exist`);
@@ -160,24 +141,23 @@ class OchsnerRoomterminal extends utils.Adapter {
    * ----------------------------
    */
   async main() {
-    var _a;
-    this.setState("info.connection", false, true);
+    await this.setState("info.connection", false, true);
     this.deviceInfoUrl = `http://${this.config.serverIP}/api/1.0/info/deviceinfo`;
     this.getUrl = `http://${this.config.serverIP}/ws`;
-    this.client = new import_digest_fetch.default(this.config.username, this.config.password);
+    this.client = new DigestClient(this.config.username, this.config.password);
     if (!this.config.serverIP) {
       this.log.error("Server IP address configuration must not be emtpy");
       return;
     }
-    this.log.info("Config username: " + this.config.username);
-    this.log.info("Config serverIP: " + this.config.serverIP);
-    this.log.info("Config pollInterval: " + this.config.pollInterval);
+    this.log.info(`Config username: ${this.config.username}`);
+    this.log.info(`Config serverIP: ${this.config.serverIP}`);
+    this.log.info(`Config pollInterval: ${this.config.pollInterval}`);
     const connected = await this.checkForConnection();
     if (!connected) {
       return;
     }
-    this.setState("info.connection", true, true);
-    if ((_a = this.config.OIDs) == null ? void 0 : _a.length) {
+    await this.setState("info.connection", true, true);
+    if (this.config.OIDs?.length) {
       this.config.OIDs.forEach((value, key) => {
         const group = this.config.OIDs[key].group;
         const enabled = this.config.OIDs[key].enabled;
@@ -185,9 +165,14 @@ class OchsnerRoomterminal extends utils.Adapter {
         this.log.debug(`Key: ${key} Object: ${JSON.stringify(this.config.OIDs[key])}`);
         if (enabled) {
           if (this.oidGroups[group] == void 0) this.oidGroups[group] = [key];
-          else this.oidGroups[group].push(key);
-          if (this.groupOidString[group] == void 0) this.groupOidString[group] = oid;
-          else this.groupOidString[group] = this.groupOidString[group] + ";" + oid;
+          else {
+            this.oidGroups[group].push(key);
+          }
+          if (this.groupOidString[group] == void 0) {
+            this.groupOidString[group] = oid;
+          } else {
+            this.groupOidString[group] = `${this.groupOidString[group]};${oid}`;
+          }
         }
       });
       this.log.debug(`Groups: ${JSON.stringify(this.oidGroups)}`);
@@ -195,9 +180,11 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.oidNamesDict = await this.oidGetNames();
       this.oidEnumsDict = await this.oidGetEnums();
     }
-    if (Object.keys(this.oidGroups).findIndex((groupName) => +groupName < 10) == -1)
+    if (Object.keys(this.oidGroups).findIndex((groupName) => +groupName < 10) == -1) {
       this.log.info("No OIDs to poll in instance configuration");
-    else this.poll();
+    } else {
+      await this.poll();
+    }
   }
   /**
    * Main polling routine - fetching next Group in list
@@ -211,23 +198,23 @@ class OchsnerRoomterminal extends utils.Adapter {
     try {
       if (groupIndex >= keys.length) {
         await this.updateNativeOIDs();
-        this.poll(0);
+        void this.poll(0);
       } else if (+keys[groupIndex] > 9) {
         this.log.debug(
           `skip group ${keys[groupIndex]}, groups with numbers > 9 are reserved for readGroup messages, only!!`
         );
-        this.poll(++groupIndex);
+        void this.poll(++groupIndex);
       } else {
         const groupKey = keys[groupIndex];
         this.log.debug(`Read Group ${groupKey}`);
         await this.oidRead(this.groupOidString[groupKey], this.oidGroups[groupKey]);
         await this.delay(this.config.pollInterval * 1e3);
-        this.poll(++groupIndex);
+        void this.poll(++groupIndex);
       }
     } catch (error) {
       this.log.error(`Error: ${JSON.stringify(error)}`);
       await this.delay(this.config.pollInterval * 1e3);
-      this.poll(0);
+      void this.poll(0);
     }
   }
   /**
@@ -236,15 +223,18 @@ class OchsnerRoomterminal extends utils.Adapter {
    */
   async updateNativeOIDs() {
     const keys = Object.keys(this.oidUpdate);
-    if (!keys.length) return;
+    if (!keys.length) {
+      return;
+    }
     this.log.debug(`UpdateNativeOIDs: ${JSON.stringify(keys)}`);
     try {
       const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
       if (instanceObj) {
         keys.forEach((key) => {
-          var _a;
           const index = instanceObj.native.OIDs.findIndex((oid) => key === oid.oid);
-          if (index !== -1) instanceObj.native.OIDs[index].name = (_a = this.oidUpdate[key]) != null ? _a : key;
+          if (index !== -1) {
+            instanceObj.native.OIDs[index].name = this.oidUpdate[key] ?? key;
+          }
         });
         await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, instanceObj);
         this.oidUpdate = {};
@@ -261,7 +251,6 @@ class OchsnerRoomterminal extends utils.Adapter {
    * @param oidIndices number
    */
   async oidRead(oids, oidIndices) {
-    var _a;
     this.log.debug(`Read OIDs ${oids} (Config indices: [ ${JSON.stringify(oidIndices)} ])`);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
@@ -299,10 +288,9 @@ class OchsnerRoomterminal extends utils.Adapter {
         this.setState("info.connection", true, true);
         const data = await response.text();
         this.log.debug(`OID Raw Data: ${data}`);
-        const jsonResult = await (0, import_xml2js.parseStringPromise)(data);
+        const jsonResult = await parseStringPromise(data);
         const dpCfg = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg;
         dpCfg.forEach(async (dp, key) => {
-          var _a2;
           const configOidIndex = oidIndices[key];
           const oid = this.config.OIDs[configOidIndex].oid;
           const states = {};
@@ -316,17 +304,14 @@ class OchsnerRoomterminal extends utils.Adapter {
           const max = dp.maxValue[0];
           if (this.oidEnumsDict[name]) {
             if (desc === "Enum Var") {
-              const enums = (0, import_util.getEnumKeys)(prop);
+              const enums = getEnumKeys(prop);
               if (enums) {
                 enums.forEach(
-                  (val) => {
-                    var _a3;
-                    return states[val] = (_a3 = this.oidEnumsDict[name][Number(val)]) != null ? _a3 : "undefined";
-                  }
+                  (val) => states[val] = this.oidEnumsDict[name][Number(val)] ?? "undefined"
                 );
               }
             } else {
-              this.oidEnumsDict[name].forEach((val, key2) => states[key2] = val != null ? val : "undefined");
+              this.oidEnumsDict[name].forEach((val, key2) => states[key2] = val ?? "undefined");
             }
           }
           this.log.debug(`Update object: ${oid} - "${name}" with value: ${value} `);
@@ -345,7 +330,7 @@ class OchsnerRoomterminal extends utils.Adapter {
             // 	// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
           };
           if (this.config.OIDs[configOidIndex].name.length === 0)
-            this.oidUpdate[oid] = (_a2 = this.oidNamesDict[name]) != null ? _a2 : name;
+            this.oidUpdate[oid] = this.oidNamesDict[name] ?? name;
           try {
             if (value.length > 0) {
               await this.setObjectNotExistsAsync("OID." + oid, {
@@ -379,7 +364,7 @@ class OchsnerRoomterminal extends utils.Adapter {
               }
             }
           } catch (error) {
-            this.log.error("Error message: " + (error == null ? void 0 : error.message));
+            this.log.error(`Error message: ${error?.message}`);
             this.log.error(`State update for ${oids} failed`);
           }
         });
@@ -388,9 +373,9 @@ class OchsnerRoomterminal extends utils.Adapter {
         throw new Error(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
       }
     } catch (_error) {
-      this.log.error("OID read or parse error: " + oids);
+      this.log.error(`OID read or parse error: ${oids}`);
       this.setState("info.connection", false, true);
-      throw new Error((_a = _error.message) != null ? _a : "OID read or parse error");
+      throw new Error(_error.message ?? "OID read or parse error");
     }
   }
   /**
@@ -472,7 +457,7 @@ class OchsnerRoomterminal extends utils.Adapter {
           getOptions
         );
         const data = await response.text();
-        const result = await (0, import_xml2js.parseStringPromise)(data);
+        const result = await parseStringPromise(data);
         for (const gnIndex in result["VarIdentTexte"]["gn"]) {
           for (const mnIndex in result["VarIdentTexte"]["gn"][gnIndex]["mn"]) {
             let gn = result["VarIdentTexte"]["gn"][gnIndex]["$"]["id"];
@@ -514,7 +499,7 @@ class OchsnerRoomterminal extends utils.Adapter {
           getOptions
         );
         const data = await response.text();
-        const result = await (0, import_xml2js.parseStringPromise)(data);
+        const result = await parseStringPromise(data);
         for (const gnIndex in result["AufzaehlTexte"]["gn"]) {
           for (const mnIndex in result["AufzaehlTexte"]["gn"][gnIndex]["mn"]) {
             let gn = result["AufzaehlTexte"]["gn"][gnIndex]["$"]["id"];
@@ -542,24 +527,29 @@ class OchsnerRoomterminal extends utils.Adapter {
   }
   /**
    * Ochnser API for getting the DeviceInfo
+   *
    * @returns
    */
   async checkForConnection() {
     try {
       const response = await this.client.fetch(this.deviceInfoUrl, getOptions);
       const data = await response.json();
-      this.setStateAsync("deviceInfo.name", { val: data.device, ack: true });
-      this.setStateAsync("deviceInfo.version", { val: data.version, ack: true });
+      this.log.info(`DeviceInfo: ${JSON.stringify(data)}`);
+      void this.setState("deviceInfo.name", { val: data.device, ack: true });
+      void this.setState("deviceInfo.version", { val: data.version, ack: true });
     } catch (error) {
+      this.log.debug(`Error: ${JSON.stringify(error, null, 2)}`);
       this.log.error("Invalid username, password or server IP-address in adapter configuration");
       return false;
     }
     return true;
   }
 }
-if (require.main !== module) {
-  module.exports = (options) => new OchsnerRoomterminal(options);
-} else {
-  (() => new OchsnerRoomterminal())();
+var main_default = (options) => new OchsnerRoomterminal(options);
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  new OchsnerRoomterminal();
 }
+export {
+  main_default as default
+};
 //# sourceMappingURL=main.js.map

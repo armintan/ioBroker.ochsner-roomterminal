@@ -5,9 +5,12 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from '@iobroker/adapter-core';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { parseStringPromise } from 'xml2js';
-import packageJson from '../package.json';
 import { getEnumKeys } from './lib/util.js';
+
+const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')) as { name: string };
 
 // Load your modules here, e.g.:
 import DigestClient from 'digest-fetch';
@@ -678,10 +681,8 @@ class OchsnerRoomterminal extends utils.Adapter {
     }
 }
 
-if (require.main !== module) {
-    // Export the constructor in compact mode
-    module.exports = (options: Partial<utils.AdapterOptions> | undefined) => new OchsnerRoomterminal(options);
-} else {
-    // otherwise start the instance directly
-    (() => new OchsnerRoomterminal())();
+export default (options: Partial<utils.AdapterOptions> | undefined) => new OchsnerRoomterminal(options);
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    new OchsnerRoomterminal();
 }

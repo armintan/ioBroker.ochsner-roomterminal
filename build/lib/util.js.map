@@ -2,6 +2,6 @@
   "version": 3,
   "sources": ["../../src/lib/util.ts"],
   "sourcesContent": ["export const getEnumKeys = (prop: string): string[] | null => {\n    // match everthing behind 'enum = '\n    const regex = /(?<=enum = )(\\d|,)*$/g;\n    const found = prop.match(regex);\n    if (found) {\n        return found[0].split(',');\n    }\n    return null;\n};\n"],
-  "mappings": ";;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAO,MAAM,cAAc,CAAC,SAAkC;AAE1D,QAAM,QAAQ;AACd,QAAM,QAAQ,KAAK,MAAM,KAAK;AAC9B,MAAI,OAAO;AACP,WAAO,MAAM,CAAC,EAAE,MAAM,GAAG;AAAA,EAC7B;AACA,SAAO;AACX;",
+  "mappings": "AAAO,MAAM,cAAc,CAAC,SAAkC;AAE1D,QAAM,QAAQ;AACd,QAAM,QAAQ,KAAK,MAAM,KAAK;AAC9B,MAAI,OAAO;AACP,WAAO,MAAM,CAAC,EAAE,MAAM,GAAG;AAAA,EAC7B;AACA,SAAO;AACX;",
   "names": []
 }
