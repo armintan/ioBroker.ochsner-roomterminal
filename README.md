@@ -155,7 +155,7 @@ This allows you to get just-in-time device information, whenever you need them.
 
 MIT License
 
-Copyright (c) 2025 Armin Stegerer <Armin.Stegerer@t-online.de>
+Copyright (c) 2026 Armin Stegerer <Armin.Stegerer@t-online.de>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
