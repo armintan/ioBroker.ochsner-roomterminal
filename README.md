@@ -91,6 +91,11 @@ This allows you to get just-in-time device information, whenever you need them.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+
+### **WORK IN PROGRESS**
+
+- update latest npm packages and iobroker runtime
+
 ### 0.0.14 (2025-05-16)
 
 - fix issue #115. Removed hard coded IP when requesting descriptions

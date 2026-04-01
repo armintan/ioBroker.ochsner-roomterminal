@@ -1,6 +1,6 @@
 {
   "name": "iobroker.ochsner-roomterminal",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Interface to the Ochsner Roomterminal Webserver (web2comm)",
   "author": {
     "name": "Armin Stegerer",
@@ -69,7 +69,8 @@
     "check": "tsc --noEmit",
     "lint": "eslint -c eslint.config.mjs .",
     "translate": "translate-adapter",
-    "release": "release-script patch --yes",
+    "release": "release-script",
+    "release-patch": "release-script patch --yes",
     "release-minor": "release-script minor --yes",
     "release-major": "release-script major --yes"
   },
