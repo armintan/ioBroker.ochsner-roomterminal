@@ -125,7 +125,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   //  */
   async onMessage(obj) {
     var _a;
-    this.log.debug("message received" + JSON.stringify(obj, null, 2));
+    this.log.debug(`message received ${JSON.stringify(obj, null, 2)}`);
     let resultMsg = { error: "internal error" };
     if (typeof obj === "object" && obj.message) {
       if (obj.command === "readGroup") {
@@ -143,7 +143,9 @@ class OchsnerRoomterminal extends utils.Adapter {
           this.log.info(`group "${obj.message}" does not exist`);
           resultMsg = { error: `group ${obj.message} does not exist` };
         }
-      } else resultMsg = { error: "message command not supported" };
+      } else {
+        resultMsg = { error: "message command not supported" };
+      }
     }
     if (obj.callback) {
       this.sendTo(obj.from, obj.command, resultMsg, obj.callback);
@@ -168,9 +170,9 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.log.error("Server IP address configuration must not be emtpy");
       return;
     }
-    this.log.info("Config username: " + this.config.username);
-    this.log.info("Config serverIP: " + this.config.serverIP);
-    this.log.info("Config pollInterval: " + this.config.pollInterval);
+    this.log.info(`Config username: ${this.config.username}`);
+    this.log.info(`Config serverIP: ${this.config.serverIP}`);
+    this.log.info(`Config pollInterval: ${this.config.pollInterval}`);
     const connected = await this.checkForConnection();
     if (!connected) {
       return;
@@ -183,10 +185,16 @@ class OchsnerRoomterminal extends utils.Adapter {
         const oid = this.config.OIDs[key].oid;
         this.log.debug(`Key: ${key} Object: ${JSON.stringify(this.config.OIDs[key])}`);
         if (enabled) {
-          if (this.oidGroups[group] == void 0) this.oidGroups[group] = [key];
-          else this.oidGroups[group].push(key);
-          if (this.groupOidString[group] == void 0) this.groupOidString[group] = oid;
-          else this.groupOidString[group] = this.groupOidString[group] + ";" + oid;
+          if (this.oidGroups[group] == void 0) {
+            this.oidGroups[group] = [key];
+          } else {
+            this.oidGroups[group].push(key);
+          }
+          if (this.groupOidString[group] == void 0) {
+            this.groupOidString[group] = oid;
+          } else {
+            this.groupOidString[group] = `${this.groupOidString[group]};${oid}`;
+          }
         }
       });
       this.log.debug(`Groups: ${JSON.stringify(this.oidGroups)}`);
@@ -194,14 +202,16 @@ class OchsnerRoomterminal extends utils.Adapter {
       this.oidNamesDict = await this.oidGetNames();
       this.oidEnumsDict = await this.oidGetEnums();
     }
-    if (Object.keys(this.oidGroups).findIndex((groupName) => +groupName < 10) == -1)
+    if (Object.keys(this.oidGroups).findIndex((groupName) => +groupName < 10) == -1) {
       this.log.info("No OIDs to poll in instance configuration");
-    else this.poll();
+    } else {
+      void this.poll();
+    }
   }
   /**
    * Main polling routine - fetching next Group in list
    *
-   * @param groupIndex
+   * @param groupIndex - Index of the group to poll (default: 0)
    * @description Started once during startup, restarts itself when finished
    * 				(only called when there is at least one group 0-9)
    */
@@ -210,23 +220,23 @@ class OchsnerRoomterminal extends utils.Adapter {
     try {
       if (groupIndex >= keys.length) {
         await this.updateNativeOIDs();
-        this.poll(0);
+        void this.poll(0);
       } else if (+keys[groupIndex] > 9) {
         this.log.debug(
           `skip group ${keys[groupIndex]}, groups with numbers > 9 are reserved for readGroup messages, only!!`
         );
-        this.poll(++groupIndex);
+        void this.poll(++groupIndex);
       } else {
         const groupKey = keys[groupIndex];
         this.log.debug(`Read Group ${groupKey}`);
         await this.oidRead(this.groupOidString[groupKey], this.oidGroups[groupKey]);
         await this.delay(this.config.pollInterval * 1e3);
-        this.poll(++groupIndex);
+        void this.poll(++groupIndex);
       }
     } catch (error) {
       this.log.error(`Error: ${JSON.stringify(error)}`);
       await this.delay(this.config.pollInterval * 1e3);
-      this.poll(0);
+      void this.poll(0);
     }
   }
   /**
@@ -235,7 +245,9 @@ class OchsnerRoomterminal extends utils.Adapter {
    */
   async updateNativeOIDs() {
     const keys = Object.keys(this.oidUpdate);
-    if (!keys.length) return;
+    if (!keys.length) {
+      return;
+    }
     this.log.debug(`UpdateNativeOIDs: ${JSON.stringify(keys)}`);
     try {
       const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
@@ -243,9 +255,11 @@ class OchsnerRoomterminal extends utils.Adapter {
         keys.forEach((key) => {
           var _a;
           const index = instanceObj.native.OIDs.findIndex((oid) => key === oid.oid);
-          if (index !== -1) instanceObj.native.OIDs[index].name = (_a = this.oidUpdate[key]) != null ? _a : key;
+          if (index !== -1) {
+            instanceObj.native.OIDs[index].name = (_a = this.oidUpdate[key]) != null ? _a : key;
+          }
         });
-        await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, instanceObj);
+        void this.setForeignObject(`system.adapter.${this.namespace}`, instanceObj);
         this.oidUpdate = {};
       }
     } catch (error) {
@@ -256,7 +270,7 @@ class OchsnerRoomterminal extends utils.Adapter {
    * Read OID group from roomterminal, given by group oids and group indices
    *
    * @param oids OID string to read e.g. "/1/2/3/5/8;/1/2/3/5/;/1/2/3/5/10"
-   * @param indices OID config indices [5,7,9] (must correspond to oids)
+   * @param oidIndices OID config indices [5,7,9] (must correspond to oids)
    */
   async oidRead(oids, oidIndices) {
     var _a;
@@ -342,25 +356,26 @@ class OchsnerRoomterminal extends utils.Adapter {
             states: Object.keys(states).length == 0 ? void 0 : states
             // 	// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
           };
-          if (this.config.OIDs[configOidIndex].name.length === 0)
+          if (this.config.OIDs[configOidIndex].name.length === 0) {
             this.oidUpdate[oid] = (_a2 = this.oidNamesDict[name]) != null ? _a2 : name;
+          }
           try {
             if (value.length > 0) {
-              await this.setObjectNotExistsAsync("OID." + oid, {
+              void this.setObjectNotExists(`OID.${oid}`, {
                 type: "state",
                 common,
                 native: {}
               });
-              await this.setState("OID." + oid, { val: Number(value), ack: true });
+              await this.setState(`OID.${oid}`, { val: Number(value), ack: true });
             }
             if (this.config.OIDs[configOidIndex].isStatus) {
               if (this.oidEnumsDict[name]) {
                 const status = this.oidEnumsDict[name][Number(value)];
                 if (status) {
-                  await this.setObjectNotExistsAsync("Status." + oid, {
+                  await this.setObjectNotExistsAsync(`Status.${oid}`, {
                     type: "state",
                     common: {
-                      name: "Status." + this.config.OIDs[configOidIndex].name,
+                      name: `Status.${this.config.OIDs[configOidIndex].name}`,
                       type: "string",
                       role: "value",
                       read: true,
@@ -368,7 +383,7 @@ class OchsnerRoomterminal extends utils.Adapter {
                     },
                     native: {}
                   });
-                  await this.setState("Status." + oid, { val: status, ack: true });
+                  await this.setState(`Status.${oid}`, { val: status, ack: true });
                   this.log.debug(`Update status object: ${oid} with value: ${status}`);
                 }
               } else {
@@ -395,7 +410,7 @@ class OchsnerRoomterminal extends utils.Adapter {
    * Write OID to roomterminal, given by index
    *
    * @param index index of the OID etnry to read in this.config.OiDs
-   * @param value
+   * @param value value to write to the OID
    */
   async oidWrite(index, value) {
     const oid = this.config.OIDs[index].oid;
@@ -441,8 +456,9 @@ class OchsnerRoomterminal extends utils.Adapter {
     try {
       this.log.debug(`Write OID ${oid} (XML-index ${ind}) with value: ${value}`);
       const response = await this.client.fetch(this.getUrl, options);
-      if (response.ok != true)
+      if (response.ok != true) {
         this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
+      }
     } catch (error) {
       this.log.error(`OID (${oid}) write error: ${JSON.stringify(error)}`);
       await this.setState("info.connection", false, true);
@@ -472,14 +488,18 @@ class OchsnerRoomterminal extends utils.Adapter {
         );
         const data = await response.text();
         const result = await (0, import_xml2js.parseStringPromise)(data);
-        for (const gnIndex in result["VarIdentTexte"]["gn"]) {
-          for (const mnIndex in result["VarIdentTexte"]["gn"][gnIndex]["mn"]) {
-            let gn = result["VarIdentTexte"]["gn"][gnIndex]["$"]["id"];
-            let mn = result["VarIdentTexte"]["gn"][gnIndex]["mn"][mnIndex]["$"]["id"];
-            if (gn.length == 1) gn = "0" + gn;
-            if (mn.length == 1) mn = "0" + mn;
+        for (const gnIndex in result.VarIdentTexte.gn) {
+          for (const mnIndex in result.VarIdentTexte.gn[gnIndex].mn) {
+            let gn = result.VarIdentTexte.gn[gnIndex].$.id;
+            let mn = result.VarIdentTexte.gn[gnIndex].mn[mnIndex].$.id;
+            if (gn.length == 1) {
+              gn = `0${gn}`;
+            }
+            if (mn.length == 1) {
+              mn = `0${mn}`;
+            }
             const key = `${gn}:${mn}`;
-            oidNamesDict[key] = result["VarIdentTexte"]["gn"][gnIndex]["mn"][mnIndex]["_"];
+            oidNamesDict[key] = result.VarIdentTexte.gn[gnIndex].mn[mnIndex]._;
           }
         }
         await this.writeFileAsync(this.namespace, fileName, JSON.stringify(oidNamesDict));
@@ -514,19 +534,17 @@ class OchsnerRoomterminal extends utils.Adapter {
         );
         const data = await response.text();
         const result = await (0, import_xml2js.parseStringPromise)(data);
-        for (const gnIndex in result["AufzaehlTexte"]["gn"]) {
-          for (const mnIndex in result["AufzaehlTexte"]["gn"][gnIndex]["mn"]) {
-            let gn = result["AufzaehlTexte"]["gn"][gnIndex]["$"]["id"];
-            let mn = result["AufzaehlTexte"]["gn"][gnIndex]["mn"][mnIndex]["$"]["id"];
-            gn = gn.length == 1 ? "0" + gn : gn;
-            mn = mn.length == 1 ? "0" + mn : mn;
+        for (const gnIndex in result.AufzaehlTexte.gn) {
+          for (const mnIndex in result.AufzaehlTexte.gn[gnIndex].mn) {
+            let gn = result.AufzaehlTexte.gn[gnIndex].$.id;
+            let mn = result.AufzaehlTexte.gn[gnIndex].mn[mnIndex].$.id;
+            gn = gn.length == 1 ? `0${gn}` : gn;
+            mn = mn.length == 1 ? `0${mn}` : mn;
             const key = `${gn}:${mn}`;
             const enumArray = [];
-            for (const enumIndex in result["AufzaehlTexte"]["gn"][gnIndex]["mn"][mnIndex]["enum"]) {
-              const index = parseInt(
-                result["AufzaehlTexte"]["gn"][gnIndex]["mn"][mnIndex]["enum"][enumIndex]["$"]["id"]
-              );
-              enumArray[index] = result["AufzaehlTexte"]["gn"][gnIndex]["mn"][mnIndex]["enum"][enumIndex]["_"];
+            for (const enumIndex in result.AufzaehlTexte.gn[gnIndex].mn[mnIndex].enum) {
+              const index = parseInt(result.AufzaehlTexte.gn[gnIndex].mn[mnIndex].enum[enumIndex].$.id);
+              enumArray[index] = result.AufzaehlTexte.gn[gnIndex].mn[mnIndex].enum[enumIndex]._;
             }
             oidEnumsDict[key] = enumArray;
           }
@@ -541,7 +559,8 @@ class OchsnerRoomterminal extends utils.Adapter {
   }
   /**
    * Ochnser API for getting the DeviceInfo
-   * @returns
+   *
+   * @returns true if connection is successful, false otherwise
    */
   async checkForConnection() {
     try {
