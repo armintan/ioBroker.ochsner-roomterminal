@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "ochsner-roomterminal",
-    "version": "0.0.14",
+    "version": "0.0.15",
     "news": {
+      "0.0.15": {
+        "en": "update latest npm packages and iobroker runtime",
+        "de": "aktualisierung der neuesten npm pakete und iobroker laufzeit",
+        "ru": "обновление последних пакетов npm и время выполнения iobroker",
+        "pt": "atualizar pacotes npm mais recentes e tempo de execução do iobroker",
+        "nl": "de nieuwste npm pakketten en iobroker runtime bijwerken",
+        "fr": "mettre à jour les derniers paquets npm et iobroker runtime",
+        "it": "aggiornamento ultimo npm pacchetti e iobroker runtime",
+        "es": "actualizar los últimos paquetes npm y iobroker tiempo de ejecución",
+        "pl": "aktualizacja najnowszych pakietów npm i iobroker runtime",
+        "uk": "оновлення останніх пакетів npm і iobroker runtime",
+        "zh-cn": "更新最新的 npm 软件包和 iobor 运行时间"
+      },
       "0.0.14": {
         "en": "fix issue #115. Removed hard coded IP when requesting descriptions\nupdate NPM packages",
         "de": "problem #115 beheben. Entfernte hart kodierte IP bei der Anforderung von Beschreibungen\nnPM-Pakete aktualisieren",
@@ -80,19 +93,6 @@
         "pl": "usunąć Reaktywność\nPakiety NPM",
         "uk": "видалення Компоненти\nОновлення пакетів NPM",
         "zh-cn": "拆除 重新定性\n国家一揽子计划更新"
-      },
-      "0.0.7": {
-        "en": "updated the newest npm packages",
-        "de": "aktualisiert die neuesten npm-pakete",
-        "ru": "обновлены новейшие пакеты npm",
-        "pt": "atualizado o mais novo npm pacotes",
-        "nl": "vertaling:",
-        "fr": "mis à jour les nouveaux paquets npm",
-        "it": "aggiornato i nuovi pacchetti npm",
-        "es": "actualizado los nuevos paquetes npm",
-        "pl": "zaktualizował nowe pakiety n.p.m",
-        "uk": "оновлено нові пакети npm",
-        "zh-cn": "最新的一揽子方案"
       }
     },
     "titleLang": {
