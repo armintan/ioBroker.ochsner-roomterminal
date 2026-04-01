@@ -5,13 +5,13 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from '@iobroker/adapter-core';
-import { fileURLToPath } from 'node:url';
-import { parseStringPromise } from 'xml2js';
-import packageJson from '../package.json' with { type: 'json' };
-import { getEnumKeys } from './lib/util.js';
 
 // Load your modules here, e.g.:
 import DigestFetch from 'digest-fetch';
+import { parseStringPromise } from 'xml2js';
+import packageJson from '../package.json';
+
+import { getEnumKeys } from './lib/util.js';
 
 // import * as fs from "fs";
 const adapterName = packageJson.name.split('.').pop();
@@ -59,11 +59,13 @@ class OchsnerRoomterminal extends utils.Adapter {
         // Initialize your adapter here
         this.subscribeStates('OID.*');
         this.log.info(`Adapter Name: ${this.name} is ready !!!!!!`);
-        this.main();
+        await this.main();
     }
 
     /**
      * Is called when adapter shuts down - callback has to be called under any circumstances!
+     *
+     * @param callback - Callback function
      */
     private onUnload(callback: () => void): void {
         try {
@@ -74,7 +76,8 @@ class OchsnerRoomterminal extends utils.Adapter {
             // clearInterval(interval1);
 
             callback();
-        } catch (e) {
+        } catch (error) {
+            this.log.error(`Error during unloading: ${(error as Error).message}`);
             callback();
         }
     }
@@ -96,6 +99,9 @@ class OchsnerRoomterminal extends utils.Adapter {
 
     /**
      * Is called if a subscribed state changes
+     *
+     * @param id - State ID
+     * @param state - State object
      */
     private async onStateChange(id: string, state: ioBroker.State | null | undefined): Promise<void> {
         const oids = this.config.OIDs;
@@ -173,7 +179,7 @@ class OchsnerRoomterminal extends utils.Adapter {
      */
     private async main(): Promise<void> {
         // Reset the connection indicator during startup
-        this.setState('info.connection', false, true);
+        await this.setState('info.connection', false, true);
 
         // Initialize private instance variables
         this.deviceInfoUrl = `http://${this.config.serverIP}/api/1.0/info/deviceinfo`;
@@ -200,7 +206,7 @@ class OchsnerRoomterminal extends utils.Adapter {
         if (!connected) {
             return;
         }
-        this.setState('info.connection', true, true);
+        await this.setState('info.connection', true, true);
 
         /**
          * Prepare Group Handling
@@ -239,6 +245,7 @@ class OchsnerRoomterminal extends utils.Adapter {
     /**
      * Main polling routine - fetching next Group in list
      *
+     * @param groupIndex
      * @description Started once during startup, restarts itself when finished
      * 				(only called when there is at least one group 0-9)
      */
@@ -347,7 +354,7 @@ class OchsnerRoomterminal extends utils.Adapter {
             const response = await this.client.fetch(this.getUrl, options);
             if (response.ok == true) {
                 // Reading was succcesfull
-                this.setState('info.connection', true, true);
+                await this.setState('info.connection', true, true);
 
                 const data = await response.text();
                 this.log.debug(`OID Raw Data: ${data}`);
@@ -425,7 +432,7 @@ class OchsnerRoomterminal extends utils.Adapter {
                                 native: {},
                             });
 
-                            this.setState('OID.' + oid, { val: Number(value), ack: true });
+                            await this.setState('OID.' + oid, { val: Number(value), ack: true });
                         }
                         if (this.config.OIDs[configOidIndex].isStatus) {
                             // this.log.debug(`oidRead: for ${name}`);
@@ -444,7 +451,7 @@ class OchsnerRoomterminal extends utils.Adapter {
                                         },
                                         native: {},
                                     });
-                                    this.setState('Status.' + oid, { val: status, ack: true });
+                                    await this.setState('Status.' + oid, { val: status, ack: true });
                                     this.log.debug(`Update status object: ${oid} with value: ${status}`);
                                 }
                             } else {
@@ -453,7 +460,7 @@ class OchsnerRoomterminal extends utils.Adapter {
                             }
                         }
                     } catch (error: any) {
-                        this.log.error('Error message: ' + error?.message);
+                        this.log.error(`Error message: ${error?.message}`);
                         this.log.error(`State update for ${oids} failed`);
                     }
                 });
@@ -462,8 +469,8 @@ class OchsnerRoomterminal extends utils.Adapter {
                 throw new Error(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
             }
         } catch (_error: any) {
-            this.log.error('OID read or parse error: ' + oids);
-            this.setState('info.connection', false, true);
+            this.log.error(`OID read or parse error: ${oids}`);
+            await this.setState('info.connection', false, true);
             throw new Error(_error.message ?? 'OID read or parse error');
         }
     }
@@ -472,6 +479,7 @@ class OchsnerRoomterminal extends utils.Adapter {
      * Write OID to roomterminal, given by index
      *
      * @param index index of the OID etnry to read in this.config.OiDs
+     * @param value
      */
     private async oidWrite(index: number, value: any): Promise<void> {
         // this.log.debug(JSON.stringify(oids, null, 2));
@@ -527,7 +535,7 @@ class OchsnerRoomterminal extends utils.Adapter {
                 this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
         } catch (error) {
             this.log.error(`OID (${oid}) write error: ${JSON.stringify(error)}`);
-            this.setState('info.connection', false, true);
+            await this.setState('info.connection', false, true);
         }
     }
 
@@ -643,9 +651,9 @@ class OchsnerRoomterminal extends utils.Adapter {
         try {
             const response = await this.client.fetch(this.deviceInfoUrl, getOptions);
             const data = await response.json();
-            this.log.info('DeviceInfo: ' + JSON.stringify(data));
-            this.setStateAsync('deviceInfo.name', { val: data.device, ack: true });
-            this.setStateAsync('deviceInfo.version', { val: data.version, ack: true });
+            this.log.info(`DeviceInfo: ${JSON.stringify(data)}`);
+            void this.setState('deviceInfo.name', { val: data.device, ack: true });
+            void this.setState('deviceInfo.version', { val: data.version, ack: true });
         } catch (error) {
             this.log.error('Invalid username, password or server IP-address in adapter configuration');
             return false;
@@ -653,9 +661,10 @@ class OchsnerRoomterminal extends utils.Adapter {
         return true;
     }
 }
-
-export default (options: Partial<utils.AdapterOptions> | undefined) => new OchsnerRoomterminal(options);
-
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-    new OchsnerRoomterminal();
+if (require.main !== module) {
+    // Export the constructor in compact mode
+    module.exports = (options: Partial<utils.AdapterOptions> | undefined) => new OchsnerRoomterminal(options);
+} else {
+    // otherwise start the instance directly
+    (() => new OchsnerRoomterminal())();
 }

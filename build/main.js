@@ -1,10 +1,32 @@
-import * as utils from "@iobroker/adapter-core";
-import { fileURLToPath } from "node:url";
-import { parseStringPromise } from "xml2js";
-import packageJson from "../package.json" with { type: "json" };
-import { getEnumKeys } from "./lib/util.js";
-import DigestFetch from "digest-fetch";
-const adapterName = packageJson.name.split(".").pop();
+"use strict";
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var utils = __toESM(require("@iobroker/adapter-core"));
+var import_digest_fetch = __toESM(require("digest-fetch"));
+var import_xml2js = require("xml2js");
+var import_package = __toESM(require("../package.json"));
+var import_util = require("./lib/util.js");
+const adapterName = import_package.default.name.split(".").pop();
 const getOptions = {
   method: "get",
   headers: {
@@ -40,15 +62,18 @@ class OchsnerRoomterminal extends utils.Adapter {
   async onReady() {
     this.subscribeStates("OID.*");
     this.log.info(`Adapter Name: ${this.name} is ready !!!!!!`);
-    this.main();
+    await this.main();
   }
   /**
    * Is called when adapter shuts down - callback has to be called under any circumstances!
+   *
+   * @param callback - Callback function
    */
   onUnload(callback) {
     try {
       callback();
-    } catch (e) {
+    } catch (error) {
+      this.log.error(`Error during unloading: ${error.message}`);
       callback();
     }
   }
@@ -68,6 +93,9 @@ class OchsnerRoomterminal extends utils.Adapter {
   // }
   /**
    * Is called if a subscribed state changes
+   *
+   * @param id - State ID
+   * @param state - State object
    */
   async onStateChange(id, state) {
     const oids = this.config.OIDs;
@@ -96,6 +124,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
   //  */
   async onMessage(obj) {
+    var _a;
     this.log.debug("message received" + JSON.stringify(obj, null, 2));
     let resultMsg = { error: "internal error" };
     if (typeof obj === "object" && obj.message) {
@@ -108,7 +137,7 @@ class OchsnerRoomterminal extends utils.Adapter {
             await this.oidRead(this.groupOidString[group], this.oidGroups[group]);
             resultMsg = "success";
           } catch (error) {
-            resultMsg = { error: error.message ?? "unknown error" };
+            resultMsg = { error: (_a = error.message) != null ? _a : "unknown error" };
           }
         } else {
           this.log.info(`group "${obj.message}" does not exist`);
@@ -130,10 +159,11 @@ class OchsnerRoomterminal extends utils.Adapter {
    * ----------------------------
    */
   async main() {
-    this.setState("info.connection", false, true);
+    var _a;
+    await this.setState("info.connection", false, true);
     this.deviceInfoUrl = `http://${this.config.serverIP}/api/1.0/info/deviceinfo`;
     this.getUrl = `http://${this.config.serverIP}/ws`;
-    this.client = new DigestFetch(this.config.username, this.config.password);
+    this.client = new import_digest_fetch.default(this.config.username, this.config.password);
     if (!this.config.serverIP) {
       this.log.error("Server IP address configuration must not be emtpy");
       return;
@@ -145,8 +175,8 @@ class OchsnerRoomterminal extends utils.Adapter {
     if (!connected) {
       return;
     }
-    this.setState("info.connection", true, true);
-    if (this.config.OIDs?.length) {
+    await this.setState("info.connection", true, true);
+    if ((_a = this.config.OIDs) == null ? void 0 : _a.length) {
       this.config.OIDs.forEach((value, key) => {
         const group = this.config.OIDs[key].group;
         const enabled = this.config.OIDs[key].enabled;
@@ -171,6 +201,7 @@ class OchsnerRoomterminal extends utils.Adapter {
   /**
    * Main polling routine - fetching next Group in list
    *
+   * @param groupIndex
    * @description Started once during startup, restarts itself when finished
    * 				(only called when there is at least one group 0-9)
    */
@@ -210,8 +241,9 @@ class OchsnerRoomterminal extends utils.Adapter {
       const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
       if (instanceObj) {
         keys.forEach((key) => {
+          var _a;
           const index = instanceObj.native.OIDs.findIndex((oid) => key === oid.oid);
-          if (index !== -1) instanceObj.native.OIDs[index].name = this.oidUpdate[key] ?? key;
+          if (index !== -1) instanceObj.native.OIDs[index].name = (_a = this.oidUpdate[key]) != null ? _a : key;
         });
         await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, instanceObj);
         this.oidUpdate = {};
@@ -227,6 +259,7 @@ class OchsnerRoomterminal extends utils.Adapter {
    * @param indices OID config indices [5,7,9] (must correspond to oids)
    */
   async oidRead(oids, oidIndices) {
+    var _a;
     this.log.debug(`Read OIDs ${oids} (Config indices: [ ${JSON.stringify(oidIndices)} ])`);
     const body = `<?xml version="1.0" encoding="UTF-8"?>
 		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
@@ -261,12 +294,13 @@ class OchsnerRoomterminal extends utils.Adapter {
     try {
       const response = await this.client.fetch(this.getUrl, options);
       if (response.ok == true) {
-        this.setState("info.connection", true, true);
+        await this.setState("info.connection", true, true);
         const data = await response.text();
         this.log.debug(`OID Raw Data: ${data}`);
-        const jsonResult = await parseStringPromise(data);
+        const jsonResult = await (0, import_xml2js.parseStringPromise)(data);
         const dpCfg = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg;
         dpCfg.forEach(async (dp, key) => {
+          var _a2;
           const configOidIndex = oidIndices[key];
           const oid = this.config.OIDs[configOidIndex].oid;
           const states = {};
@@ -280,14 +314,17 @@ class OchsnerRoomterminal extends utils.Adapter {
           const max = dp.maxValue[0];
           if (this.oidEnumsDict[name]) {
             if (desc === "Enum Var") {
-              const enums = getEnumKeys(prop);
+              const enums = (0, import_util.getEnumKeys)(prop);
               if (enums) {
                 enums.forEach(
-                  (val) => states[val] = this.oidEnumsDict[name][Number(val)] ?? "undefined"
+                  (val) => {
+                    var _a3;
+                    return states[val] = (_a3 = this.oidEnumsDict[name][Number(val)]) != null ? _a3 : "undefined";
+                  }
                 );
               }
             } else {
-              this.oidEnumsDict[name].forEach((val, key2) => states[key2] = val ?? "undefined");
+              this.oidEnumsDict[name].forEach((val, key2) => states[key2] = val != null ? val : "undefined");
             }
           }
           this.log.debug(`Update object: ${oid} - "${name}" with value: ${value} `);
@@ -306,7 +343,7 @@ class OchsnerRoomterminal extends utils.Adapter {
             // 	// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
           };
           if (this.config.OIDs[configOidIndex].name.length === 0)
-            this.oidUpdate[oid] = this.oidNamesDict[name] ?? name;
+            this.oidUpdate[oid] = (_a2 = this.oidNamesDict[name]) != null ? _a2 : name;
           try {
             if (value.length > 0) {
               await this.setObjectNotExistsAsync("OID." + oid, {
@@ -314,7 +351,7 @@ class OchsnerRoomterminal extends utils.Adapter {
                 common,
                 native: {}
               });
-              this.setState("OID." + oid, { val: Number(value), ack: true });
+              await this.setState("OID." + oid, { val: Number(value), ack: true });
             }
             if (this.config.OIDs[configOidIndex].isStatus) {
               if (this.oidEnumsDict[name]) {
@@ -331,7 +368,7 @@ class OchsnerRoomterminal extends utils.Adapter {
                     },
                     native: {}
                   });
-                  this.setState("Status." + oid, { val: status, ack: true });
+                  await this.setState("Status." + oid, { val: status, ack: true });
                   this.log.debug(`Update status object: ${oid} with value: ${status}`);
                 }
               } else {
@@ -340,7 +377,7 @@ class OchsnerRoomterminal extends utils.Adapter {
               }
             }
           } catch (error) {
-            this.log.error("Error message: " + error?.message);
+            this.log.error(`Error message: ${error == null ? void 0 : error.message}`);
             this.log.error(`State update for ${oids} failed`);
           }
         });
@@ -349,15 +386,16 @@ class OchsnerRoomterminal extends utils.Adapter {
         throw new Error(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
       }
     } catch (_error) {
-      this.log.error("OID read or parse error: " + oids);
-      this.setState("info.connection", false, true);
-      throw new Error(_error.message ?? "OID read or parse error");
+      this.log.error(`OID read or parse error: ${oids}`);
+      await this.setState("info.connection", false, true);
+      throw new Error((_a = _error.message) != null ? _a : "OID read or parse error");
     }
   }
   /**
    * Write OID to roomterminal, given by index
    *
    * @param index index of the OID etnry to read in this.config.OiDs
+   * @param value
    */
   async oidWrite(index, value) {
     const oid = this.config.OIDs[index].oid;
@@ -407,7 +445,7 @@ class OchsnerRoomterminal extends utils.Adapter {
         this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
     } catch (error) {
       this.log.error(`OID (${oid}) write error: ${JSON.stringify(error)}`);
-      this.setState("info.connection", false, true);
+      await this.setState("info.connection", false, true);
     }
   }
   /**
@@ -433,7 +471,7 @@ class OchsnerRoomterminal extends utils.Adapter {
           getOptions
         );
         const data = await response.text();
-        const result = await parseStringPromise(data);
+        const result = await (0, import_xml2js.parseStringPromise)(data);
         for (const gnIndex in result["VarIdentTexte"]["gn"]) {
           for (const mnIndex in result["VarIdentTexte"]["gn"][gnIndex]["mn"]) {
             let gn = result["VarIdentTexte"]["gn"][gnIndex]["$"]["id"];
@@ -475,7 +513,7 @@ class OchsnerRoomterminal extends utils.Adapter {
           getOptions
         );
         const data = await response.text();
-        const result = await parseStringPromise(data);
+        const result = await (0, import_xml2js.parseStringPromise)(data);
         for (const gnIndex in result["AufzaehlTexte"]["gn"]) {
           for (const mnIndex in result["AufzaehlTexte"]["gn"][gnIndex]["mn"]) {
             let gn = result["AufzaehlTexte"]["gn"][gnIndex]["$"]["id"];
@@ -509,9 +547,9 @@ class OchsnerRoomterminal extends utils.Adapter {
     try {
       const response = await this.client.fetch(this.deviceInfoUrl, getOptions);
       const data = await response.json();
-      this.log.info("DeviceInfo: " + JSON.stringify(data));
-      this.setStateAsync("deviceInfo.name", { val: data.device, ack: true });
-      this.setStateAsync("deviceInfo.version", { val: data.version, ack: true });
+      this.log.info(`DeviceInfo: ${JSON.stringify(data)}`);
+      void this.setState("deviceInfo.name", { val: data.device, ack: true });
+      void this.setState("deviceInfo.version", { val: data.version, ack: true });
     } catch (error) {
       this.log.error("Invalid username, password or server IP-address in adapter configuration");
       return false;
@@ -519,11 +557,9 @@ class OchsnerRoomterminal extends utils.Adapter {
     return true;
   }
 }
-var main_default = (options) => new OchsnerRoomterminal(options);
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  new OchsnerRoomterminal();
+if (require.main !== module) {
+  module.exports = (options) => new OchsnerRoomterminal(options);
+} else {
+  (() => new OchsnerRoomterminal())();
 }
-export {
-  main_default as default
-};
 //# sourceMappingURL=main.js.map
