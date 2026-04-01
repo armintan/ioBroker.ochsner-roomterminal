@@ -30,7 +30,7 @@ const getOptions = {
 class OchsnerRoomterminal extends utils.Adapter {
     private deviceInfoUrl = '';
     private getUrl = '';
-    private client: any | undefined = undefined;
+    private client: DigestFetch | undefined = undefined;
     private oidNamesDict: { [id: string]: string } | undefined = undefined;
     private oidEnumsDict: { [id: string]: string[] } | undefined = undefined;
     private oidUpdate: { [id: string]: string } = {};
@@ -365,7 +365,7 @@ class OchsnerRoomterminal extends utils.Adapter {
             },
         };
         try {
-            const response = await this.client.fetch(this.getUrl, options);
+            const response = await this.client!.fetch(this.getUrl, options);
             if (response.ok == true) {
                 // Reading was succcesfull
                 await this.setState('info.connection', true, true);
@@ -545,7 +545,7 @@ class OchsnerRoomterminal extends utils.Adapter {
         };
         try {
             this.log.debug(`Write OID ${oid} (XML-index ${ind}) with value: ${value}`);
-            const response = await this.client.fetch(this.getUrl, options);
+            const response = await this.client!.fetch(this.getUrl, options);
             if (response.ok != true) {
                 this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
             }
@@ -576,7 +576,7 @@ class OchsnerRoomterminal extends utils.Adapter {
                 // this.log.info(`res: ${JSON.stringify(res.file)}`);
             } else {
                 // this.log.debug(`Read oidNames.json file from device`);
-                const response = await this.client.fetch(
+                const response = await this.client!.fetch(
                     `http://${this.config.serverIP}/res/xml/VarIdentTexte_de.xml`,
                     getOptions,
                 );
@@ -628,7 +628,7 @@ class OchsnerRoomterminal extends utils.Adapter {
                 // this.log.info(`res: ${JSON.stringify(res.file)}`);
             } else {
                 //this.log.debug(`Read oidEnums.json file from device`);
-                const response = await this.client.fetch(
+                const response = await this.client!.fetch(
                     `http://${this.config.serverIP}/res/xml/AufzaehlTexte_de.xml`,
                     getOptions,
                 );
@@ -667,11 +667,12 @@ class OchsnerRoomterminal extends utils.Adapter {
     private async checkForConnection(): Promise<boolean> {
         // this.log.debug('DeviceInfo URL: ' + this.deviceInfoUrl);
         try {
-            const response = await this.client.fetch(this.deviceInfoUrl, getOptions);
-            const data = await response.json();
+            const response = await this.client!.fetch(this.deviceInfoUrl, getOptions);
+            const data = (await response.json()) as { device: string; version: string };
             this.log.info(`DeviceInfo: ${JSON.stringify(data)}`);
             void this.setState('deviceInfo.name', { val: data.device, ack: true });
             void this.setState('deviceInfo.version', { val: data.version, ack: true });
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
             this.log.error('Invalid username, password or server IP-address in adapter configuration');
             return false;
