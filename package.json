@@ -24,7 +24,7 @@
     "node": ">= 24"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^3.3.2",
+    "@iobroker/adapter-core": "^3.4.3",
     "digest-fetch": "v3",
     "node-fetch": "v3",
     "xml2js": "^0.6.0"
