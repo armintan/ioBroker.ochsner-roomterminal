@@ -91,6 +91,13 @@ This allows you to get just-in-time device information, whenever you need them.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+
+- (armintan) refactored adapter code into modular structure (`web2commClient`, `util`) with unit tests
+- (armintan) improved ioBroker compliance (managed timers in `onUnload`, `setStateChangedAsync`, `setObjectNotExistsAsync`, proper `ack` handling, standard state roles)
+- (armintan) completed `jsonConfig` validation, responsive layout, and `i18n` translations across all languages
+- (armintan) updated dependencies and minimum requirements (`Node.js >= 20`, `js-controller >= 6.0.11`, `admin >= 7.0.23`)
+
 ### 0.0.15 (2026-04-01)
 
 - update latest npm packages and iobroker runtime
