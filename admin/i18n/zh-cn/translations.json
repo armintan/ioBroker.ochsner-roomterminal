@@ -7,7 +7,11 @@
     "Your username for the Ochsner Roomterminal": "您在 Ochsner Roomterminal 的用户名",
     "Your password for the Ochsner Roomterminal": "您的 Ochsner Roomterminal 密码",
     "Your IP or hostname of the Ochsner Roomterminal": "您的 Ochsner Roomterminal 的 IP 或主机名",
-    "Interval in ms between single OID requests": "单个 OID 请求之间的间隔（以毫秒为单位）",
-    "Interval in sec between single OID requests": "单个 OID 请求之间的间隔（以秒为单位）",
-    "Interval in sec between group read requests": "组读取请求之间的间隔（秒）"
+    "Interval in sec between group read requests": "组读取请求之间的间隔（秒）",
+    "OIDs": "OID",
+    "enabled": "已启用",
+    "OID": "OID",
+    "Name": "姓名",
+    "is Status": "现状",
+    "Group": "集团"
 }

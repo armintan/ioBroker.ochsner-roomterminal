@@ -22,30 +22,21 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 var utils = __toESM(require("@iobroker/adapter-core"));
-var import_digest_fetch = __toESM(require("digest-fetch"));
-var import_xml2js = require("xml2js");
 var import_package = __toESM(require("../package.json"));
-var import_util = require("./lib/util.js");
+var import_util = require("./lib/util");
+var import_web2commClient = require("./lib/web2commClient");
 const adapterName = import_package.default.name.split(".").pop();
-const getOptions = {
-  method: "get",
-  headers: {
-    Connection: "Keep-Alive",
-    Accept: "text/xml",
-    Pragma: "no-cache",
-    "Cache-Control": "no-cache",
-    "Content-Type": "text/xml; charset=utf-8"
-  }
-};
+const WRITE_READBACK_DELAY_MS = 1500;
 class OchsnerRoomterminal extends utils.Adapter {
-  deviceInfoUrl = "";
-  getUrl = "";
   client = void 0;
-  oidNamesDict = void 0;
-  oidEnumsDict = void 0;
+  oidNamesDict = {};
+  oidEnumsDict = {};
   oidUpdate = {};
   oidGroups = {};
   groupOidString = {};
+  pollTimeout = void 0;
+  writeReadbackTimeouts = /* @__PURE__ */ new Set();
+  isUnloading = false;
   constructor(options = {}) {
     super({
       ...options,
@@ -61,7 +52,7 @@ class OchsnerRoomterminal extends utils.Adapter {
    */
   async onReady() {
     this.subscribeStates("OID.*");
-    this.log.info(`Adapter Name: ${this.name} is ready !!!!!!`);
+    this.log.info(`Adapter ${this.name} is ready`);
     await this.main();
   }
   /**
@@ -71,26 +62,21 @@ class OchsnerRoomterminal extends utils.Adapter {
    */
   onUnload(callback) {
     try {
+      this.isUnloading = true;
+      if (this.pollTimeout) {
+        this.clearTimeout(this.pollTimeout);
+        this.pollTimeout = void 0;
+      }
+      for (const timeout of this.writeReadbackTimeouts) {
+        this.clearTimeout(timeout);
+      }
+      this.writeReadbackTimeouts.clear();
       callback();
     } catch (error) {
       this.log.error(`Error during unloading: ${error.message}`);
       callback();
     }
   }
-  // If you need to react to object changes, uncomment the following block and the corresponding line in the constructor.
-  // You also need to subscribe to the objects with `this.subscribeObjects`, similar to `this.subscribeStates`.
-  // /**
-  //  * Is called if a subscribed object changes
-  //  */
-  // private onObjectChange(id: string, obj: ioBroker.Object | null | undefined): void {
-  // 	if (obj) {
-  // 		// The object was changed
-  // 		this.log.info(`object ${id} changed: ${JSON.stringify(obj)}`);
-  // 	} else { 17058
-  // 		// The object was deleted
-  // 		this.log.info(`object ${id} deleted`);
-  // 	}
-  // }
   /**
    * Is called if a subscribed state changes
    *
@@ -98,50 +84,80 @@ class OchsnerRoomterminal extends utils.Adapter {
    * @param state - State object
    */
   async onStateChange(id, state) {
-    const oids = this.config.OIDs;
-    if (state) {
-      if (!state.ack) {
-        this.log.debug(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-        const index = oids.findIndex((elem) => id.endsWith(elem.oid));
-        if (index == -1) {
-          this.log.error(`state ${id} not found in OID list`);
-          return;
-        }
-        this.log.debug(`From: system.adapter.${this.name}`);
-        if (!state.from.startsWith(`system.adapter.${this.name}`)) {
-          await this.oidWrite(index, state.val);
-          await this.delay(1500);
-          await this.oidRead(this.config.OIDs[index].oid, [index]);
-        }
-      }
-    } else {
+    var _a;
+    if (!state) {
       this.log.info(`state ${id} deleted`);
+      return;
+    }
+    if (state.ack) {
+      return;
+    }
+    const oids = (_a = this.config.OIDs) != null ? _a : [];
+    this.log.debug(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+    const index = oids.findIndex((elem) => id.endsWith(`OID.${elem.oid}`) || id.endsWith(elem.oid));
+    if (index === -1) {
+      this.log.error(`state ${id} not found in OID list`);
+      return;
+    }
+    if (!state.from.startsWith(`system.adapter.${this.name}`)) {
+      const writeSuccess = await this.oidWrite(index, state.val);
+      if (writeSuccess) {
+        await this.setStateChangedAsync(id, { val: state.val, ack: true });
+        this.scheduleWriteReadback(index);
+      }
     }
   }
-  // If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
-  // /**
-  //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
-  //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
-  //  */
+  /**
+   * Schedules a delayed readback of a written OID using adapter-managed timeouts.
+   *
+   * @param index - Index of the OID in `this.config.OIDs`
+   */
+  scheduleWriteReadback(index) {
+    const timeout = this.setTimeout(async () => {
+      var _a, _b;
+      if (timeout) {
+        this.writeReadbackTimeouts.delete(timeout);
+      }
+      if (this.isUnloading) {
+        return;
+      }
+      try {
+        const oid = (_b = (_a = this.config.OIDs) == null ? void 0 : _a[index]) == null ? void 0 : _b.oid;
+        if (oid) {
+          await this.oidRead(oid, [index]);
+        }
+      } catch (error) {
+        this.log.error(`Readback after write failed: ${error.message}`);
+      }
+    }, WRITE_READBACK_DELAY_MS);
+    if (timeout) {
+      this.writeReadbackTimeouts.add(timeout);
+    }
+  }
+  /**
+   * Handles messages sent to this adapter instance over the message box.
+   *
+   * @param obj - ioBroker message object
+   */
   async onMessage(obj) {
     var _a;
     this.log.debug(`message received ${JSON.stringify(obj, null, 2)}`);
     let resultMsg = { error: "internal error" };
     if (typeof obj === "object" && obj.message) {
       if (obj.command === "readGroup") {
-        const groupIndex = Object.keys(this.oidGroups).indexOf(String(obj.message));
-        this.log.debug(`read group ${obj.message} (groupIndex: ${groupIndex})`);
-        if (groupIndex !== -1) {
+        const group = String(obj.message);
+        const groupExists = Object.prototype.hasOwnProperty.call(this.oidGroups, group);
+        this.log.debug(`read group ${group} (exists: ${groupExists})`);
+        if (groupExists) {
           try {
-            const group = String(obj.message);
             await this.oidRead(this.groupOidString[group], this.oidGroups[group]);
             resultMsg = "success";
           } catch (error) {
             resultMsg = { error: (_a = error.message) != null ? _a : "unknown error" };
           }
         } else {
-          this.log.info(`group "${obj.message}" does not exist`);
-          resultMsg = { error: `group ${obj.message} does not exist` };
+          this.log.info(`group "${group}" does not exist`);
+          resultMsg = { error: `group ${group} does not exist` };
         }
       } else {
         resultMsg = { error: "message command not supported" };
@@ -152,24 +168,16 @@ class OchsnerRoomterminal extends utils.Adapter {
     }
   }
   /**
-   * -----------------
-   * Private functions
-   * -----------------
-   */
-  /**
-   *  Inititialize the adapter
-   * ----------------------------
+   * Initializes the adapter connection, dictionaries, and group polling.
    */
   async main() {
     var _a;
-    await this.setState("info.connection", false, true);
-    this.deviceInfoUrl = `http://${this.config.serverIP}/api/1.0/info/deviceinfo`;
-    this.getUrl = `http://${this.config.serverIP}/ws`;
-    this.client = new import_digest_fetch.default(this.config.username, this.config.password);
+    await this.setStateChangedAsync("info.connection", false, true);
     if (!this.config.serverIP) {
-      this.log.error("Server IP address configuration must not be emtpy");
+      this.log.error("Server IP address configuration must not be empty");
       return;
     }
+    this.client = new import_web2commClient.Web2CommClient(this.config.serverIP, this.config.username, this.config.password);
     this.log.info(`Config username: ${this.config.username}`);
     this.log.info(`Config serverIP: ${this.config.serverIP}`);
     this.log.info(`Config pollInterval: ${this.config.pollInterval}`);
@@ -177,73 +185,77 @@ class OchsnerRoomterminal extends utils.Adapter {
     if (!connected) {
       return;
     }
-    await this.setState("info.connection", true, true);
+    await this.setStateChangedAsync("info.connection", true, true);
     if ((_a = this.config.OIDs) == null ? void 0 : _a.length) {
-      this.config.OIDs.forEach((value, key) => {
-        const group = this.config.OIDs[key].group;
-        const enabled = this.config.OIDs[key].enabled;
-        const oid = this.config.OIDs[key].oid;
-        this.log.debug(`Key: ${key} Object: ${JSON.stringify(this.config.OIDs[key])}`);
-        if (enabled) {
-          if (this.oidGroups[group] == void 0) {
-            this.oidGroups[group] = [key];
-          } else {
-            this.oidGroups[group].push(key);
-          }
-          if (this.groupOidString[group] == void 0) {
-            this.groupOidString[group] = oid;
-          } else {
-            this.groupOidString[group] = `${this.groupOidString[group]};${oid}`;
-          }
-        }
-      });
+      const { oidGroups, groupOidString } = (0, import_util.buildOidGroups)(this.config.OIDs);
+      this.oidGroups = oidGroups;
+      this.groupOidString = groupOidString;
       this.log.debug(`Groups: ${JSON.stringify(this.oidGroups)}`);
       this.log.debug(`Group OIDs: ${JSON.stringify(this.groupOidString)}`);
       this.oidNamesDict = await this.oidGetNames();
       this.oidEnumsDict = await this.oidGetEnums();
     }
-    if (Object.keys(this.oidGroups).findIndex((groupName) => +groupName < 10) == -1) {
+    const hasPollableGroup = Object.keys(this.oidGroups).some((groupName) => Number(groupName) < 10);
+    if (!hasPollableGroup) {
       this.log.info("No OIDs to poll in instance configuration");
     } else {
-      void this.poll();
+      void this.poll(0);
     }
   }
   /**
-   * Main polling routine - fetching next Group in list
+   * Schedules the next poll execution after the configured pollInterval.
+   *
+   * @param nextGroupIndex - Next group index to poll
+   */
+  scheduleNextPoll(nextGroupIndex) {
+    if (this.isUnloading) {
+      return;
+    }
+    if (this.pollTimeout) {
+      this.clearTimeout(this.pollTimeout);
+    }
+    const intervalMs = Math.max(1, Number(this.config.pollInterval) || 30) * 1e3;
+    this.pollTimeout = this.setTimeout(() => {
+      this.pollTimeout = void 0;
+      void this.poll(nextGroupIndex);
+    }, intervalMs);
+  }
+  /**
+   * Main polling routine - fetching next Group in list.
    *
    * @param groupIndex - Index of the group to poll (default: 0)
-   * @description Started once during startup, restarts itself when finished
-   * 				(only called when there is at least one group 0-9)
    */
   async poll(groupIndex = 0) {
+    if (this.isUnloading) {
+      return;
+    }
     const keys = Object.keys(this.oidGroups);
     try {
       if (groupIndex >= keys.length) {
         await this.updateNativeOIDs();
         void this.poll(0);
-      } else if (+keys[groupIndex] > 9) {
+      } else if (Number(keys[groupIndex]) > 9) {
         this.log.debug(
           `skip group ${keys[groupIndex]}, groups with numbers > 9 are reserved for readGroup messages, only!!`
         );
-        void this.poll(++groupIndex);
+        void this.poll(groupIndex + 1);
       } else {
         const groupKey = keys[groupIndex];
         this.log.debug(`Read Group ${groupKey}`);
         await this.oidRead(this.groupOidString[groupKey], this.oidGroups[groupKey]);
-        await this.delay(this.config.pollInterval * 1e3);
-        void this.poll(++groupIndex);
+        this.scheduleNextPoll(groupIndex + 1);
       }
     } catch (error) {
-      this.log.error(`Error: ${JSON.stringify(error)}`);
-      await this.delay(this.config.pollInterval * 1e3);
-      void this.poll(0);
+      this.log.error(`Error during poll: ${error.message}`);
+      this.scheduleNextPoll(0);
     }
   }
   /**
-   * Check for empty OID names in config, add default names
-   * and update common.native.OIDs in instance object (which restarts the adapter)
+   * Checks for empty OID names in config, populates default names from the device dictionary,
+   * and updates `native.OIDs` in the instance object (which restarts the adapter).
    */
   async updateNativeOIDs() {
+    var _a, _b;
     const keys = Object.keys(this.oidUpdate);
     if (!keys.length) {
       return;
@@ -251,15 +263,14 @@ class OchsnerRoomterminal extends utils.Adapter {
     this.log.debug(`UpdateNativeOIDs: ${JSON.stringify(keys)}`);
     try {
       const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
-      if (instanceObj) {
-        keys.forEach((key) => {
-          var _a;
+      if (instanceObj && Array.isArray((_a = instanceObj.native) == null ? void 0 : _a.OIDs)) {
+        for (const key of keys) {
           const index = instanceObj.native.OIDs.findIndex((oid) => key === oid.oid);
           if (index !== -1) {
-            instanceObj.native.OIDs[index].name = (_a = this.oidUpdate[key]) != null ? _a : key;
+            instanceObj.native.OIDs[index].name = (_b = this.oidUpdate[key]) != null ? _b : key;
           }
-        });
-        void this.setForeignObject(`system.adapter.${this.namespace}`, instanceObj);
+        }
+        await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, instanceObj);
         this.oidUpdate = {};
       }
     } catch (error) {
@@ -267,210 +278,119 @@ class OchsnerRoomterminal extends utils.Adapter {
     }
   }
   /**
-   * Read OID group from roomterminal, given by group oids and group indices
+   * Reads an OID group from the roomterminal, given by group OIDs and group config indices.
    *
-   * @param oids OID string to read e.g. "/1/2/3/5/8;/1/2/3/5/;/1/2/3/5/10"
-   * @param oidIndices OID config indices [5,7,9] (must correspond to oids)
+   * @param oids - OID string to read, e.g. `"/1/2/3/5/8;/1/2/3/5/10"`
+   * @param oidIndices - OID config indices `[5, 7]` (must correspond to `oids`)
    */
   async oidRead(oids, oidIndices) {
-    var _a;
+    var _a, _b, _c, _d;
     this.log.debug(`Read OIDs ${oids} (Config indices: [ ${JSON.stringify(oidIndices)} ])`);
-    const body = `<?xml version="1.0" encoding="UTF-8"?>
-		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
-		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-		xmlns:ns="http://ws01.lom.ch/soap/">
-		 <SOAP-ENV:Body>
-		   <ns:getDpRequest>
-			<ref>
-			 <oid>${oids}</oid>
-			 <prop/>
-			</ref>
-			<startIndex>0</startIndex>
-			<count>-1</count>
-		   </ns:getDpRequest>
-		 </SOAP-ENV:Body>
-		</SOAP-ENV:Envelope>`;
-    const options = {
-      method: "post",
-      body,
-      headers: {
-        Connection: "Keep-Alive",
-        Accept: "text/xml",
-        Pragma: "no-cache",
-        SOAPAction: "http://ws01.lom.ch/soap/getDP",
-        "Cache-Control": "no-cache",
-        "Content-Type": "text/xml; charset=utf-8",
-        "Content-length": body.length
-      }
-    };
     try {
-      const response = await this.client.fetch(this.getUrl, options);
-      if (response.ok == true) {
-        await this.setState("info.connection", true, true);
-        const data = await response.text();
-        this.log.debug(`OID Raw Data: ${data}`);
-        const jsonResult = await (0, import_xml2js.parseStringPromise)(data);
-        const dpCfg = jsonResult["SOAP-ENV:Envelope"]["SOAP-ENV:Body"][0]["ns:getDpResponse"][0].dpCfg;
-        dpCfg.forEach(async (dp, key) => {
-          var _a2;
-          const configOidIndex = oidIndices[key];
-          const oid = this.config.OIDs[configOidIndex].oid;
-          const states = {};
-          const name = dp.name[0];
-          const prop = dp.prop[0];
-          const desc = dp.desc[0];
-          const value = dp.value[0];
-          const unit = dp.unit[0];
-          const step = dp.step[0];
-          const min = dp.minValue[0];
-          const max = dp.maxValue[0];
-          if (this.oidEnumsDict[name]) {
-            if (desc === "Enum Var") {
-              const enums = (0, import_util.getEnumKeys)(prop);
-              if (enums) {
-                enums.forEach(
-                  (val) => {
-                    var _a3;
-                    return states[val] = (_a3 = this.oidEnumsDict[name][Number(val)]) != null ? _a3 : "undefined";
-                  }
-                );
+      const { rawXml, dataPoints } = await this.client.readDataPoints(oids);
+      await this.setStateChangedAsync("info.connection", true, true);
+      this.log.debug(`OID Raw Data: ${rawXml}`);
+      for (let key = 0; key < dataPoints.length; key++) {
+        const dp = dataPoints[key];
+        const configOidIndex = oidIndices[key];
+        const oidConfig = (_a = this.config.OIDs) == null ? void 0 : _a[configOidIndex];
+        if (!oidConfig) {
+          continue;
+        }
+        const oid = oidConfig.oid;
+        const states = (0, import_util.buildEnumStates)(dp, this.oidEnumsDict);
+        const isReadable = dp.prop[1] === "r";
+        const isWritable = dp.prop[2] === "w";
+        const displayName = oidConfig.name.length ? oidConfig.name : (_b = this.oidNamesDict[dp.name]) != null ? _b : dp.name;
+        this.log.debug(`Update object: ${oid} - "${dp.name}" with value: ${dp.value}`);
+        const common = {
+          name: displayName,
+          type: "number",
+          role: (0, import_util.determineStateRole)(dp.unit, isWritable, states !== void 0),
+          read: isReadable,
+          write: isWritable,
+          unit: dp.unit.length === 0 ? void 0 : dp.unit,
+          min: isWritable ? dp.min.length === 0 ? void 0 : Number(dp.min) : void 0,
+          max: isWritable ? dp.max.length === 0 ? void 0 : Number(dp.max) : void 0,
+          step: isWritable ? dp.step.length === 0 ? void 0 : Number(dp.step) : void 0,
+          states
+        };
+        if (oidConfig.name.length === 0) {
+          this.oidUpdate[oid] = (_c = this.oidNamesDict[dp.name]) != null ? _c : dp.name;
+        }
+        try {
+          if (dp.value.length > 0) {
+            await this.setObjectNotExistsAsync(`OID.${oid}`, {
+              type: "state",
+              common,
+              native: {}
+            });
+            await this.setStateChangedAsync(`OID.${oid}`, { val: Number(dp.value), ack: true });
+          }
+          if (oidConfig.isStatus) {
+            const enumList = this.oidEnumsDict[dp.name];
+            if (enumList) {
+              const status = enumList[Number(dp.value)];
+              if (status) {
+                await this.setObjectNotExistsAsync(`Status.${oid}`, {
+                  type: "state",
+                  common: {
+                    name: `Status.${displayName}`,
+                    type: "string",
+                    role: "text",
+                    read: true,
+                    write: false
+                  },
+                  native: {}
+                });
+                await this.setStateChangedAsync(`Status.${oid}`, { val: status, ack: true });
+                this.log.debug(`Update status object: ${oid} with value: ${status}`);
               }
             } else {
-              this.oidEnumsDict[name].forEach((val, key2) => states[key2] = val != null ? val : "undefined");
+              this.log.info(`No status text found for ${oid} (${dp.name})`);
+              this.log.info(`Please check isStatus configuration for ${oid}`);
             }
           }
-          this.log.debug(`Update object: ${oid} - "${name}" with value: ${value} `);
-          const common = {
-            name: this.config.OIDs[configOidIndex].name.length ? this.config.OIDs[configOidIndex].name : this.oidNamesDict[name],
-            type: "number",
-            role: "value",
-            read: prop[1] === "r" ? true : false,
-            write: prop[2] === "w" ? true : false,
-            unit: unit.length === 0 ? void 0 : unit,
-            min: prop[2] === "w" ? min.length === 0 ? void 0 : Number(min) : void 0,
-            max: prop[2] === "w" ? max.length === 0 ? void 0 : Number(max) : void 0,
-            step: prop[2] === "w" ? step.length === 0 ? void 0 : Number(step) : void 0,
-            //TODO: add states based on XML
-            states: Object.keys(states).length == 0 ? void 0 : states
-            // 	// states: { '0': 'OFF', '1': 'ON', '-3': 'whatever' },
-          };
-          if (this.config.OIDs[configOidIndex].name.length === 0) {
-            this.oidUpdate[oid] = (_a2 = this.oidNamesDict[name]) != null ? _a2 : name;
-          }
-          try {
-            if (value.length > 0) {
-              void this.setObjectNotExists(`OID.${oid}`, {
-                type: "state",
-                common,
-                native: {}
-              });
-              await this.setState(`OID.${oid}`, { val: Number(value), ack: true });
-            }
-            if (this.config.OIDs[configOidIndex].isStatus) {
-              if (this.oidEnumsDict[name]) {
-                const status = this.oidEnumsDict[name][Number(value)];
-                if (status) {
-                  await this.setObjectNotExistsAsync(`Status.${oid}`, {
-                    type: "state",
-                    common: {
-                      name: `Status.${this.config.OIDs[configOidIndex].name}`,
-                      type: "string",
-                      role: "value",
-                      read: true,
-                      write: false
-                    },
-                    native: {}
-                  });
-                  await this.setState(`Status.${oid}`, { val: status, ack: true });
-                  this.log.debug(`Update status object: ${oid} with value: ${status}`);
-                }
-              } else {
-                this.log.info(`No status text found for ${oid} (${name})`);
-                this.log.info(`Please check isStatus configuration for ${oid}`);
-              }
-            }
-          } catch (error) {
-            this.log.error(`Error message: ${error == null ? void 0 : error.message}`);
-            this.log.error(`State update for ${oids} failed`);
-          }
-        });
-      } else {
-        this.log.error(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
-        throw new Error(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
+        } catch (error) {
+          this.log.error(`Error message: ${error == null ? void 0 : error.message}`);
+          this.log.error(`State update for ${oids} failed`);
+        }
       }
-    } catch (_error) {
+    } catch (error) {
       this.log.error(`OID read or parse error: ${oids}`);
-      await this.setState("info.connection", false, true);
-      throw new Error((_a = _error.message) != null ? _a : "OID read or parse error");
+      await this.setStateChangedAsync("info.connection", false, true);
+      throw new Error((_d = error.message) != null ? _d : "OID read or parse error");
     }
   }
   /**
-   * Write OID to roomterminal, given by index
+   * Writes an OID value to the roomterminal, given by config index.
    *
-   * @param index index of the OID etnry to read in this.config.OiDs
-   * @param value value to write to the OID
+   * @param index - Index of the OID entry in `this.config.OIDs`
+   * @param value - Value to write to the OID
+   * @returns `true` if write succeeded, `false` otherwise
    */
   async oidWrite(index, value) {
     const oid = this.config.OIDs[index].oid;
-    const ind = oid.slice(oid.lastIndexOf("/") - oid.length + 1);
-    const body = `<?xml version="1.0" encoding="UTF-8"?>
-		<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
-		xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-		xmlns:ns="http://ws01.lom.ch/soap/">
-		<SOAP-ENV:Body>
-		  <ns:writeDpRequest>
-		   <ref>
-			<oid>${oid}</oid>
-			<prop/>
-		   </ref>
-		   <dp>
-			<index>${ind}</index>
-			<name/>
-			<prop/>
-			<desc/>
-			<value>${value}</value>
-			<unit/>
-			<timestamp>0</timestamp>
-		   </dp>
-		  </ns:writeDpRequest>   
-		</SOAP-ENV:Body>
-	   </SOAP-ENV:Envelope>`;
-    this.log.debug(`write body ${oid}: ${body}`);
-    const options = {
-      method: "post",
-      body,
-      headers: {
-        Connection: "Keep-Alive",
-        Accept: "*/*",
-        Pragma: "no-cache",
-        SOAPAction: "http://ws01.lom.ch/soap/writeDP",
-        "Cache-Control": "no-cache",
-        "Content-Type": "text/xml; charset=utf-8",
-        "Content-length": body.length
-      }
-    };
+    const ind = (0, import_util.extractOidIndex)(oid);
     try {
       this.log.debug(`Write OID ${oid} (XML-index ${ind}) with value: ${value}`);
-      const response = await this.client.fetch(this.getUrl, options);
-      if (response.ok != true) {
-        this.log.debug(`writing ${oid} failed" Message: ${JSON.stringify(response.statusText)}`);
+      const result = await this.client.writeDataPoint(oid, value);
+      this.log.debug(`write body ${oid}: ${result.body}`);
+      if (!result.ok) {
+        this.log.error(`writing ${oid} failed! Message: ${JSON.stringify(result.statusText)}`);
+        return false;
       }
+      return true;
     } catch (error) {
-      this.log.error(`OID (${oid}) write error: ${JSON.stringify(error)}`);
-      await this.setState("info.connection", false, true);
+      this.log.error(`OID (${oid}) write error: ${error.message}`);
+      await this.setStateChangedAsync("info.connection", false, true);
+      return false;
     }
   }
   /**
-   * Ochnser API for getting the oidNames Dictionary,
-   * 		either from file
-   * 		or
-   * 		from device (then stored to file)
+   * Loads the OID names dictionary, either from ioBroker file storage or from the device.
    *
-   * @returns oiNameDictionary
+   * @returns OID names dictionary
    */
   async oidGetNames() {
     let oidNamesDict = {};
@@ -480,43 +400,22 @@ class OchsnerRoomterminal extends utils.Adapter {
       if (oidNamesExists) {
         this.log.debug("oidNames.json file exists - skip reading from device");
         const res = await this.readFileAsync(this.namespace, fileName);
-        oidNamesDict = JSON.parse(res.file);
+        const content = Buffer.isBuffer(res.file) ? res.file.toString("utf-8") : String(res.file);
+        oidNamesDict = JSON.parse(content);
       } else {
-        const response = await this.client.fetch(
-          `http://${this.config.serverIP}/res/xml/VarIdentTexte_de.xml`,
-          getOptions
-        );
-        const data = await response.text();
-        const result = await (0, import_xml2js.parseStringPromise)(data);
-        for (const gnIndex in result.VarIdentTexte.gn) {
-          for (const mnIndex in result.VarIdentTexte.gn[gnIndex].mn) {
-            let gn = result.VarIdentTexte.gn[gnIndex].$.id;
-            let mn = result.VarIdentTexte.gn[gnIndex].mn[mnIndex].$.id;
-            if (gn.length == 1) {
-              gn = `0${gn}`;
-            }
-            if (mn.length == 1) {
-              mn = `0${mn}`;
-            }
-            const key = `${gn}:${mn}`;
-            oidNamesDict[key] = result.VarIdentTexte.gn[gnIndex].mn[mnIndex]._;
-          }
-        }
+        oidNamesDict = await this.client.fetchOidNames();
         await this.writeFileAsync(this.namespace, fileName, JSON.stringify(oidNamesDict));
         this.log.debug(`${fileName} written to 'Files'`);
       }
     } catch (error) {
-      this.log.error(`oidGetNames error: ${JSON.stringify(error)}`);
+      this.log.error(`oidGetNames error: ${error.message}`);
     }
     return oidNamesDict;
   }
   /**
-   * Ochnser API for getting the oidEnum Dictionary,
-   * 		either from file
-   * 		or
-   * 		from device (then stored to file)
+   * Loads the OID enums dictionary, either from ioBroker file storage or from the device.
    *
-   * @returns oidEnumDictionary
+   * @returns OID enums dictionary
    */
   async oidGetEnums() {
     let oidEnumsDict = {};
@@ -526,50 +425,30 @@ class OchsnerRoomterminal extends utils.Adapter {
       if (oidEnumsExists) {
         this.log.debug("oidEnums.json file exists - skip reading from device");
         const res = await this.readFileAsync(this.namespace, fileName);
-        oidEnumsDict = JSON.parse(res.file);
+        const content = Buffer.isBuffer(res.file) ? res.file.toString("utf-8") : String(res.file);
+        oidEnumsDict = JSON.parse(content);
       } else {
-        const response = await this.client.fetch(
-          `http://${this.config.serverIP}/res/xml/AufzaehlTexte_de.xml`,
-          getOptions
-        );
-        const data = await response.text();
-        const result = await (0, import_xml2js.parseStringPromise)(data);
-        for (const gnIndex in result.AufzaehlTexte.gn) {
-          for (const mnIndex in result.AufzaehlTexte.gn[gnIndex].mn) {
-            let gn = result.AufzaehlTexte.gn[gnIndex].$.id;
-            let mn = result.AufzaehlTexte.gn[gnIndex].mn[mnIndex].$.id;
-            gn = gn.length == 1 ? `0${gn}` : gn;
-            mn = mn.length == 1 ? `0${mn}` : mn;
-            const key = `${gn}:${mn}`;
-            const enumArray = [];
-            for (const enumIndex in result.AufzaehlTexte.gn[gnIndex].mn[mnIndex].enum) {
-              const index = parseInt(result.AufzaehlTexte.gn[gnIndex].mn[mnIndex].enum[enumIndex].$.id);
-              enumArray[index] = result.AufzaehlTexte.gn[gnIndex].mn[mnIndex].enum[enumIndex]._;
-            }
-            oidEnumsDict[key] = enumArray;
-          }
-        }
+        oidEnumsDict = await this.client.fetchOidEnums();
         await this.writeFileAsync(this.namespace, fileName, JSON.stringify(oidEnumsDict));
         this.log.debug(`${fileName} written to 'Files'`);
       }
     } catch (error) {
-      console.log("error:", { error });
+      this.log.error(`oidGetEnums error: ${error.message}`);
     }
     return oidEnumsDict;
   }
   /**
-   * Ochnser API for getting the DeviceInfo
+   * Verifies the connection to the Ochsner Roomterminal and updates `deviceInfo` states.
    *
-   * @returns true if connection is successful, false otherwise
+   * @returns `true` if connection is successful, `false` otherwise
    */
   async checkForConnection() {
     try {
-      const response = await this.client.fetch(this.deviceInfoUrl, getOptions);
-      const data = await response.json();
+      const data = await this.client.fetchDeviceInfo();
       this.log.info(`DeviceInfo: ${JSON.stringify(data)}`);
-      void this.setState("deviceInfo.name", { val: data.device, ack: true });
-      void this.setState("deviceInfo.version", { val: data.version, ack: true });
-    } catch (error) {
+      await this.setStateChangedAsync("deviceInfo.name", { val: data.device, ack: true });
+      await this.setStateChangedAsync("deviceInfo.version", { val: data.version, ack: true });
+    } catch {
       this.log.error("Invalid username, password or server IP-address in adapter configuration");
       return false;
     }

@@ -7,5 +7,11 @@
     "Your username for the Ochsner Roomterminal": "Ihr Benutzername für das Ochsner Roomterminal",
     "Your password for the Ochsner Roomterminal": "Ihr Passwort für das Ochsner Roomterminal",
     "Your IP or hostname of the Ochsner Roomterminal": "Ihre IP oder Hostname des Ochsner Roomterminals",
-    "Interval in sec between group read requests": "Intervall in Sekunden zwischen Gruppen-Leseanfragen"
+    "Interval in sec between group read requests": "Intervall in Sekunden zwischen Gruppen-Leseanfragen",
+    "OIDs": "OIDs",
+    "enabled": "Aktiviert",
+    "OID": "OID",
+    "Name": "Name",
+    "is Status": "ist Status",
+    "Group": "Gruppe"
 }

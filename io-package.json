@@ -153,12 +153,12 @@
     "eraseOnUpload": true,
     "dependencies": [
       {
-        "js-controller": ">=3.3.22"
+        "js-controller": ">=6.0.11"
       }
     ],
     "globalDependencies": [
       {
-        "admin": ">=5.1.28"
+        "admin": ">=7.0.23"
       }
     ]
   },
@@ -166,7 +166,8 @@
     "username": "USER",
     "password": "",
     "serverIP": "192.168.1.108",
-    "pollInterval": 30
+    "pollInterval": 30,
+    "OIDs": []
   },
   "protectedNative": [
     "username",
@@ -304,6 +305,7 @@
           "it": "Archiviazione file",
           "es": "Almacenamiento de archivos",
           "pl": "Storage room",
+          "uk": "Зберігання файлів",
           "zh-cn": "储存"
         },
         "type": "meta.user"

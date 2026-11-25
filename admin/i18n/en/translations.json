@@ -1,11 +1,17 @@
 {
-	"Options": "Options",
-	"Username": "Username",
-	"Password": "Password",
-	"Server": "Server",
-	"Interval": "Interval",
-	"Your username for the Ochsner Roomterminal": "Your username for the Ochsner Roomterminal",
-	"Your password for the Ochsner Roomterminal": "Your password for the Ochsner Roomterminal",
-	"Your IP or hostname of the Ochsner Roomterminal": "Your IP or hostname of the Ochsner Roomterminal",
-	"Interval in sec between group read requests": "Interval in sec between group read requests"
+    "Options": "Options",
+    "Username": "Username",
+    "Password": "Password",
+    "Server": "Server",
+    "Interval": "Interval",
+    "Your username for the Ochsner Roomterminal": "Your username for the Ochsner Roomterminal",
+    "Your password for the Ochsner Roomterminal": "Your password for the Ochsner Roomterminal",
+    "Your IP or hostname of the Ochsner Roomterminal": "Your IP or hostname of the Ochsner Roomterminal",
+    "Interval in sec between group read requests": "Interval in sec between group read requests",
+    "OIDs": "OIDs",
+    "enabled": "Enabled",
+    "OID": "OID",
+    "Name": "Name",
+    "is Status": "is Status",
+    "Group": "Group"
 }

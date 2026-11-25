@@ -7,7 +7,11 @@
     "Your username for the Ochsner Roomterminal": "Ваше ім’я користувача для Ochsner Roomterminal",
     "Your password for the Ochsner Roomterminal": "Ваш пароль для Ochsner Roomterminal",
     "Your IP or hostname of the Ochsner Roomterminal": "Ваша IP-адреса або ім’я хоста Ochsner Roomterminal",
-    "Interval in ms between single OID requests": "Інтервал у мс між окремими запитами OID",
-    "Interval in sec between single OID requests": "Інтервал у секундах між окремими запитами OID",
-    "Interval in sec between group read requests": "Інтервал у секундах між груповими запитами на читання"
+    "Interval in sec between group read requests": "Інтервал у секундах між груповими запитами на читання",
+    "OIDs": "OID",
+    "enabled": "Увімкнено",
+    "OID": "OID",
+    "Name": "Ім'я",
+    "is Status": "статус на сервери",
+    "Group": "Група"
 }

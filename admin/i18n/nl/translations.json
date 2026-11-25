@@ -7,7 +7,11 @@
     "Your username for the Ochsner Roomterminal": "Uw gebruikersnaam voor de Ochsner Roomterminal",
     "Your password for the Ochsner Roomterminal": "Uw wachtwoord voor de Ochsner Roomterminal",
     "Your IP or hostname of the Ochsner Roomterminal": "Uw IP of hostnaam van de Ochsner Roomterminal",
-    "Interval in ms between single OID requests": "Interval in ms tussen afzonderlijke OID-verzoeken",
-    "Interval in sec between single OID requests": "Interval in seconden tussen afzonderlijke OID-verzoeken",
-    "Interval in sec between group read requests": "Interval in seconden tussen groepsleesverzoeken"
+    "Interval in sec between group read requests": "Interval in seconden tussen groepsleesverzoeken",
+    "OIDs": "OID's",
+    "enabled": "Ingeschakeld",
+    "OID": "OID",
+    "Name": "Naam",
+    "is Status": "status",
+    "Group": "Groep"
 }

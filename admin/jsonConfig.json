@@ -8,6 +8,7 @@
 			"items": {
 				"username": {
 					"type": "text",
+					"xs": 12,
 					"sm": 6,
 					"md": 3,
 					"lg": 3,
@@ -16,6 +17,7 @@
 				},
 				"password": {
 					"type": "password",
+					"xs": 12,
 					"sm": 6,
 					"md": 3,
 					"lg": 3,
@@ -25,16 +27,20 @@
 				},
 				"serverIP": {
 					"type": "text",
+					"xs": 12,
 					"sm": 6,
 					"md": 3,
 					"lg": 3,
 					"label": "Server",
-					"help": "Your IP or hostname of the Ochsner Roomterminal"
+					"help": "Your IP or hostname of the Ochsner Roomterminal",
+					"validator": "!!data.serverIP",
+					"validatorNoSaveOnError": true
 				},
 				"pollInterval": {
 					"type": "number",
 					"min": 1,
 					"max": 65535,
+					"xs": 12,
 					"sm": 3,
 					"md": 2,
 					"lg": 2,
@@ -52,6 +58,7 @@
 					"type": "table",
 					"label": "OIDs",
 					"noDelete": false,
+					"xs": 12,
 					"sm": 12,
 					"md": 12,
 					"lg": 12,
@@ -66,7 +73,7 @@
 						{
 							"type": "text",
 							"attr": "oid",
-							"width": "15% ",
+							"width": "15%",
 							"title": "OID",
 							"filter": false,
 							"sort": true,
@@ -76,20 +83,8 @@
 							"type": "text",
 							"attr": "name",
 							"default": "",
-							"width": "30% ",
-							"title": {
-								"en": "Name",
-								"de": "Name",
-								"ru": "Имя",
-								"pt": "Nome",
-								"nl": "Naam",
-								"fr": "Nom",
-								"it": "Nome",
-								"es": "Nombre",
-								"pl": "Nazwa",
-								"uk": "Ім'я",
-								"zh-cn": "姓名"
-							},
+							"width": "30%",
+							"title": "Name",
 							"filter": false,
 							"sort": true
 						},
@@ -98,19 +93,7 @@
 							"attr": "isStatus",
 							"default": false,
 							"width": "5%",
-							"title": {
-								"en": "is Status",
-								"de": "ist Status",
-								"ru": "статус",
-								"pt": "é o Estado",
-								"nl": "status",
-								"fr": "a) Statut",
-								"it": "è stato",
-								"es": "estado",
-								"pl": "status",
-								"uk": "статус на сервери",
-								"zh-cn": "现状"
-							},
+							"title": "is Status",
 							"filter": false,
 							"sort": false
 						},
@@ -121,19 +104,7 @@
 							"max": 15,
 							"default": 0,
 							"width": "5%",
-							"title": {
-								"en": "Group",
-								"de": "Gruppe",
-								"ru": "Группа",
-								"pt": "Grupo",
-								"nl": "Groep",
-								"fr": "Groupe",
-								"it": "Gruppo",
-								"es": "Grupo",
-								"pl": "Grupa",
-								"uk": "Група",
-								"zh-cn": "集团"
-							},
+							"title": "Group",
 							"filter": false,
 							"sort": true
 						}
