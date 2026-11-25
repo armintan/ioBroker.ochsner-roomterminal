@@ -91,7 +91,7 @@ This allows you to get just-in-time device information, whenever you need them.
 	Placeholder for the next version (at the beginning of the line):
 	### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 0.0.16 (2026-11-25)
 
 - (armintan) refactored adapter code into modular structure (`web2commClient`, `util`) with unit tests
 - (armintan) improved ioBroker compliance (managed timers in `onUnload`, `setStateChangedAsync`, `setObjectNotExistsAsync`, proper `ack` handling, standard state roles)

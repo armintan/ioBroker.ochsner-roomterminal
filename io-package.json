@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "ochsner-roomterminal",
-    "version": "0.0.15",
+    "version": "0.0.16",
     "news": {
+      "0.0.16": {
+        "en": "refactored adapter code into modular structure (`web2commClient`, `util`) with unit tests\nimproved ioBroker compliance (managed timers in `onUnload`, `setStateChangedAsync`, `setObjectNotExistsAsync`, proper `ack` handling, standard state roles)\ncompleted `jsonConfig` validation, responsive layout, and `i18n` translations across all languages\nupdated dependencies and minimum requirements (`Node.js >= 20`, `js-controller >= 6.0.11`, `admin >= 7.0.23`)",
+        "de": "Modularer Adaptercode (`Web2CommClient`, `util`) mit Komponententests\nverbesserte IOBroker-Compliance (verwaltete Timer in `onUnload`, `setStateChangedAsync`, `setObjectNotExistsAsync`, richtiges `ack`-Handling, Standardstatusrollen)\n`JSONConfig`-Validierung, responsives Layout und `i18n`-Übersetzungen in allen Sprachen abgeschlossen\nAbhängigkeiten und Mindestanforderungen aktualisiert (`Node.js >= 20`, `js-controller >= 6.0.11`, `admin >= 7.0.23`)",
+        "ru": "рефакторинг кода адаптера в модульную структуру (`Web2CommClient`, `util`) с помощью модульных тестов\nулучшенное соответствие требованиям IOBroker (управляемые таймеры в `onUnload`, `setStateChangedAsync`, `setObjectNotExistsAsync`, правильная обработка `ack`, стандартные роли состояний)\nзавершена валидация `JsonConfig`, адаптивная верстка и переводы `i18n` на все языки\nобновленные зависимости и минимальные требования (`Node.js >= 20`, `js-контроллер >= 6.0.11`, `admin >= 7.0.23`)",
+        "pt": "adaptou o código em estrutura modular (`Web2CommClient`, `util`) com testes unitários\nmelhor conformidade com o IOBroker (timers gerenciados em `onUnload`, `setStateChangedAsync`, `setObjectNotExistSasync`, funções de estado padrão)\nvalidação completa do `jsonConfig`, layout responsivo e traduções do `i18n` em todos os idiomas\ndependências atualizadas e requisitos mínimos (`Node.js >= 20`, `js-controller >= 6.0.11`, `admin >= 7.0.23`)",
+        "nl": "refactorcode van de adapter naar een modulaire structuur (`Web2CommClient`, `util`) met unit-tests\nverbeterde compatibiliteit met IOBroker (beheerde timers in `OnUnload`, `setStateChangedAsync`, `setObjectNotExistSaSync`, correcte `ack` afhandeling, standaard statusrollen)\nvoltooide `JSONConfig` validatie, responsieve lay-out en `i18n` vertalingen in alle talen\nbijgewerkte afhankelijkheden en minimumvereisten (`Node.js>= 20`, `js-controller>= 6.0.11`, `admin >= 7.0.23`)",
+        "fr": "code adaptateur remanié en structure modulaire (`Web2CommClient`, `util`) avec tests unitaires\nmeilleure conformité à IOBroker (chronomètres gérés dans « OnUnload », « SetStateChangedAsync », « SetObjectNotExistsSasync », gestion « ack » correcte, rôles d'état standard)\nvalidation « JSONConfig » terminée, mise en page réactive et traductions « i18n » dans toutes les langues\ndépendances mises à jour et exigences minimales (`Node.js >= 20`, `js-controller >= 6.0.11`, `admin >= 7.0.23`)",
+        "it": "codice adattatore rifattorizzato in struttura modulare (`Web2CommClient`, `util`)\nmigliore conformità IOBroker (timer gestiti in `onUnload`, `setStateChangedAsync`, `setObjectNotExistSasync`, corretta gestione `ack`, ruoli di stato standard)\nconvalida `JSONConfig` completata, layout reattivo e traduzioni `i18n` in tutte le lingue\ndipendenze e requisiti minimi aggiornati (`Node.js >= 20`, `js-controller >= 6.0.11`, `admin >= 7.0.23`)",
+        "es": "refactorizó el código del adaptador en una estructura modular (`Web2CommClient`, `util`) con pruebas unitarias\nmejora del cumplimiento de IOBroker (temporizadores gestionados en `OnUnload`, `SetStateChangedAsync`, `SetObjectNotExistsAsync`, manejo adecuado de «ack», roles de estado estándar)\ncompletó la validación de «JsonConfig», el diseño adaptable y las traducciones de «i18n» en todos los idiomas\ndependencias y requisitos mínimos actualizados (`Node.js >= 20`, `js-controller >= 6.0.11`, `admin >= 7.0.23`)",
+        "pl": "zmieniony kod adaptera do struktury modułowej („Web2CommClient”, „util”) z testami jednostkowymi\npoprawiona zgodność z IOBroker (zarządzane timery w `onUnload`, `SetStateChangedAsync`, `SetObjectNotExistsASync`, prawidłowa obsługa `ack`, role stanów standardowych)\nzakończono walidację `JSONConfig`, responsywny układ i tłumaczenia `i18n` we wszystkich językach\nzaktualizowane zależności i minimalne wymagania (`Node.js >= 20`, `js-controller >= 6.0.11`, `admin >= 7.0.23`)",
+        "uk": "перероблений код адаптера в модульну структуру (`Web2CommClient`, `util`) з тестами одиниць\nпокращена відповідність IObroker (керовані таймери в `onUnload`, `setStateChangedAsync`, `setObjectNotExistsASync`, правильна обробка `ack`, стандартні ролі стану)\nзавершено перевірку `JsonConfig`, адаптивний макет та `i18n` переклади на всі мови\nоновлені залежності та мінімальні вимоги (`Node.js>= 20`, `js-контролер>= 6.0.11`, `admin >= 7.0.23`)",
+        "zh-cn": "使用单元测试将适配器代码重构为模块化结构（`web2CommClient`、`util`）\n提高了 ioBroker 合规性（在 `onUnload`、`setStateChangedAsync`、`setObjectNotexistsaSync` 中管理计时器、正确的 “返回” 处理、标准状态角色）\n已完成所有语言的 `jsonConfig` 验证、响应式布局和 `i18n` 翻译\n更新了依赖关系和最低要求（`Node.js >= 20`、`js-controller >= 6.0.11`、`管理员 >= 7.0.23`）"
+      },
       "0.0.15": {
         "en": "update latest npm packages and iobroker runtime",
         "de": "aktualisierung der neuesten npm pakete und iobroker laufzeit",
@@ -80,19 +93,6 @@
         "pl": "dodany opis początkowy\nfix OID write index problem",
         "uk": "доданий початковий опис\nвиправити проблему індексу OID",
         "zh-cn": "增加的初步说明\n修复 OID 写入索引问题"
-      },
-      "0.0.8": {
-        "en": "removed React components\nNPM packages updates",
-        "de": "entfernt Reaktionskomponenten\nNPM Pakete Updates",
-        "ru": "удалено React компоненты\nОбновления пакетов NPM",
-        "pt": "removido componentes de reação\nAtualizações de pacotes NPM",
-        "nl": "verwijderd Reageer componenten\nNPM updates",
-        "fr": "enlevé Composants\nMise à jour des paquets NPM",
-        "it": "rimosso Componenti reattivi\nAggiornamento dei pacchetti NPM",
-        "es": "retirada Componentes de reacción\nActualizaciones de paquetes NPM",
-        "pl": "usunąć Reaktywność\nPakiety NPM",
-        "uk": "видалення Компоненти\nОновлення пакетів NPM",
-        "zh-cn": "拆除 重新定性\n国家一揽子计划更新"
       }
     },
     "titleLang": {
