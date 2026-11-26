@@ -9,8 +9,6 @@ declare global {
             name: string;
             isStatus: boolean;
             group: number;
-            // isWriteable: boolean;
-            // statusID: string;
         }
 
         interface AdapterConfig {
@@ -19,7 +17,6 @@ declare global {
             serverIP: string;
             pollInterval: number;
             OIDs: OID[];
-            // Status: [{ statusID: string; statusValue: number; statusText; string }];
         }
     }
 }

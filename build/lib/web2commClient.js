@@ -1,9 +1,7 @@
 "use strict";
-var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -17,17 +15,10 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var web2commClient_exports = {};
 __export(web2commClient_exports, {
+  DEFAULT_REQUEST_TIMEOUT_MS: () => DEFAULT_REQUEST_TIMEOUT_MS,
   Web2CommClient: () => Web2CommClient,
   buildGetDpSoapBody: () => buildGetDpSoapBody,
   buildWriteDpSoapBody: () => buildWriteDpSoapBody,
@@ -36,19 +27,29 @@ __export(web2commClient_exports, {
   parseOidNamesXml: () => parseOidNamesXml
 });
 module.exports = __toCommonJS(web2commClient_exports);
-var import_digest_fetch = __toESM(require("digest-fetch"));
 var import_xml2js = require("xml2js");
 var import_util = require("./util");
-const DEFAULT_GET_OPTIONS = {
-  method: "get",
+const DEFAULT_REQUEST_TIMEOUT_MS = 1e4;
+const extractXmlText = (node) => {
+  if (typeof node === "string") {
+    return node;
+  }
+  if (node && typeof node === "object" && "_" in node) {
+    const text = node._;
+    return typeof text === "string" ? text : "";
+  }
+  return "";
+};
+const createGetOptions = (accept, signal) => ({
+  method: "GET",
   headers: {
     Connection: "Keep-Alive",
-    Accept: "text/xml",
+    Accept: accept,
     Pragma: "no-cache",
-    "Cache-Control": "no-cache",
-    "Content-Type": "text/xml; charset=utf-8"
-  }
-};
+    "Cache-Control": "no-cache"
+  },
+  ...signal ? { signal } : {}
+});
 const buildGetDpSoapBody = (oids) => `<?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
 xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
@@ -58,7 +59,7 @@ xmlns:ns="http://ws01.lom.ch/soap/">
  <SOAP-ENV:Body>
    <ns:getDpRequest>
     <ref>
-     <oid>${oids}</oid>
+     <oid>${(0, import_util.escapeXml)(oids)}</oid>
      <prop/>
     </ref>
     <startIndex>0</startIndex>
@@ -77,15 +78,15 @@ xmlns:ns="http://ws01.lom.ch/soap/">
 <SOAP-ENV:Body>
   <ns:writeDpRequest>
    <ref>
-    <oid>${oid}</oid>
+    <oid>${(0, import_util.escapeXml)(oid)}</oid>
     <prop/>
    </ref>
    <dp>
-    <index>${ind}</index>
+    <index>${(0, import_util.escapeXml)(ind)}</index>
     <name/>
     <prop/>
     <desc/>
-    <value>${value}</value>
+    <value>${(0, import_util.escapeXml)(String(value))}</value>
     <unit/>
     <timestamp>0</timestamp>
    </dp>
@@ -93,52 +94,96 @@ xmlns:ns="http://ws01.lom.ch/soap/">
 </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>`;
 };
+const extractSoapFault = (parsedXml) => {
+  var _a, _b, _c;
+  const envelope = parsedXml == null ? void 0 : parsedXml["SOAP-ENV:Envelope"];
+  const bodyList = envelope == null ? void 0 : envelope["SOAP-ENV:Body"];
+  if (!Array.isArray(bodyList) || !bodyList[0] || typeof bodyList[0] !== "object") {
+    return void 0;
+  }
+  const body = bodyList[0];
+  const faultList = (_a = body["SOAP-ENV:Fault"]) != null ? _a : body.Fault;
+  if (!Array.isArray(faultList) || !faultList[0] || typeof faultList[0] !== "object") {
+    return void 0;
+  }
+  const fault = faultList[0];
+  const faultString = extractXmlText((_b = fault.faultstring) == null ? void 0 : _b[0]);
+  const faultCode = extractXmlText((_c = fault.faultcode) == null ? void 0 : _c[0]);
+  if (faultString && faultCode) {
+    return `${faultCode}: ${faultString}`;
+  }
+  return faultString || faultCode || "SOAP Fault";
+};
 const parseOidNamesXml = async (xmlContent) => {
-  var _a, _b, _c, _d, _e;
+  var _a, _b, _c, _d;
   const oidNamesDict = {};
   const result = await (0, import_xml2js.parseStringPromise)(xmlContent);
-  const groups = (_a = result == null ? void 0 : result.VarIdentTexte) == null ? void 0 : _a.gn;
+  const root = result == null ? void 0 : result.VarIdentTexte;
+  const groups = root == null ? void 0 : root.gn;
   if (!Array.isArray(groups)) {
     return oidNamesDict;
   }
   for (const gnEntry of groups) {
-    const gn = (0, import_util.padId)(String((_c = (_b = gnEntry == null ? void 0 : gnEntry.$) == null ? void 0 : _b.id) != null ? _c : ""));
-    const members = gnEntry == null ? void 0 : gnEntry.mn;
+    const gnObj = gnEntry;
+    const gnRaw = ((_b = (_a = gnObj == null ? void 0 : gnObj.$) == null ? void 0 : _a.id) != null ? _b : "").trim();
+    if (!gnRaw) {
+      continue;
+    }
+    const gn = (0, import_util.padId)(gnRaw);
+    const members = gnObj == null ? void 0 : gnObj.mn;
     if (!Array.isArray(members)) {
       continue;
     }
     for (const mnEntry of members) {
-      const mn = (0, import_util.padId)(String((_e = (_d = mnEntry == null ? void 0 : mnEntry.$) == null ? void 0 : _d.id) != null ? _e : ""));
-      const key = `${gn}:${mn}`;
-      oidNamesDict[key] = mnEntry._;
+      const mnObj = mnEntry;
+      const mnRaw = ((_d = (_c = mnObj == null ? void 0 : mnObj.$) == null ? void 0 : _c.id) != null ? _d : "").trim();
+      const text = extractXmlText(mnEntry);
+      if (!mnRaw || !text) {
+        continue;
+      }
+      const mn = (0, import_util.padId)(mnRaw);
+      oidNamesDict[`${gn}:${mn}`] = text;
     }
   }
   return oidNamesDict;
 };
 const parseOidEnumsXml = async (xmlContent) => {
-  var _a, _b, _c, _d, _e, _f, _g;
+  var _a, _b, _c, _d, _e, _f;
   const oidEnumsDict = {};
   const result = await (0, import_xml2js.parseStringPromise)(xmlContent);
-  const groups = (_a = result == null ? void 0 : result.AufzaehlTexte) == null ? void 0 : _a.gn;
+  const root = result == null ? void 0 : result.AufzaehlTexte;
+  const groups = root == null ? void 0 : root.gn;
   if (!Array.isArray(groups)) {
     return oidEnumsDict;
   }
   for (const gnEntry of groups) {
-    const gn = (0, import_util.padId)(String((_c = (_b = gnEntry == null ? void 0 : gnEntry.$) == null ? void 0 : _b.id) != null ? _c : ""));
-    const members = gnEntry == null ? void 0 : gnEntry.mn;
+    const gnObj = gnEntry;
+    const gnRaw = ((_b = (_a = gnObj == null ? void 0 : gnObj.$) == null ? void 0 : _a.id) != null ? _b : "").trim();
+    if (!gnRaw) {
+      continue;
+    }
+    const gn = (0, import_util.padId)(gnRaw);
+    const members = gnObj == null ? void 0 : gnObj.mn;
     if (!Array.isArray(members)) {
       continue;
     }
     for (const mnEntry of members) {
-      const mn = (0, import_util.padId)(String((_e = (_d = mnEntry == null ? void 0 : mnEntry.$) == null ? void 0 : _d.id) != null ? _e : ""));
+      const mnObj = mnEntry;
+      const mnRaw = ((_d = (_c = mnObj == null ? void 0 : mnObj.$) == null ? void 0 : _c.id) != null ? _d : "").trim();
+      if (!mnRaw) {
+        continue;
+      }
+      const mn = (0, import_util.padId)(mnRaw);
       const key = `${gn}:${mn}`;
       const enumArray = [];
-      const enums = mnEntry == null ? void 0 : mnEntry.enum;
+      const enums = mnObj == null ? void 0 : mnObj.enum;
       if (Array.isArray(enums)) {
         for (const enumEntry of enums) {
-          const index = parseInt(String((_g = (_f = enumEntry == null ? void 0 : enumEntry.$) == null ? void 0 : _f.id) != null ? _g : ""), 10);
-          if (!Number.isNaN(index)) {
-            enumArray[index] = enumEntry._;
+          const enumObj = enumEntry;
+          const index = parseInt((_f = (_e = enumObj == null ? void 0 : enumObj.$) == null ? void 0 : _e.id) != null ? _f : "", 10);
+          const text = extractXmlText(enumEntry);
+          if (Number.isInteger(index) && index >= 0 && text.length > 0) {
+            enumArray[index] = text;
           }
         }
       }
@@ -148,40 +193,107 @@ const parseOidEnumsXml = async (xmlContent) => {
   return oidEnumsDict;
 };
 const parseGetDpResponseXml = async (xmlContent) => {
-  var _a, _b, _c, _d, _e, _f;
   const jsonResult = await (0, import_xml2js.parseStringPromise)(xmlContent);
-  const dpCfg = (_f = (_e = (_d = (_c = (_b = (_a = jsonResult == null ? void 0 : jsonResult["SOAP-ENV:Envelope"]) == null ? void 0 : _a["SOAP-ENV:Body"]) == null ? void 0 : _b[0]) == null ? void 0 : _c["ns:getDpResponse"]) == null ? void 0 : _d[0]) == null ? void 0 : _e.dpCfg) != null ? _f : [];
+  const fault = extractSoapFault(jsonResult);
+  if (fault) {
+    throw new Error(`SOAP Fault: ${fault}`);
+  }
+  const envelope = jsonResult == null ? void 0 : jsonResult["SOAP-ENV:Envelope"];
+  const bodyList = envelope == null ? void 0 : envelope["SOAP-ENV:Body"];
+  const body = Array.isArray(bodyList) ? bodyList[0] : void 0;
+  const responseList = body == null ? void 0 : body["ns:getDpResponse"];
+  const responseObj = Array.isArray(responseList) ? responseList[0] : void 0;
+  const dpCfg = Array.isArray(responseObj == null ? void 0 : responseObj.dpCfg) ? responseObj.dpCfg : [];
   return dpCfg.map((dp) => {
-    var _a2, _b2, _c2, _d2, _e2, _f2, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     return {
-      name: String((_b2 = (_a2 = dp.name) == null ? void 0 : _a2[0]) != null ? _b2 : ""),
-      prop: String((_d2 = (_c2 = dp.prop) == null ? void 0 : _c2[0]) != null ? _d2 : ""),
-      desc: String((_f2 = (_e2 = dp.desc) == null ? void 0 : _e2[0]) != null ? _f2 : ""),
-      value: String((_h = (_g = dp.value) == null ? void 0 : _g[0]) != null ? _h : ""),
-      unit: String((_j = (_i = dp.unit) == null ? void 0 : _i[0]) != null ? _j : ""),
-      step: String((_l = (_k = dp.step) == null ? void 0 : _k[0]) != null ? _l : ""),
-      min: String((_n = (_m = dp.minValue) == null ? void 0 : _m[0]) != null ? _n : ""),
-      max: String((_p = (_o = dp.maxValue) == null ? void 0 : _o[0]) != null ? _p : "")
+      name: extractXmlText((_a = dp.name) == null ? void 0 : _a[0]),
+      prop: extractXmlText((_b = dp.prop) == null ? void 0 : _b[0]),
+      desc: extractXmlText((_c = dp.desc) == null ? void 0 : _c[0]),
+      value: extractXmlText((_d = dp.value) == null ? void 0 : _d[0]),
+      unit: extractXmlText((_e = dp.unit) == null ? void 0 : _e[0]),
+      step: extractXmlText((_f = dp.step) == null ? void 0 : _f[0]),
+      min: extractXmlText((_g = dp.minValue) == null ? void 0 : _g[0]),
+      max: extractXmlText((_h = dp.maxValue) == null ? void 0 : _h[0])
     };
   });
 };
 class Web2CommClient {
-  client;
+  baseUrl;
   deviceInfoUrl;
   wsUrl;
-  serverIP;
+  username;
+  password;
+  timeoutMs;
+  httpClientPromise;
+  activeControllers = /* @__PURE__ */ new Set();
   /**
    * Creates a new Web2CommClient instance.
    *
-   * @param serverIP - IP address or hostname of the Ochsner Roomterminal
+   * @param serverIP - IP address, hostname, or base URL of the Ochsner Roomterminal
    * @param username - Digest auth username
    * @param password - Digest auth password
+   * @param options - Optional timeout and HTTP client overrides
    */
-  constructor(serverIP, username, password) {
-    this.serverIP = serverIP;
-    this.deviceInfoUrl = `http://${serverIP}/api/1.0/info/deviceinfo`;
-    this.wsUrl = `http://${serverIP}/ws`;
-    this.client = new import_digest_fetch.default(username, password);
+  constructor(serverIP, username, password, options = {}) {
+    var _a;
+    this.baseUrl = (0, import_util.normalizeBaseUrl)(serverIP);
+    this.deviceInfoUrl = `${this.baseUrl}/api/1.0/info/deviceinfo`;
+    this.wsUrl = `${this.baseUrl}/ws`;
+    this.username = username;
+    this.password = password;
+    this.timeoutMs = (_a = options.timeoutMs) != null ? _a : DEFAULT_REQUEST_TIMEOUT_MS;
+    if (options.httpClient) {
+      this.httpClientPromise = Promise.resolve(options.httpClient);
+    }
+  }
+  /**
+   * Aborts all currently in-flight HTTP requests (e.g. during adapter unload).
+   */
+  abort() {
+    for (const controller of this.activeControllers) {
+      controller.abort(new Error("Request aborted"));
+    }
+    this.activeControllers.clear();
+  }
+  /**
+   * Lazily loads the ESM `digest-fetch` module via native `import()` so CommonJS output
+   * built by esbuild works on all Node.js 20.x versions (including < 20.19).
+   */
+  getHttpClient() {
+    if (!this.httpClientPromise) {
+      const nativeImport = new Function("specifier", "return import(specifier)");
+      this.httpClientPromise = nativeImport("digest-fetch").then((mod) => {
+        const DigestFetchCtor = mod.default;
+        return new DigestFetchCtor(this.username, this.password);
+      });
+    }
+    return this.httpClientPromise;
+  }
+  /**
+   * Executes an HTTP request with per-request timeout and abort tracking.
+   *
+   * @param url - Request URL
+   * @param buildOptions - Callback receiving the request's `AbortSignal` and returning fetch options
+   * @returns HTTP `Response`
+   */
+  async fetchWithTimeout(url, buildOptions) {
+    const controller = new AbortController();
+    this.activeControllers.add(controller);
+    const timer = setTimeout(
+      () => controller.abort(new Error(`Request timed out after ${this.timeoutMs} ms`)),
+      this.timeoutMs
+    );
+    try {
+      const client = await this.getHttpClient();
+      if (controller.signal.aborted) {
+        throw controller.signal.reason instanceof Error ? controller.signal.reason : new Error("Request aborted");
+      }
+      return await client.fetch(url, buildOptions(controller.signal));
+    } finally {
+      clearTimeout(timer);
+      this.activeControllers.delete(controller);
+    }
   }
   /**
    * Queries the device info endpoint to verify connectivity and credentials.
@@ -189,8 +301,12 @@ class Web2CommClient {
    * @returns Parsed device info object (`device` and `version`)
    */
   async fetchDeviceInfo() {
-    const response = await this.client.fetch(this.deviceInfoUrl, DEFAULT_GET_OPTIONS);
+    const response = await this.fetchWithTimeout(
+      this.deviceInfoUrl,
+      (signal) => createGetOptions("application/json", signal)
+    );
     if (!response.ok) {
+      await response.text().catch(() => void 0);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     return await response.json();
@@ -203,8 +319,9 @@ class Web2CommClient {
    */
   async readDataPoints(oids) {
     const body = buildGetDpSoapBody(oids);
-    const options = {
-      method: "post",
+    const contentLength = String(Buffer.byteLength(body, "utf8"));
+    const response = await this.fetchWithTimeout(this.wsUrl, (signal) => ({
+      method: "POST",
       body,
       headers: {
         Connection: "Keep-Alive",
@@ -213,14 +330,14 @@ class Web2CommClient {
         SOAPAction: "http://ws01.lom.ch/soap/getDP",
         "Cache-Control": "no-cache",
         "Content-Type": "text/xml; charset=utf-8",
-        "Content-length": body.length
-      }
-    };
-    const response = await this.client.fetch(this.wsUrl, options);
-    if (!response.ok) {
-      throw new Error(`reading ${oids} failed! Message: ${JSON.stringify(response.statusText)}`);
-    }
+        "Content-Length": contentLength
+      },
+      signal
+    }));
     const rawXml = await response.text();
+    if (!response.ok) {
+      throw new Error(`reading ${oids} failed! HTTP ${response.status}: ${response.statusText}`);
+    }
     const dataPoints = await parseGetDpResponseXml(rawXml);
     return { rawXml, dataPoints };
   }
@@ -229,12 +346,13 @@ class Web2CommClient {
    *
    * @param oid - OID path string
    * @param value - Value to write
-   * @returns Object with SOAP request body and HTTP response status
+   * @returns Object with SOAP request body, HTTP/SOAP success flag, and status text
    */
   async writeDataPoint(oid, value) {
     const body = buildWriteDpSoapBody(oid, value);
-    const options = {
-      method: "post",
+    const contentLength = String(Buffer.byteLength(body, "utf8"));
+    const response = await this.fetchWithTimeout(this.wsUrl, (signal) => ({
+      method: "POST",
       body,
       headers: {
         Connection: "Keep-Alive",
@@ -243,13 +361,35 @@ class Web2CommClient {
         SOAPAction: "http://ws01.lom.ch/soap/writeDP",
         "Cache-Control": "no-cache",
         "Content-Type": "text/xml; charset=utf-8",
-        "Content-length": body.length
+        "Content-Length": contentLength
+      },
+      signal
+    }));
+    const responseText = await response.text();
+    if (!response.ok) {
+      return {
+        body,
+        ok: false,
+        statusText: response.statusText || `HTTP ${response.status}`
+      };
+    }
+    if (responseText.includes("Fault")) {
+      try {
+        const parsed = await (0, import_xml2js.parseStringPromise)(responseText);
+        const fault = extractSoapFault(parsed);
+        if (fault) {
+          return {
+            body,
+            ok: false,
+            statusText: fault
+          };
+        }
+      } catch {
       }
-    };
-    const response = await this.client.fetch(this.wsUrl, options);
+    }
     return {
       body,
-      ok: response.ok === true,
+      ok: true,
       statusText: response.statusText
     };
   }
@@ -259,14 +399,14 @@ class Web2CommClient {
    * @returns Dictionary mapping `"gn:mn"` to variable names
    */
   async fetchOidNames() {
-    const response = await this.client.fetch(
-      `http://${this.serverIP}/res/xml/VarIdentTexte_de.xml`,
-      DEFAULT_GET_OPTIONS
+    const response = await this.fetchWithTimeout(
+      `${this.baseUrl}/res/xml/VarIdentTexte_de.xml`,
+      (signal) => createGetOptions("text/xml", signal)
     );
+    const xmlContent = await response.text();
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    const xmlContent = await response.text();
     return parseOidNamesXml(xmlContent);
   }
   /**
@@ -275,19 +415,20 @@ class Web2CommClient {
    * @returns Dictionary mapping `"gn:mn"` to arrays of enum labels
    */
   async fetchOidEnums() {
-    const response = await this.client.fetch(
-      `http://${this.serverIP}/res/xml/AufzaehlTexte_de.xml`,
-      DEFAULT_GET_OPTIONS
+    const response = await this.fetchWithTimeout(
+      `${this.baseUrl}/res/xml/AufzaehlTexte_de.xml`,
+      (signal) => createGetOptions("text/xml", signal)
     );
+    const xmlContent = await response.text();
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    const xmlContent = await response.text();
     return parseOidEnumsXml(xmlContent);
   }
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  DEFAULT_REQUEST_TIMEOUT_MS,
   Web2CommClient,
   buildGetDpSoapBody,
   buildWriteDpSoapBody,

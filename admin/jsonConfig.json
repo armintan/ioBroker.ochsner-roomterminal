@@ -33,7 +33,7 @@
 					"lg": 3,
 					"label": "Server",
 					"help": "Your IP or hostname of the Ochsner Roomterminal",
-					"validator": "!!data.serverIP",
+					"validator": "!!data.serverIP && !!data.serverIP.trim()",
 					"validatorNoSaveOnError": true
 				},
 				"pollInterval": {
@@ -49,7 +49,7 @@
 				}
 			}
 		},
-		"OIDs": {
+		"_oids": {
 			"type": "panel",
 			"label": "OIDs",
 			"items": {
@@ -66,14 +66,14 @@
 						{
 							"type": "checkbox",
 							"default": true,
-							"width": "5%",
+							"width": "10%",
 							"title": "enabled",
 							"attr": "enabled"
 						},
 						{
 							"type": "text",
 							"attr": "oid",
-							"width": "15%",
+							"width": "25%",
 							"title": "OID",
 							"filter": false,
 							"sort": true,
@@ -83,7 +83,7 @@
 							"type": "text",
 							"attr": "name",
 							"default": "",
-							"width": "30%",
+							"width": "40%",
 							"title": "Name",
 							"filter": false,
 							"sort": true
@@ -92,7 +92,7 @@
 							"type": "checkbox",
 							"attr": "isStatus",
 							"default": false,
-							"width": "5%",
+							"width": "12%",
 							"title": "is Status",
 							"filter": false,
 							"sort": false
@@ -103,7 +103,7 @@
 							"min": 0,
 							"max": 15,
 							"default": 0,
-							"width": "5%",
+							"width": "13%",
 							"title": "Group",
 							"filter": false,
 							"sort": true

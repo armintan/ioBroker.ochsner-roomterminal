@@ -21,34 +21,50 @@ __export(util_exports, {
   buildEnumStates: () => buildEnumStates,
   buildOidGroups: () => buildOidGroups,
   determineStateRole: () => determineStateRole,
+  escapeXml: () => escapeXml,
   extractOidIndex: () => extractOidIndex,
   getEnumKeys: () => getEnumKeys,
-  padId: () => padId
+  normalizeBaseUrl: () => normalizeBaseUrl,
+  padId: () => padId,
+  parseFiniteNumber: () => parseFiniteNumber
 });
 module.exports = __toCommonJS(util_exports);
-const getEnumKeys = (prop) => {
-  const regex = /(?<=enum = )(\d|,)*$/g;
-  const found = prop.match(regex);
-  if (found && found[0].length > 0) {
-    return found[0].split(",");
+const escapeXml = (value) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+const normalizeBaseUrl = (serverIP) => {
+  const trimmed = serverIP.trim().replace(/\/+$/, "");
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
   }
-  return null;
+  return `http://${trimmed}`;
+};
+const parseFiniteNumber = (raw) => {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) {
+    return void 0;
+  }
+  const num = Number(trimmed);
+  return Number.isFinite(num) ? num : void 0;
+};
+const getEnumKeys = (prop) => {
+  const match = /enum\s*=\s*(\d+(?:\s*,\s*\d+)*)/.exec(prop);
+  if (!(match == null ? void 0 : match[1])) {
+    return null;
+  }
+  return match[1].split(",").map((key) => key.trim());
 };
 const extractOidIndex = (oid) => {
-  const lastSlash = oid.lastIndexOf("/");
-  return lastSlash !== -1 ? oid.slice(lastSlash + 1) : oid;
+  const cleaned = oid.trim().replace(/\/+$/, "");
+  const lastSlash = cleaned.lastIndexOf("/");
+  return lastSlash !== -1 ? cleaned.slice(lastSlash + 1) : cleaned;
 };
 const padId = (id) => id.length === 1 ? `0${id}` : id;
-const determineStateRole = (unit, isWritable, hasStates) => {
+const determineStateRole = (unit, isWritable) => {
   const normalizedUnit = unit.trim();
   if (normalizedUnit === "\xB0C" || normalizedUnit === "K") {
     return isWritable ? "level.temperature" : "value.temperature";
   }
-  if (normalizedUnit === "%") {
-    return isWritable ? "level" : "value";
-  }
   if (normalizedUnit === "bar" || normalizedUnit === "mbar" || normalizedUnit === "hPa") {
-    return "value.pressure";
+    return isWritable ? "level.pressure" : "value.pressure";
   }
   if (normalizedUnit === "kWh" || normalizedUnit === "Wh" || normalizedUnit === "MWh") {
     return "value.energy";
@@ -56,15 +72,20 @@ const determineStateRole = (unit, isWritable, hasStates) => {
   if (normalizedUnit === "W" || normalizedUnit === "kW") {
     return "value.power";
   }
-  if (hasStates) {
-    return isWritable ? "level" : "value";
+  if (normalizedUnit === "V") {
+    return "value.voltage";
+  }
+  if (normalizedUnit === "A") {
+    return "value.current";
+  }
+  if (normalizedUnit === "Hz") {
+    return "value.frequency";
   }
   return isWritable ? "level" : "value";
 };
 const buildEnumStates = (dp, oidEnumsDict) => {
-  var _a;
   const enumList = oidEnumsDict[dp.name];
-  if (!enumList) {
+  if (!Array.isArray(enumList)) {
     return void 0;
   }
   const states = {};
@@ -72,12 +93,17 @@ const buildEnumStates = (dp, oidEnumsDict) => {
     const enumKeys = getEnumKeys(dp.prop);
     if (enumKeys) {
       for (const val of enumKeys) {
-        states[val] = (_a = enumList[Number(val)]) != null ? _a : "undefined";
+        const label = enumList[Number(val)];
+        if (typeof label === "string" && label.length > 0) {
+          states[val] = label;
+        }
       }
     }
   } else {
     enumList.forEach((val, key) => {
-      states[key] = val != null ? val : "undefined";
+      if (typeof val === "string" && val.length > 0) {
+        states[key] = val;
+      }
     });
   }
   return Object.keys(states).length > 0 ? states : void 0;
@@ -85,20 +111,34 @@ const buildEnumStates = (dp, oidEnumsDict) => {
 const buildOidGroups = (oids) => {
   const oidGroups = {};
   const groupOidString = {};
+  const seenPerGroup = {};
   if (!(oids == null ? void 0 : oids.length)) {
     return { oidGroups, groupOidString };
   }
   oids.forEach((entry, index) => {
-    if (!entry.enabled || !entry.oid) {
+    var _a;
+    const trimmedOid = typeof (entry == null ? void 0 : entry.oid) === "string" ? entry.oid.trim() : "";
+    if (!(entry == null ? void 0 : entry.enabled) || !trimmedOid) {
       return;
     }
-    const groupKey = String(entry.group);
+    const groupNum = Number((_a = entry.group) != null ? _a : 0);
+    if (!Number.isInteger(groupNum) || groupNum < 0) {
+      return;
+    }
+    const groupKey = String(groupNum);
+    if (!seenPerGroup[groupKey]) {
+      seenPerGroup[groupKey] = /* @__PURE__ */ new Set();
+    }
+    if (seenPerGroup[groupKey].has(trimmedOid)) {
+      return;
+    }
+    seenPerGroup[groupKey].add(trimmedOid);
     if (!oidGroups[groupKey]) {
       oidGroups[groupKey] = [index];
-      groupOidString[groupKey] = entry.oid;
+      groupOidString[groupKey] = trimmedOid;
     } else {
       oidGroups[groupKey].push(index);
-      groupOidString[groupKey] = `${groupOidString[groupKey]};${entry.oid}`;
+      groupOidString[groupKey] = `${groupOidString[groupKey]};${trimmedOid}`;
     }
   });
   return { oidGroups, groupOidString };
@@ -108,8 +148,11 @@ const buildOidGroups = (oids) => {
   buildEnumStates,
   buildOidGroups,
   determineStateRole,
+  escapeXml,
   extractOidIndex,
   getEnumKeys,
-  padId
+  normalizeBaseUrl,
+  padId,
+  parseFiniteNumber
 });
 //# sourceMappingURL=util.js.map

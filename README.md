@@ -7,7 +7,7 @@
 ![Number of Installations](https://iobroker.live/badges/ochsner-roomterminal-installed.svg)
 ![Current version in stable repository](https://iobroker.live/badges/ochsner-roomterminal-stable.svg)
 
-[![NPM](https://nodei.co/npm/iobroker.ochsner_roomterminal.png?downloads=true)](https://nodei.co/npm/iobroker.ochsner-roomterminal/)
+[![NPM](https://nodei.co/npm/iobroker.ochsner-roomterminal.png?downloads=true)](https://nodei.co/npm/iobroker.ochsner-roomterminal/)
 
 ## ochsner-roomterminal Adapter for ioBroker
 

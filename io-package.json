@@ -104,22 +104,22 @@
       "fr": "Ochsner Roomterminal (web2comm)",
       "it": "Ochsner Roomterminal (web2comm)",
       "es": "Ochsner Roomterminal (web2comm)",
-      "pl": "Ochsner Room (ang.)",
+      "pl": "Ochsner Roomterminal (web2comm)",
       "uk": "Ochsner Roomterminal (web2comm)",
-      "zh-cn": "常驻代表"
+      "zh-cn": "Ochsner Roomterminal (web2comm)"
     },
     "desc": {
       "en": "Interface to the Ochsner Roomterminal (web2comm)",
       "de": "Schnittstelle zum Ochsner Roomterminal (web2comm)",
       "ru": "Интерфейс к Ochsner Roomterminal (web2comm)",
       "pt": "Interface para o Ochsner Roomterminal (web2comm)",
-      "nl": "Vertaling:",
+      "nl": "Interface naar de Ochsner Roomterminal (web2comm)",
       "fr": "Interface de l'Ochsner Roomterminal (web2comm)",
       "it": "Interfaccia a Ochsner Roomterminal (web2comm)",
       "es": "Interfaz al Ochsner Roomterminal (web2comm)",
-      "pl": "Strona internetowa Ochsner Room terminal (web2comm)",
+      "pl": "Interfejs do Ochsner Roomterminal (web2comm)",
       "uk": "Інтерфейс в Ochsner Roomterminal (web2comm)",
-      "zh-cn": "临时代办"
+      "zh-cn": "Ochsner Roomterminal (web2comm) 接口"
     },
     "authors": [
       "Armin Stegerer <Armin.Stegerer@t-online.de>"
@@ -204,16 +204,16 @@
       "common": {
         "name": {
           "en": "Device or service connected",
-          "de": "Geräte- oder Serviceanschluss",
+          "de": "Gerät oder Dienst verbunden",
           "ru": "Устройство или сервис подключены",
           "pt": "Dispositivo ou serviço conectado",
-          "nl": "Device of dienst verbonden",
+          "nl": "Apparaat of dienst verbonden",
           "fr": "Appareil ou service connecté",
           "it": "Dispositivo o servizio collegato",
           "es": "Dispositivo o servicio conectado",
-          "pl": "Device",
-          "uk": "Пристрої або послуги підключені",
-          "zh-cn": "证人或有关服务"
+          "pl": "Urządzenie lub usługa połączona",
+          "uk": "Пристрій або сервіс підключено",
+          "zh-cn": "设备或服务已连接"
         },
         "type": "boolean",
         "role": "indicator.connected",
@@ -229,16 +229,16 @@
       "common": {
         "name": {
           "en": "Device information",
-          "de": "Informationen zum Produkt",
+          "de": "Geräteinformationen",
           "ru": "Информация об устройстве",
-          "pt": "InformaÃ§Ã£o do dispositivo",
-          "nl": "Device Informatie",
-          "fr": "Information sur les dispositifs",
+          "pt": "Informações do dispositivo",
+          "nl": "Apparaatinformatie",
+          "fr": "Informations sur l'appareil",
           "it": "Informazioni sul dispositivo",
-          "es": "Información sobre dispositivos",
-          "pl": "Device Information",
+          "es": "Información del dispositivo",
+          "pl": "Informacje o urządzeniu",
           "uk": "Інформація про пристрій",
-          "zh-cn": "证人信息"
+          "zh-cn": "设备信息"
         }
       },
       "native": {}
@@ -249,16 +249,16 @@
       "common": {
         "name": {
           "en": "Device name",
-          "de": "Name des Geräts",
+          "de": "Gerätename",
           "ru": "Наименование устройства",
           "pt": "Nome do dispositivo",
-          "nl": "Vernietig Name",
-          "fr": "Nom du dispositif",
+          "nl": "Apparaatnaam",
+          "fr": "Nom de l'appareil",
           "it": "Nome del dispositivo",
           "es": "Nombre del dispositivo",
-          "pl": "Nazwisko",
+          "pl": "Nazwa urządzenia",
           "uk": "Назва пристрою",
-          "zh-cn": "Device姓名"
+          "zh-cn": "设备名称"
         },
         "type": "string",
         "role": "text",
@@ -276,13 +276,13 @@
           "de": "Geräteversion",
           "ru": "Версия устройства",
           "pt": "Versão do dispositivo",
-          "nl": "Vertaling:",
-          "fr": "Version du dispositif",
+          "nl": "Apparaatversie",
+          "fr": "Version de l'appareil",
           "it": "Versione del dispositivo",
           "es": "Versión del dispositivo",
-          "pl": "Wersja Device",
+          "pl": "Wersja urządzenia",
           "uk": "Версія пристрою",
-          "zh-cn": "目 录"
+          "zh-cn": "设备版本"
         },
         "type": "string",
         "role": "text",
@@ -300,13 +300,13 @@
           "de": "Dateispeicher",
           "ru": "Хранение файлов",
           "pt": "Armazenamento de arquivos",
-          "nl": "Veldopslag",
+          "nl": "Bestandsopslag",
           "fr": "Stockage de fichiers",
           "it": "Archiviazione file",
           "es": "Almacenamiento de archivos",
-          "pl": "Storage room",
+          "pl": "Przechowywanie plików",
           "uk": "Зберігання файлів",
-          "zh-cn": "储存"
+          "zh-cn": "文件存储"
         },
         "type": "meta.user"
       },
